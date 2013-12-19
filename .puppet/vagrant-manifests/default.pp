@@ -156,11 +156,11 @@ class {'oggenc': }
 class {'ubuntu-font': }
 
 # Android Toolchain
-class {'android': 
+class {'android':
   user => 'vagrant',
   group => 'vagrant',
   installdir => '/home/vagrant/opt',
-} -> 
+} ->
 exec { 'android-sdk-link':
   command => '/bin/ln -s android-sdk-linux android-sdk-linux_x86',
   cwd     => '/home/vagrant/opt',
@@ -168,22 +168,4 @@ exec { 'android-sdk-link':
 } ->
 android::platform { 'android-16':
   require => [Android::Package['tools']],
-}
-
-include wget
-
-wget::fetch { 'download-ioiolib':
-  source      => 'http://git.xcsoar.org/cgit/mirror/ioio.git/snapshot/ioio-0af63173ab3d85b50b6a8cf61e43806657b693f8.tar.gz',
-  destination => '/home/vagrant/opt/ioio-0af63173ab3d85b50b6a8cf61e43806657b693f8.tar.gz',
-  require => [File['/home/vagrant/opt']],
-} ->
-exec { 'unpack-ioiolib':
-  command => '/bin/tar -xvf ioio-0af63173ab3d85b50b6a8cf61e43806657b693f8.tar.gz --no-same-owner --no-same-permissions',
-  creates => '/home/vagrant/opt/ioio-0af63173ab3d85b50b6a8cf61e43806657b693f8',
-  cwd     => '/home/vagrant/opt',
-} ->
-exec { 'ioiolib-link':
-  command => '/bin/ln -s ioio-0af63173ab3d85b50b6a8cf61e43806657b693f8 ioiolib',
-  cwd     => '/home/vagrant/opt',
-  creates => '/home/vagrant/opt/ioiolib',
 }
