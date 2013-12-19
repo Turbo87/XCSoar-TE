@@ -27,8 +27,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_CONST_BUFFER_HPP
-#define XCSOAR_CONST_BUFFER_HPP
+#ifndef CONST_BUFFER_HPP
+#define CONST_BUFFER_HPP
 
 #include "Compiler.h"
 
@@ -36,6 +36,8 @@
 
 /**
  * A reference to a memory area that is read-only.
+ *
+ * @see WritableBuffer
  */
 template<typename T>
 struct ConstBuffer {
@@ -43,7 +45,7 @@ struct ConstBuffer {
   typedef const T *pointer_type;
   typedef pointer_type const_pointer_type;
   typedef pointer_type iterator;
-  typedef pointer_type const_iterator;
+  typedef const_pointer_type const_iterator;
 
   pointer_type data;
   size_type size;
@@ -54,7 +56,7 @@ struct ConstBuffer {
     :data(_data), size(_size) {}
 
   constexpr static ConstBuffer Null() {
-    return ConstBuffer(nullptr, 0);
+    return { nullptr, 0 };
   }
 
   constexpr bool IsNull() const {

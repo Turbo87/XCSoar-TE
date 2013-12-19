@@ -213,6 +213,7 @@ ReadValues()
 
     if (new_score_exit != ast.GetScoreExit()) {
       ast.SetScoreExit(new_score_exit);
+      ordered_task->ClearName();
       task_modified = true;
     }
   }
@@ -234,7 +235,8 @@ OnTaskPaint(Canvas &canvas, const PixelRect &rc)
   const MapLook &look = UIGlobals::GetMapLook();
   const NMEAInfo &basic = CommonInterface::Basic();
   PaintTaskPoint(canvas, rc, *ordered_task, tp,
-                 basic.location_available, basic.location,
+                 basic.location_available
+                 ? basic.location : GeoPoint::Invalid(),
                  CommonInterface::GetMapSettings(),
                  look.task, look.airspace,
                  terrain, &airspace_database);
@@ -250,6 +252,7 @@ OnRemoveClicked()
   if (!ordered_task->GetFactory().Remove(active_index))
     return;
 
+  ordered_task->ClearName();
   task_modified = true;
   wf->SetModalResult(mrCancel);
 }
@@ -274,6 +277,7 @@ OnRelocateClicked()
     return;
 
   ordered_task->GetFactory().Relocate(active_index, *wp);
+  ordered_task->ClearName();
   task_modified = true;
   RefreshView();
 }
@@ -282,6 +286,7 @@ static void
 OnTypeClicked()
 {
   if (dlgTaskPointType(&ordered_task, active_index)) {
+    ordered_task->ClearName();
     task_modified = true;
     RefreshView();
   }
@@ -315,6 +320,7 @@ static void
 OnOptionalStartsClicked()
 {
   if (dlgTaskOptionalStarts(&ordered_task)) {
+    ordered_task->ClearName();
     task_modified = true;
     RefreshView();
   }
@@ -369,6 +375,7 @@ dlgTaskPointShowModal(OrderedTask **task,
     task_modified = true;
   } 
   if (task_modified) {
+    ordered_task->ClearName();
     ordered_task->UpdateGeometry();
   }
   return task_modified;

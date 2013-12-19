@@ -274,14 +274,20 @@ void
 TaskManagerDialog::UpdateCaption()
 {
   StaticString<128> title;
-  title.Format(_T("%s - %s"), _("Task Manager"),
-               tab_bar->GetButtonCaption(tab_bar->GetCurrentPage()));
+  if (task->GetName().empty())
+    title.Format(_T("%s: %s"), _("Task Manager"),
+                 tab_bar->GetButtonCaption(tab_bar->GetCurrentPage()));
+  else
+    title.Format(_T("%s: %s - %s"), _("Task Manager"),
+                 task->GetName().c_str(),
+                 tab_bar->GetButtonCaption(tab_bar->GetCurrentPage()));
   SetCaption(title);
 }
 
 void
 TaskManagerDialog::InvalidateTaskView()
 {
+  UpdateCaption();
   task_view->Invalidate();
 }
 

@@ -21,13 +21,30 @@ Copyright_License {
 }
 */
 
-#include "Form/Draw.hpp"
+#ifndef XCSOAR_FORM_TAB_MENU_DATA_HPP
+#define XCSOAR_FORM_TAB_MENU_DATA_HPP
 
-void
-WndOwnerDrawFrame::OnPaint(Canvas &canvas)
-{
-  if (mOnPaintCallback == NULL)
-    return;
+#include <tchar.h>
 
-  mOnPaintCallback(canvas, GetClientRect());
-}
+class Widget;
+
+struct TabMenuGroup {
+  const TCHAR *caption;
+};
+
+/**
+ * List of all submenu items in array of MenuPageDescription[0 to
+ * (n-1)].  The menus must be sorted by main_menu_index and the order
+ * to appear.
+ */
+struct TabMenuPage {
+  const TCHAR *menu_caption;
+
+  /* The main menu page Enter menu page into the array
+   * 0 to (GetNumMainMenuCaptions() - 1) */
+  unsigned main_menu_index;
+
+  Widget *(*Load)();
+};
+
+#endif

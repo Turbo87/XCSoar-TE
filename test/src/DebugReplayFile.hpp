@@ -21,13 +21,32 @@ Copyright_License {
 }
 */
 
-#include "Form/Draw.hpp"
+#ifndef XCSOAR_DEBUG_REPLAY_FILE_HPP
+#define XCSOAR_DEBUG_REPLAY_FILE_HPP
 
-void
-WndOwnerDrawFrame::OnPaint(Canvas &canvas)
-{
-  if (mOnPaintCallback == NULL)
-    return;
+#include "DebugReplay.hpp"
+#include "IO/FileLineReader.hpp"
 
-  mOnPaintCallback(canvas, GetClientRect());
-}
+class DebugReplayFile : public DebugReplay {
+protected:
+  FileLineReaderA *reader;
+
+public:
+  DebugReplayFile(FileLineReaderA *_reader)
+    : reader(_reader) {
+  }
+
+  ~DebugReplayFile() {
+    delete reader;
+  }
+
+  long Size() const {
+    return reader->GetSize();
+  }
+
+  long Tell() const {
+    return reader->Tell();
+  }
+};
+
+#endif

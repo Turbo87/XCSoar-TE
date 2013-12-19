@@ -21,13 +21,20 @@ Copyright_License {
 }
 */
 
-#include "Form/Draw.hpp"
+#include "CreateWindowWidget.hpp"
+#include "Screen/Window.hpp"
 
 void
-WndOwnerDrawFrame::OnPaint(Canvas &canvas)
+CreateWindowWidget::Prepare(ContainerWindow &parent,
+                            const PixelRect &rc)
 {
-  if (mOnPaintCallback == NULL)
-    return;
+  WindowStyle style;
+  style.Hide();
+  SetWindow(create(parent, rc, style));
+}
 
-  mOnPaintCallback(canvas, GetClientRect());
+void
+CreateWindowWidget::Unprepare()
+{
+  DeleteWindow();
 }

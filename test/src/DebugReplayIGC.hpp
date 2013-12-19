@@ -24,22 +24,25 @@ Copyright_License {
 #ifndef XCSOAR_DEBUG_REPLAY_IGC_HPP
 #define XCSOAR_DEBUG_REPLAY_IGC_HPP
 
-#include "DebugReplay.hpp"
+#include "DebugReplayFile.hpp"
 #include "IGC/IGCExtensions.hpp"
+#include "IO/FileLineReader.hpp"
 
-class NLineReader;
 struct IGCFix;
 
-class DebugReplayIGC : public DebugReplay {
+class DebugReplayIGC : public DebugReplayFile {
   IGCExtensions extensions;
 
-public:
-  DebugReplayIGC(NLineReader *reader)
-    :DebugReplay(reader) {
+private:
+  DebugReplayIGC(FileLineReaderA *_reader)
+    : DebugReplayFile(_reader) {
     extensions.clear();
   }
 
+public:
   virtual bool Next();
+
+  static DebugReplay* Create(const char *input_file);
 
 protected:
   void CopyFromFix(const IGCFix &fix);

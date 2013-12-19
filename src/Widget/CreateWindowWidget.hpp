@@ -21,13 +21,34 @@ Copyright_License {
 }
 */
 
-#include "Form/Draw.hpp"
+#ifndef XCSOAR_CREATE_WINDOW_WIDGET_HPP
+#define XCSOAR_CREATE_WINDOW_WIDGET_HPP
 
-void
-WndOwnerDrawFrame::OnPaint(Canvas &canvas)
-{
-  if (mOnPaintCallback == NULL)
-    return;
+#include "WindowWidget.hpp"
 
-  mOnPaintCallback(canvas, GetClientRect());
-}
+#include <functional>
+
+class WindowStyle;
+
+/**
+ * A class that calls a function object to create the Window in
+ * Prepare() and deletes the Window in Unprepare().
+ */
+class CreateWindowWidget final : public WindowWidget {
+  typedef std::function<Window *(ContainerWindow &parent,
+                                 const PixelRect &rc,
+                                 WindowStyle style)> CreateFunction;
+
+  CreateFunction create;
+
+public:
+  CreateWindowWidget(CreateFunction &&_create)
+    :create(std::move(_create)) {}
+
+  /* virtual methods from class Widget */
+  virtual void Prepare(ContainerWindow &parent,
+                       const PixelRect &rc) override;
+  virtual void Unprepare() override;
+};
+
+#endif

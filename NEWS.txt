@@ -57,6 +57,19 @@ XCSoar TE
   - TravisCI support
 
 
+Version 6.8 - not yet released
+* calculations
+  - use maximum speed configured in plane setup as limit for calculations
+* airspace cross-section
+  - sync map & cross-section view zoom setting (#2913)
+* infoboxes
+  - add "Fin MC0 AltD" infobox (#2824)
+* task editor
+  - added one-click task reversal (#1730)
+  - show name of loaded/saved tasks in dialog title (#1924)
+* user interface 
+  - checklist remembers last opened list (#3110)
+
 Version 6.7.2 - 2013/12/19
 * user interface
   - fix crash in alternates list (#3146)

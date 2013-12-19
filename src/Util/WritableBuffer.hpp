@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2013 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,71 +27,60 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_CONST_ARRAY_HPP
-#define XCSOAR_CONST_ARRAY_HPP
+#ifndef WRITABLE_BUFFER_HPP
+#define WRITABLE_BUFFER_HPP
 
-#include <assert.h>
+#include "Compiler.h"
+
 #include <stddef.h>
 
 /**
- * A reference to an array that is initialised at compile time.  It
- * provides a STL-like API.
+ * A reference to a memory area that is writable.
+ *
+ * @see ConstBuffer
  */
-template<class T>
-class ConstArray {
-public:
+template<typename T>
+struct WritableBuffer {
   typedef size_t size_type;
-  typedef T value_type;
-  typedef const T *const_pointer;
-  typedef const T &const_reference;
-  typedef const T *const_iterator;
+  typedef T *pointer_type;
+  typedef const T *const_pointer_type;
+  typedef pointer_type iterator;
+  typedef const_pointer_type const_iterator;
 
-protected:
-  const_pointer data;
-  size_type the_size;
+  pointer_type data;
+  size_type size;
 
-public:
-  constexpr
-  ConstArray(const_pointer _data, size_type _size)
-    :data(_data), the_size(_size) {}
+  WritableBuffer() = default;
 
-  constexpr
-  size_type size() const {
-    return the_size;
+  constexpr WritableBuffer(pointer_type _data, size_type _size)
+    :data(_data), size(_size) {}
+
+  constexpr static WritableBuffer Null() {
+    return { nullptr, 0 };
   }
 
-  constexpr
-  bool empty() const {
-    return size() == 0;
+  constexpr bool IsNull() const {
+    return data == nullptr;
   }
 
-  /**
-   * Returns one element.  No bounds checking.
-   */
-  const_reference operator[](size_type i) const {
-    assert(i < size());
-
-    return data[i];
+  constexpr bool IsEmpty() const {
+    return size == 0;
   }
 
-  const_iterator begin() const {
+  constexpr iterator begin() const {
     return data;
   }
 
-  const_iterator end() const {
-    return begin() + size();
+  constexpr iterator end() const {
+    return data + size;
   }
 
-  const_reference front() const {
-    assert(!empty());
-
-    return data[0];
+  constexpr const_iterator cbegin() const {
+    return data;
   }
 
-  const_reference last() const {
-    assert(!empty());
-
-    return data[size() - 1];
+  constexpr const_iterator cend() const {
+    return data + size;
   }
 };
 
