@@ -12,8 +12,8 @@
 #
 class android::params {
 
-  $version    = '20.0.3'
-  $ndk_version    = '8e'
+  $version    = '22.0.1'
+  $ndk_version    = '9'
   $proxy_host = undef
   $proxy_port = undef
   $installdir = '/usr/local/android'

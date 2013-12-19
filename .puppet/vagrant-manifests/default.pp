@@ -166,6 +166,6 @@ exec { 'android-sdk-link':
   cwd     => '/home/vagrant/opt',
   creates => '/home/vagrant/opt/android-sdk-linux_x86',
 } ->
-android::platform { 'android-16':
+android::platform { 'android-17':
   require => [Android::Package['tools']],
 }
