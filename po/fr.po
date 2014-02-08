@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: xcsoar\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-14 20:49+0200\n"
-"PO-Revision-Date: 2013-10-13 06:19+0000\n"
-"Last-Translator: King Julian <Unknown>\n"
+"PO-Revision-Date: 2014-01-16 22:41+0000\n"
+"Last-Translator: Adrien Ott <Unknown>\n"
 "Language-Team: French <fr@li.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2013-10-13 15:08+0000\n"
-"X-Generator: Launchpad (build 16799)\n"
+"X-Launchpad-Export-Date: 2014-01-29 09:24+0000\n"
+"X-Generator: Launchpad (build 16916)\n"
 "X-Language: de_DE\n"
 "X-Source-Language: C\n"
 
@@ -1113,7 +1113,7 @@ msgstr "Vitesse sol"
 #: src/InfoBoxes/Content/Factory.cpp:227
 #, no-c-format
 msgid "V GND"
-msgstr "Vitesse sol"
+msgstr "V. sol"
 
 #: src/InfoBoxes/Content/Factory.cpp:228
 #, no-c-format
@@ -2304,7 +2304,7 @@ msgstr "Finesse moyenne"
 #: src/InfoBoxes/Content/Factory.cpp:891
 #, no-c-format
 msgid "GR Avg"
-msgstr "Fin. moyenne"
+msgstr "Fin. moy."
 
 #: src/InfoBoxes/Content/Factory.cpp:892
 #, no-c-format
@@ -6039,7 +6039,7 @@ msgstr "Montrer les moucherons"
 
 #: src/Dialogs/Settings/Panels/VarioConfigPanel.cpp:75
 msgid "Whether to show the bugs percentage."
-msgstr "Affichage de la ropreté (moucherons) en %."
+msgstr "Affichage de la propreté (moucherons) en %."
 
 #: src/Dialogs/Settings/Panels/VarioConfigPanel.cpp:78
 msgid "Show ballast"
@@ -6067,7 +6067,7 @@ msgid ""
 "cruise, this needle displays the average netto value.  During circling, this "
 "needle displays the average gross value."
 msgstr ""
-"Si activé, alors le vario afiche une aiguille creuse fournissant une "
+"Si activé, alors le vario affiche une aiguille creuse fournissant une "
 "indication moyenne en spirale. En transition, l'aiguille indique la valeur "
 "netto moyenne."
 
@@ -7636,6 +7636,9 @@ msgid ""
 "The bounding box part with 1 km = 1.0 point and the additional zick-zack "
 "part with 1 km = 0.5 p."
 msgstr ""
+"Compétition de Autrichienne de planeurs en ligne. Circuits limités à six "
+"points de virage. La boite englobante vaut 1 point par km, les branches "
+"additionnelle valent 0,5 point par km."
 
 #: src/Dialogs/Settings/Panels/ScoringConfigPanel.cpp:116
 #, no-c-format
@@ -9032,6 +9035,12 @@ msgid ""
 "[AVERAGE]: State HIGH if gross vario value is greater than average gross "
 "vario value."
 msgstr ""
+"Méthode de comparaison utilisée pour détecter les états de montée (HAUT/"
+"BAS).\n"
+"[AUCUNE]: État BAS désactivé\n"
+"[MACCREADY]: État HAUT si vario brut supérieur au calage MacCready.\n"
+"[MOYENNE]: État HAUT, si la valeur vario brut supérieur à la valeur moyenne "
+"du vario brut."
 
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:77
 #, no-c-format
@@ -9069,6 +9078,8 @@ msgstr "Ech. trans. moy."
 #, no-c-format
 msgid "Time scale used for cruise speed command averager."
 msgstr ""
+"Échelle de temps utilisée pour le moyenneur de consigne de vitesse en "
+"transition."
 
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:91
 #, no-c-format
@@ -9111,7 +9122,7 @@ msgstr "Filtre en spirale"
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:107
 #, no-c-format
 msgid "Variometer low pass filter time constant in circling mode."
-msgstr ""
+msgstr "Constante de temps du filtre passe bas du variomètre en spirale."
 
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:111
 #, no-c-format
@@ -9121,7 +9132,7 @@ msgstr "Filtre en croisière"
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:112
 #, no-c-format
 msgid "Variometer low pass filter time constant in cruise mode."
-msgstr ""
+msgstr "Constante de temps du filtre passe bas du variomètre en transition."
 
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:116
 #, no-c-format
@@ -9139,11 +9150,11 @@ msgstr "Type de Bip"
 
 #: src/Dialogs/Device/Vega/AudioParameters.hpp:108
 msgid "Pitch scheme"
-msgstr ""
+msgstr "Varia. son"
 
 #: src/Dialogs/Device/Vega/AudioParameters.hpp:111
 msgid "Pitch scale"
-msgstr ""
+msgstr "Ech. Varia."
 
 #: src/Dialogs/Device/Vega/AudioParameters.hpp:114
 msgid "Period scheme"
@@ -9151,12 +9162,12 @@ msgstr "Période son"
 
 #: src/Dialogs/Device/Vega/AudioParameters.hpp:117
 msgid "Period scale"
-msgstr ""
+msgstr "Echelle  Période"
 
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:33
 #, no-c-format
 msgid "TE mixing"
-msgstr ""
+msgstr "Mélange TE"
 
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:34
 #, no-c-format
@@ -9164,11 +9175,13 @@ msgid ""
 "Proportion of TE probe value used in total energy mixing with pitot/static "
 "total energy."
 msgstr ""
+"Proportion de la valeur provenant de l'antenne de compensation utilisée dans "
+"le mélange pitot/statique du calcul de l'énergie totale."
 
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:38
 #, no-c-format
 msgid "ASI cal."
-msgstr ""
+msgstr "Calib. ASI"
 
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:39
 #, no-c-format
@@ -9181,7 +9194,7 @@ msgstr ""
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:43
 #, no-c-format
 msgid "TE static cal."
-msgstr ""
+msgstr "Calib. TE static."
 
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:44
 #, no-c-format
@@ -9195,7 +9208,7 @@ msgstr ""
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:48
 #, no-c-format
 msgid "TE dynamic cal."
-msgstr ""
+msgstr "Calib. TE dyn."
 
 #: src/Dialogs/Device/Vega/CalibrationParameters.hpp:49
 #, no-c-format
@@ -9249,7 +9262,7 @@ msgstr "Pas de type aéronef"
 #: src/Dialogs/Device/Vega/FlarmIdentificationParameters.hpp:52
 #, no-c-format
 msgid "Privacy"
-msgstr ""
+msgstr "Confidentialité"
 
 #: src/Dialogs/Device/Vega/FlarmIdentificationParameters.hpp:54
 #, no-c-format
@@ -9269,12 +9282,12 @@ msgstr "Intervale Avert."
 #: src/Dialogs/Device/Vega/FlarmRepeatParameters.hpp:39
 #, no-c-format
 msgid "Interval; warning"
-msgstr ""
+msgstr "Intervale Avert."
 
 #: src/Dialogs/Device/Vega/HardwareParameters.hpp:52
 #, no-c-format
 msgid "TE port"
-msgstr ""
+msgstr "Port TE"
 
 #: src/Dialogs/Device/Vega/HardwareParameters.hpp:52
 #, no-c-format
@@ -9323,6 +9336,9 @@ msgid ""
 "accelerometer has malfunctioned or the instrument cannot be installed with "
 "correct alignment."
 msgstr ""
+"Utilisation de l'accéléromètre interne. A ne changer que si l'accéléromètre "
+"est défectueux ou si l'instrument ne peut pas être installé avec le bon "
+"alignement."
 
 #: src/Dialogs/Device/Vega/HardwareParameters.hpp:69
 #, no-c-format
@@ -9348,6 +9364,10 @@ msgid ""
 "connected the baud rate will be fixed at 38400.  For OzFLARM, the value can "
 "be set to 19200."
 msgstr ""
+"Bande passante en baud d'un instrument connecté en série au port X1 Vega. A "
+"Utiliser lors de l'utilisation d'un GPS tierce ou d'un enregistreur de "
+"données à la place du FLARM. Si le FLARM est connecté la bande passante est "
+"fixée à 38400. Pour Le OzFLARM, la valeur est 19200."
 
 #: src/Dialogs/Device/Vega/HardwareParameters.hpp:78
 #, no-c-format
@@ -9360,6 +9380,8 @@ msgid ""
 "Enable detection of FLARM.  Disable only if FLARM is not used or "
 "disconnected."
 msgstr ""
+"Activer la détection FLARM. Désactiver seulement si le FLARM n'est pas "
+"utilisé ou est déconnecté."
 
 #: src/Dialogs/Device/Vega/HardwareParameters.hpp:82
 #, no-c-format
@@ -9372,6 +9394,8 @@ msgid ""
 "Enable output of +5V power supply for PDA etc. at Vega connector~X2.  If "
 "Vega is connected to Altair, this should be set to False."
 msgstr ""
+"Active la sortie +5V pour alimenter un appareil tiers sur le connecteur Vega "
+"~X2. Si Vega est connecté à Altair, alors désactiver l'option."
 
 #: src/Dialogs/Device/Vega/LimitParameters.hpp:32
 #, no-c-format
@@ -9441,7 +9465,7 @@ msgstr "Seuil Ecouteurs"
 #: src/Dialogs/Device/Vega/MixerParameters.hpp:42
 #, no-c-format
 msgid "Urgent min. volume"
-msgstr ""
+msgstr "Volume mini urgence"
 
 #: src/Terrain/RasterWeather.cpp:51
 #, no-c-format

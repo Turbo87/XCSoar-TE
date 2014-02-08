@@ -79,8 +79,13 @@ EventQueue::Wait(Event &event)
       return true;
 
     ::SDL_PumpEvents();
+#if SDL_MAJOR_VERSION >= 2
+    int result = ::SDL_PeepEvents(&event.event, 1,
+                                 SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+#else
     int result = ::SDL_PeepEvents(&event.event, 1,
                                   SDL_GETEVENT, SDL_ALLEVENTS);
+#endif
     if (result != 0)
       return result > 0;
 
@@ -91,12 +96,16 @@ EventQueue::Wait(Event &event)
 }
 
 void
-EventQueue::Purge(Uint32 mask,
+EventQueue::Purge(Uint32 event,
                   bool (*match)(const SDL_Event &event, void *ctx),
                   void *ctx)
 {
   SDL_Event events[256]; // is that enough?
-  int count = SDL_PeepEvents(events, 256, SDL_GETEVENT, mask);
+#if SDL_MAJOR_VERSION >= 2
+  int count = SDL_PeepEvents(events, 256, SDL_GETEVENT, event, event);
+#else
+  int count = SDL_PeepEvents(events, 256, SDL_GETEVENT, SDL_EVENTMASK(event));
+#endif
   assert(count >= 0);
 
   SDL_Event *dest = events;
@@ -104,7 +113,11 @@ EventQueue::Purge(Uint32 mask,
     if (!match(*src, ctx))
       *dest++ = *src;
 
-  SDL_PeepEvents(events, dest - events, SDL_ADDEVENT, mask);
+#if SDL_MAJOR_VERSION >= 2
+  SDL_PeepEvents(events, dest - events, SDL_ADDEVENT, event, event);
+#else
+  SDL_PeepEvents(events, dest - events, SDL_ADDEVENT, SDL_EVENTMASK(event));
+#endif
 }
 
 struct MatchCallbackData {
@@ -123,7 +136,7 @@ void
 EventQueue::Purge(EventLoop::Callback callback, void *ctx)
 {
   MatchCallbackData data { (void *)callback, ctx };
-  Purge(SDL_EVENTMASK(EVENT_CALLBACK), MatchCallback, (void *)&data);
+  Purge(EVENT_CALLBACK, MatchCallback, (void *)&data);
 }
 
 static bool
@@ -136,7 +149,7 @@ match_window(const SDL_Event &event, void *ctx)
 void
 EventQueue::Purge(Window &window)
 {
-  Purge(SDL_EVENTMASK(EVENT_USER),
+  Purge(EVENT_USER,
         match_window, (void *)&window);
 }
 

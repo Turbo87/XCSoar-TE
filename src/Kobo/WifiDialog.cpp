@@ -33,6 +33,7 @@ Copyright_License {
 #include "Form/ActionListener.hpp"
 #include "Widget/ListWidget.hpp"
 #include "WPASupplicant.hpp"
+#include "OS/SocketAddress.hpp"
 
 class WifiListWidget final
   : public ListWidget, ActionListener, Timer {
@@ -46,6 +47,8 @@ class WifiListWidget final
     StaticString<256> ssid;
     int signal_level;
     int id;
+
+    enum WifiSecurity security;
 
     bool old_visible, old_configured;
   };
@@ -164,6 +167,11 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
   const unsigned y1 = rc.top + padding;
   const unsigned y2 = y1 + look.text_font->GetHeight() + padding;
 
+  static char wifi_security[][20] = {
+    "WPA",
+    "WEP"
+  };
+
   canvas.Select(*look.text_font);
   canvas.DrawText(x1, y1, info.ssid);
 
@@ -171,8 +179,22 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
   canvas.DrawText(x1, y2, info.bssid);
 
   const TCHAR *state = nullptr;
-  if (StringIsEqual(info.bssid, status.bssid))
+  StaticString<40> state_buffer;
+
+  /* found the currently connected wifi network? */
+  if (StringIsEqual(info.bssid, status.bssid)) {
     state = _("Connected");
+
+    /* look up ip address for eth0 */
+    SocketAddress addr = SocketAddress::GetDeviceAddress("eth0");
+    if (addr.IsDefined()) { /* valid address? */
+      StaticString<40> addr_str;
+      if (addr.ToString(addr_str.buffer(), addr_str.MAX_SIZE) != nullptr) {
+        state_buffer.Format(_T("%s (%s)"), state, addr_str.c_str());
+        state = state_buffer;
+      }
+    }
+  }
   else if (info.id >= 0)
     state = info.signal_level >= 0
       ? _("Saved and visible")
@@ -187,22 +209,67 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
 
   if (info.signal_level >= 0) {
     StaticString<20> text;
-    text.UnsafeFormat(_T("%u"), info.signal_level);
+    text.UnsafeFormat(_T("%s %u"), wifi_security[info.security], info.signal_level);
     unsigned width = canvas.CalcTextWidth(text);
     canvas.DrawText(rc.right - padding - width, y2, text);
   }
 }
 
 static bool
-WifiConnect(WPASupplicant &wpa_supplicant, const char *ssid, const char *psk)
+WifiConnect(enum WifiSecurity security, WPASupplicant &wpa_supplicant, const char *ssid, const char *psk)
 {
   int id = wpa_supplicant.AddNetwork();
+  char *endPsk_ptr;
+  bool success;
+
   if (id < 0)
     return false;
 
-  return wpa_supplicant.SetNetworkSSID(id, ssid) &&
-    wpa_supplicant.SetNetworkPSK(id, psk) &&
-    wpa_supplicant.EnableNetwork(id) &&
+  success = wpa_supplicant.SetNetworkSSID(id, ssid);
+
+  if (!success)
+    return false;
+
+  if (security == WPA_SECURITY) {
+
+    success = wpa_supplicant.SetNetworkPSK(id, psk);
+    if (!success)
+      return false;
+
+  } else if (security == WEP_SECURITY) {
+
+    success = wpa_supplicant.SetNetworkID(id, "key_mgmt", "NONE");
+    if (!success)
+      return false;
+
+    /*
+     * If psk is all hexidecimal should SetNetworkID, assuming user provided key in hex.
+     * Use strtoll to confirm the psk is entirely in hex.
+     * Also to need to check that it does not begin with 0x which WPA supplicant does not like.
+     */
+
+    (void) strtoll(psk, &endPsk_ptr, 16);
+
+    if ((*endPsk_ptr == '\0') &&                                   // confirm strtoll processed all of psk
+        (strlen(psk) >= 2) && (psk[0] != '0') && (psk[1] != 'x'))  // and the first two characters were no "0x"
+      success = wpa_supplicant.SetNetworkID(id, "wep_key0", psk);
+    else
+      success = wpa_supplicant.SetNetworkString(id, "wep_key0", psk);
+
+    if (!success)
+      return false;
+
+    if (security == WEP_SECURITY) {
+
+      success = wpa_supplicant.SetNetworkID(id, "auth_alg", "OPEN\tSHARED");
+      if (!success)
+        return false;
+
+    }
+  } else
+    return false;
+
+  return wpa_supplicant.EnableNetwork(id) &&
     wpa_supplicant.SaveConfig();
 }
 
@@ -227,10 +294,10 @@ WifiListWidget::Connect()
 
     StaticString<32> passphrase;
     passphrase.clear();
-    if (!TextEntryDialog(passphrase, caption))
+    if (!TextEntryDialog(passphrase, caption, false))
       return;
 
-    if (!WifiConnect(wpa_supplicant, ssid, passphrase))
+    if (!WifiConnect(info.security, wpa_supplicant, info.ssid, passphrase))
       ShowMessageBox(_T("Network failure"), _("Connect"), MB_OK);
   } else {
     if (!wpa_supplicant.RemoveNetwork(info.id) || !wpa_supplicant.SaveConfig())
@@ -316,6 +383,7 @@ WifiListWidget::MergeList(const WifiVisibleNetwork *p, unsigned n)
 
     info->ssid = found.ssid;
     info->signal_level = found.signal_level;
+    info->security = found.security;
     info->old_visible = false;
   }
 }

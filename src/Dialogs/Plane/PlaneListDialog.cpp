@@ -238,21 +238,14 @@ PlaneListWidget::Load(unsigned i)
 bool
 PlaneListWidget::LoadWithDialog(unsigned i)
 {
-  const TCHAR *title;
-  StaticString<256> text;
-
   bool result = Load(i);
   if (!result) {
-    title = _("Error");
-    text.Format(_("Activating plane profile \"%s\" failed!"),
+    const TCHAR *title = _("Error");
+    StaticString<256> text;
+    text.Format(_("Activating plane \"%s\" failed."),
                 list[i].name.c_str());
-  } else {
-    title = _T(" ");
-    text.Format(_("Plane profile \"%s\" activated."),
-                list[i].name.c_str());
+    ShowMessageBox(text, title, MB_OK);
   }
-
-  ShowMessageBox(text, title, MB_OK);
 
   return result;
 }
@@ -284,9 +277,9 @@ PlaneListWidget::NewClicked()
 
     if (File::Exists(path)) {
       StaticString<256> tmp;
-      tmp.Format(_("A plane profile \"%s\" already exists. "
-                   "Do you want to overwrite it?"),
-                   filename.c_str());
+      tmp.Format(_("Plane \"%s\" already exists. "
+                   "Overwrite it?"),
+                   plane.registration.c_str());
       if (ShowMessageBox(tmp, _("Overwrite"), MB_YESNO) != IDYES)
         continue;
     }
@@ -327,9 +320,9 @@ PlaneListWidget::EditClicked()
 
       if (File::Exists(path)) {
         StaticString<256> tmp;
-        tmp.Format(_("A plane profile \"%s\" already exists. "
-                     "Do you want to overwrite it?"),
-                     filename.c_str());
+        tmp.Format(_("Plane \"%s\" already exists. "
+                     "Overwrite it?"),
+                     plane.registration.c_str());
         if (ShowMessageBox(tmp, _("Overwrite"), MB_YESNO) != IDYES)
           continue;
       }
@@ -358,8 +351,12 @@ PlaneListWidget::DeleteClicked()
   assert(GetList().GetCursorIndex() < list.size());
 
   StaticString<256> tmp;
-  tmp.Format(_("Do you really want to delete plane profile \"%s\"?"),
-             list[GetList().GetCursorIndex()].name.c_str());
+  StaticString<256> tmp_name(list[GetList().GetCursorIndex()].name.c_str());
+  if (tmp_name.length() > 4)
+    tmp_name.Truncate(tmp_name.length() - 4);
+
+  tmp.Format(_("Delete plane \"%s\"?"),
+             tmp_name.c_str());
   if (ShowMessageBox(tmp, _("Delete"), MB_YESNO) != IDYES)
     return;
 
@@ -395,7 +392,7 @@ PlaneListWidget::OnActivateItem(unsigned i)
   assert(i < list.size());
 
   StaticString<256> tmp;
-  tmp.Format(_("Do you want to activate plane profile \"%s\"?"),
+  tmp.Format(_("Activate plane \"%s\"?"),
              list[i].name.c_str());
 
   if (ShowMessageBox(tmp, _T(" "), MB_YESNO) == IDYES)

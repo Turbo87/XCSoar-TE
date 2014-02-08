@@ -135,7 +135,7 @@ TrackingConfigPanel::OnModified(DataField &df)
 static constexpr StaticEnumChoice server_list[] = {
   { 0, _T("www.livetrack24.com") },
   { 1, _T("test.livetrack24.com") },
-  { 2, _T("livexc.dhv1.de") },
+  { 2, _T("livexc.dhv.de") },
   { 0 },
 };
 
@@ -144,6 +144,8 @@ static constexpr StaticEnumChoice vehicle_type_list[] = {
   { (unsigned) TrackingSettings::VehicleType::PARAGLIDER, N_("Paraglider") },
   { (unsigned) TrackingSettings::VehicleType::POWERED_AIRCRAFT, N_("Powered aircraft") },
   { (unsigned) TrackingSettings::VehicleType::HOT_AIR_BALLOON, N_("Hot-air balloon") },
+  { (unsigned) TrackingSettings::VehicleType::HANGGLIDER_FLEX, N_("Hangglider (Flex/FAI1)") },
+  { (unsigned) TrackingSettings::VehicleType::HANGGLIDER_RIGID, N_("Hangglider (Rigid/FAI5)") },
   { 0 },
 };
 

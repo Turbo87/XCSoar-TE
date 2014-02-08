@@ -23,6 +23,7 @@ KOBO_MENU_SOURCES = \
 	$(SRC)/Kobo/WPASupplicant.cpp \
 	$(SRC)/Kobo/System.cpp \
 	$(SRC)/Kobo/NetworkDialog.cpp \
+	$(SRC)/Kobo/ToolsDialog.cpp \
 	$(SRC)/Kobo/WPASupplicant.cpp \
 	$(SRC)/Kobo/WifiDialog.cpp \
 	$(SRC)/Kobo/FakeSymbols.cpp \
@@ -47,7 +48,7 @@ KOBO_POWER_OFF_SOURCES = \
 	$(SRC)/FlightInfo.cpp \
 	$(SRC)/Kobo/PowerOff.cpp
 KOBO_POWER_OFF_LDADD = $(FAKE_LIBS)
-KOBO_POWER_OFF_DEPENDS = SCREEN RESOURCE IO OS UTIL TIME
+KOBO_POWER_OFF_DEPENDS = SCREEN RESOURCE IO OS MATH UTIL TIME
 KOBO_POWER_OFF_STRIP = y
 $(eval $(call link-program,PowerOff,KOBO_POWER_OFF))
 OPTIONAL_OUTPUTS += $(KOBO_POWER_OFF_BIN)

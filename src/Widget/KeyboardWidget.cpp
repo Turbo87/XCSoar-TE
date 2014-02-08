@@ -47,7 +47,6 @@ KeyboardWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 
   for (const TCHAR *i = keyboard_letters; !StringIsEmpty(i); ++i) {
     caption[0] = *i;
-
     AddButton(parent, caption, *i);
   }
 
@@ -63,8 +62,7 @@ KeyboardWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
                                        { 0, 0, 16, 16 }, style,
                                        *this, SHIFT);
   }
-
-  shift_state = true;
+  UpdateShiftState();
 }
 
 void
@@ -113,7 +111,7 @@ ButtonWindow *
 KeyboardWidget::FindButton(unsigned ch)
 {
   for (unsigned i = 0; i < num_buttons; ++i)
-    if (buttons[i].GetCharacter() == ch)
+    if (buttons[i].GetUpperCharacter() == ch)
       return &buttons[i];
 
   return NULL;
@@ -242,13 +240,10 @@ KeyboardWidget::AddButton(ContainerWindow &parent,
 }
 
 void
-KeyboardWidget::OnShiftClicked()
+KeyboardWidget::UpdateShiftState()
 {
-  assert(shift_button != nullptr);
-
-  shift_state = !shift_state;
-
-  shift_button->SetCaption(shift_state ? _T("v") : _T("^"));
+  if (shift_button != nullptr)
+    shift_button->SetCaption(shift_state ? _T("v") : _T("^"));
 
   for (unsigned i = 0; i < num_buttons; ++i) {
     unsigned uch = buttons[i].GetCharacter();
@@ -263,6 +258,15 @@ KeyboardWidget::OnShiftClicked()
       }
     }
   }
+}
+
+void
+KeyboardWidget::OnShiftClicked()
+{
+  assert(shift_button != nullptr);
+
+  shift_state = !shift_state;
+  UpdateShiftState();
 }
 
 void
