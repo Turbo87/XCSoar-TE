@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: xcsoar\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-14 20:49+0200\n"
-"PO-Revision-Date: 2014-01-16 22:41+0000\n"
+"PO-Revision-Date: 2014-04-10 16:07+0000\n"
 "Last-Translator: Adrien Ott <Unknown>\n"
 "Language-Team: French <fr@li.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2014-01-29 09:24+0000\n"
-"X-Generator: Launchpad (build 16916)\n"
+"X-Launchpad-Export-Date: 2014-04-11 05:04+0000\n"
+"X-Generator: Launchpad (build 16976)\n"
 "X-Language: de_DE\n"
 "X-Source-Language: C\n"
 
@@ -6969,7 +6969,7 @@ msgstr "Aff. Zone atteignable"
 #: src/Dialogs/Settings/Panels/SafetyFactorsConfigPanel.cpp:65
 #: src/Dialogs/Settings/Panels/WaypointDisplayConfigPanel.cpp:126
 msgid "Arrival height"
-msgstr "Hauteur d'arrivée"
+msgstr "Indication d'arrivée"
 
 #: src/Dialogs/Settings/Panels/SafetyFactorsConfigPanel.cpp:66
 msgid ""
@@ -9058,6 +9058,15 @@ msgid ""
 "[RELATIVE MC/2] LIFT tone when relative vario greater than half MC.\n"
 "[NET MC/2] LIFT tone when airmass velocity greater than half MC."
 msgstr ""
+"Méthode de comparaison utilisée pour détecter les états de croisière et "
+"commuter la tonalité LIFT pendant la croisière.\n"
+"[NEANT]: LIFT tonalité désactivé sur croisière.\n"
+"[RELATIVE ZERO] LIFT tonalité lorsque le vario relatif supérieur à zéro.\n"
+"[BRUT ZERO] LIFT tonalité lorsque le planeur monte.\n"
+"[RELATIVE MC / 2] LIFT tonalité lorsque le vario relatif est supérieur à la "
+"moitié de MC.\n"
+"[NET MC / 2] LIFT tonalité lorsque la vitesse de la masse d'air supérieure à "
+"la moitié MC."
 
 #: src/Dialogs/Device/Vega/AudioModeParameters.hpp:82
 #, no-c-format
