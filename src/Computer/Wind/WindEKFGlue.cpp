@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -104,14 +104,11 @@ WindEKFGlue::Update(const NMEAInfo &basic, const DerivedInfo &derived)
   ResetBlackout();
 
   fixed V = basic.true_airspeed;
-  fixed dynamic_pressure = sqr(V);
   float gps_vel[2];
   const auto sc = basic.track.SinCos();
   const fixed gps_east = sc.first, gps_north = sc.second;
   gps_vel[0] = (float)(gps_east * basic.ground_speed);
   gps_vel[1] = (float)(gps_north * basic.ground_speed);
-
-  float dT = 1.0;
 
   if (reset_pending) {
     /* do the postponed WindEKF reset */
@@ -119,9 +116,7 @@ WindEKFGlue::Update(const NMEAInfo &basic, const DerivedInfo &derived)
     ekf.Init();
   }
 
-  ekf.StatePrediction(gps_vel, dT);
-  ekf.Correction(dynamic_pressure, gps_vel);
-  // CovariancePrediction(dT);
+  ekf.Update(V, gps_vel);
 
   ++i;
   if (i % 10 != 0)

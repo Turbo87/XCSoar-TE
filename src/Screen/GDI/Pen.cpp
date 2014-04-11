@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -46,13 +46,13 @@ Pen::Reset()
 {
   assert(!IsDefined() || IsScreenInitialized());
 
-  if (pen != NULL) {
+  if (pen != nullptr) {
 #ifndef NDEBUG
     bool success =
 #endif
       ::DeleteObject(pen);
     assert(success);
 
-    pen = NULL;
+    pen = nullptr;
   }
 }

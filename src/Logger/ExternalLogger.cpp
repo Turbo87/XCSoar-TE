@@ -2,7 +2,7 @@
   Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -84,7 +84,7 @@ DeviceDeclare(DeviceDescriptor &dev, const Declaration &declaration,
     return false;
 
   const TCHAR *caption = dev.GetDisplayName();
-  if (caption == NULL)
+  if (caption == nullptr)
     caption = _("Declare task");
 
   auto result = DoDeviceDeclare(dev, declaration, home);
@@ -189,11 +189,11 @@ ReadIGCMetaData(const TCHAR *path, IGCHeader &header, BrokenDate &date)
   }
 
   char *line = reader.ReadLine();
-  if (line != NULL)
+  if (line != nullptr)
     IGCParseHeader(line, header);
 
   line = reader.ReadLine();
-  if (line == NULL || !IGCParseDateRecord(line, date))
+  if (line == nullptr || !IGCParseDateRecord(line, date))
     date = BrokenDate::TodayUTC();
 }
 
@@ -239,9 +239,9 @@ ShowFlightList(const RecordedFlightList &flight_list)
 
   // Show list of the flights
   int i = ComboPicker(_T("Choose a flight"),
-                      combo, NULL, false);
+                      combo, nullptr, false);
 
-  return (i < 0) ? NULL : &flight_list[i];
+  return i < 0 ? nullptr : &flight_list[i];
 }
 
 void
@@ -271,6 +271,12 @@ ExternalLogger::DownloadFlightFrom(DeviceDescriptor &device)
     ShowMessageBox(_("Logger is empty."),
                 _("Download flight"), MB_OK | MB_ICONINFORMATION);
     return;
+  }
+
+  {
+    TCHAR path[MAX_PATH];
+    LocalPath(path, _T("logs"));
+    Directory::Create(path);
   }
 
   while (true) {

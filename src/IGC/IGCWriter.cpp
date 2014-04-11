@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -195,7 +195,7 @@ IGCWriter::AddDeclaration(const GeoPoint &location, const TCHAR *id)
   char *p = c_record;
   *p++ = 'C';
   p = FormatIGCLocation(p, location);
-  CopyASCIIUppper(p, id);
+  CopyASCIIUpper(p, id);
 
   WriteLine(c_record);
 }

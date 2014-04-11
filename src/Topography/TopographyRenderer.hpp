@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ Copyright_License {
 
 #include "Topography/TopographyStore.hpp"
 #include "Util/StaticArray.hpp"
-#include "Util/NonCopyable.hpp"
 
 class Canvas;
 class WindowProjection;
@@ -41,7 +40,10 @@ class TopographyRenderer : private NonCopyable {
   StaticArray<TopographyFileRenderer *, TopographyStore::MAXTOPOGRAPHY> files;
 
 public:
-  TopographyRenderer(const TopographyStore &store);
+  explicit TopographyRenderer(const TopographyStore &store);
+
+  TopographyRenderer(const TopographyRenderer &) = delete;
+
   ~TopographyRenderer();
 
   const TopographyStore &GetStore() const {

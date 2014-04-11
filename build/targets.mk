@@ -2,14 +2,23 @@ TARGETS = PC WIN64 \
 	PPC2000 PPC2003 PPC2003X WM5 WM5X \
 	ALTAIR \
 	UNIX UNIX32 UNIX64 OPT \
-	PI KOBO NEON \
+	PI CUBIE KOBO NEON \
 	ANDROID ANDROID7 ANDROID7NEON ANDROID86 ANDROIDMIPS \
 	ANDROIDFAT \
-	WINE CYGWIN
+	WINE CYGWIN \
+	OSX32 OSX64 IOS
 
 ifeq ($(TARGET),)
   ifeq ($(HOST_IS_UNIX),y)
-    TARGET = UNIX
+    ifeq ($(HOST_IS_DARWIN),y)
+      ifeq ($(HOST_IS_X86_32),y)
+        TARGET = OSX32
+      else
+        TARGET = OSX64
+      endif
+    else
+      TARGET = UNIX
+    endif
   else
     TARGET = PC
   endif
@@ -19,7 +28,11 @@ else
   endif
 endif
 
-TARGET_FLAVOR := $(TARGET)
+ifeq ($(MAKECMDGOALS),python)
+  TARGET_FLAVOR := $(TARGET)_PYTHON
+else
+  TARGET_FLAVOR := $(TARGET)
+endif
 
 HAVE_CE := n
 HAVE_FPU := y
@@ -217,6 +230,13 @@ ifeq ($(TARGET),PI)
   ARMV6 = y
 endif
 
+ifeq ($(TARGET),CUBIE)
+  # cross-crompiling for Cubieboard
+  override TARGET = NEON
+  CUBIE ?= /opt/cubie/root
+  TARGET_HAS_MALI = y
+endif
+
 ifeq ($(TARGET),KOBO)
   # Experimental target for Kobo Mini
   override TARGET = NEON
@@ -234,6 +254,72 @@ ifeq ($(TARGET),NEON)
   TARGET_IS_ARM = y
   ARMV7 := y
   NEON := y
+endif
+
+ifeq ($(TARGET),OSX32)
+  override TARGET = UNIX
+  TARGET_IS_DARWIN = y
+  TARGET_IS_OSX = y
+  DARWIN_SDK_VERSION = 10.9
+  OSX_MIN_SUPPORTED_VERSION = 10.7
+  ifeq ($(HOST_IS_DARWIN),y)
+    DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${DARWIN_SDK_VERSION}.sdk
+    TARGET_ARCH += -target i386-apple-darwin9
+  else
+    DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
+    DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/MacOSX$(DARWIN_SDK_VERSION).sdk
+    DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/i386-MacOSX-$(OSX_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/i386-apple-darwin9-
+    LLVM_PREFIX = $(TCPREFIX)
+  endif
+  LIBCXX = y
+  CLANG = y
+  TARGET_ARCH += -march=i686 -msse2 -mmacosx-version-min=$(OSX_MIN_SUPPORTED_VERSION)
+  ASFLAGS += -arch i386
+endif
+
+ifeq ($(TARGET),OSX64)
+  override TARGET = UNIX
+  TARGET_IS_DARWIN = y
+  TARGET_IS_OSX = y
+  DARWIN_SDK_VERSION = 10.9
+  OSX_MIN_SUPPORTED_VERSION = 10.7
+  ifeq ($(HOST_IS_DARWIN),y)
+    DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${DARWIN_SDK_VERSION}.sdk
+    TARGET_ARCH += -target x86_64-apple-darwin9
+  else
+    DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
+    DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/MacOSX$(DARWIN_SDK_VERSION).sdk
+    DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/x86_64-MacOSX-$(OSX_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/x86_64-apple-darwin9-
+    LLVM_PREFIX = $(TCPREFIX)
+  endif
+  LIBCXX = y
+  CLANG = y
+  TARGET_ARCH += -mmacosx-version-min=$(OSX_MIN_SUPPORTED_VERSION)
+  ASFLAGS += -arch x86_64
+endif
+
+ifeq ($(TARGET),IOS)
+  override TARGET = UNIX
+  TARGET_IS_DARWIN = y
+  TARGET_IS_IOS = y
+  DARWIN_SDK_VERSION = 7.1
+  IOS_MIN_SUPPORTED_VERSION = 5.1
+  ifeq ($(HOST_IS_DARWIN),y)
+    DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${DARWIN_SDK_VERSION}.sdk
+    TARGET_ARCH += -target armv7-apple-darwin9
+  else
+    DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
+    DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/iPhoneOS$(DARWIN_SDK_VERSION).sdk
+    DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/armv7-iOS-$(IOS_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/armv7-apple-darwin9-
+    LLVM_PREFIX = $(TCPREFIX)
+  endif
+  LIBCXX = y
+  CLANG = y
+  TARGET_ARCH += -miphoneos-version-min=$(IOS_MIN_SUPPORTED_VERSION)
+  ASFLAGS += -arch armv7
 endif
 
 ifeq ($(TARGET),UNIX)
@@ -260,7 +346,7 @@ ifeq ($(TARGET),UNIX)
 endif
 
 ifeq ($(filter $(TARGET),UNIX WINE),$(TARGET))
-  ifeq ($(HOST_IS_LINUX),y)
+  ifeq ($(HOST_IS_LINUX)$(TARGET_IS_DARWIN),yn)
     TARGET_IS_LINUX := y
   endif
   ifeq ($(HOST_IS_DARWIN),y)
@@ -269,7 +355,7 @@ ifeq ($(filter $(TARGET),UNIX WINE),$(TARGET))
 endif
 
 ifeq ($(TARGET),ANDROID)
-  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r9c
+  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r9d
 
   ANDROID_PLATFORM = android-17
   ANDROID_SDK_PLATFORM = $(ANDROID_PLATFORM)
@@ -281,10 +367,12 @@ ifeq ($(TARGET),ANDROID)
   ANDROID_ABI2 = arm-linux-androideabi
   ANDROID_ABI3 = armeabi
   ANDROID_ABI4 = $(ANDROID_ABI2)
+  ANDROID_ABI5 = $(ANDROID_ABI3)
   ANDROID_GCC_VERSION = 4.8
 
   ifeq ($(ARMV7),y)
-    ANDROID_ABI3 = armeabi-v7a
+    ANDROID_ABI3 = armeabi-v7a-hard
+    ANDROID_ABI5 = armeabi-v7a
   endif
 
   ifeq ($(X86),y)
@@ -355,7 +443,7 @@ ifeq ($(TARGET),ANDROID)
 
   ifeq ($(ARMV7),y)
     LLVM_TRIPLE = armv7-none-linux-androideabi
-    TARGET_ARCH += -march=armv7-a -mfloat-abi=softfp -mthumb-interwork
+    TARGET_ARCH += -march=armv7-a -mfloat-abi=hard -mhard-float -D_NDK_MATH_NO_SOFTFP=1
     HAVE_FPU := y
   endif
 
@@ -450,6 +538,12 @@ ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)
   TARGET_CPPFLAGS += --sysroot=$(PI) -isystem $(PI)/usr/include/arm-linux-gnueabihf
 endif
 
+ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)
+  # cross-crompiling for Cubieboard
+  TARGET_CPPFLAGS += --sysroot=$(CUBIE) -isystem $(CUBIE)/usr/include/arm-linux-gnueabihf
+  TARGET_CPPFLAGS += -isystem $(CUBIE)/usr/local/stow/sunxi-mali/include
+endif
+
 ifeq ($(TARGET_IS_KOBO),y)
   TARGET_CPPFLAGS += -DKOBO
   TARGET_CPPFLAGS += -isystem $(KOBO)/include
@@ -530,6 +624,14 @@ ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)
   TARGET_LDFLAGS += --sysroot=$(PI) -L$(PI)/usr/lib/arm-linux-gnueabihf
 endif
 
+ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)
+  # cross-crompiling for Cubieboard
+  TARGET_LDFLAGS += --sysroot=$(CUBIE)
+  TARGET_LDFLAGS += -L$(CUBIE)/lib/arm-linux-gnueabihf
+  TARGET_LDFLAGS += -L$(CUBIE)/usr/lib/arm-linux-gnueabihf
+  TARGET_LDFLAGS += -L$(CUBIE)/usr/local/stow/sunxi-mali/lib
+endif
+
 ifeq ($(TARGET_IS_KOBO),y)
   TARGET_LDFLAGS += -L$(KOBO)/lib
   TARGET_LDFLAGS += -static-libstdc++
@@ -573,7 +675,15 @@ ifeq ($(TARGET),UNIX)
 endif
 
 ifeq ($(TARGET),ANDROID)
-  TARGET_LDLIBS += -lc -lm
+  TARGET_LDLIBS += -lc
+
+  ifeq ($(ARMV7),y)
+    TARGET_LDLIBS += -lm_hard
+    TARGET_LDLIBS += -Wl,--no-warn-mismatch
+  else
+    TARGET_LDLIBS += -lm
+  endif
+
   TARGET_LDLIBS += -llog
   TARGET_LDLIBS += -lgcc
 endif

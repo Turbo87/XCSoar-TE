@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -165,15 +165,20 @@ ReadFloat(const void *data)
   exponent -= sign ? 1 : 2;
 
   // Assemble the result
-  uint32_t result = mantisse | (exponent << 23);
+  union {
+    uint32_t i;
+    float f;
+  } result;
+
+  result.i = mantisse | (exponent << 23);
   if (sign)
-    result = result | 0x80000000;
+    result.i = result.i | 0x80000000;
 
   // Convert little endian to system
-  result = FromLE32(result);
+  result.i = FromLE32(result.i);
 
   // Return result as float
-  return *((float *)&result);
+  return result.f;
 }
 
 void

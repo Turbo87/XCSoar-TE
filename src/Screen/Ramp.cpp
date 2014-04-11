@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ Copyright_License {
 #include "PortableColor.hpp"
 
 #include <assert.h>
-#include <stddef.h>
 
 RGB8Color
 ColorRampLookup(const short h,
@@ -33,7 +32,7 @@ ColorRampLookup(const short h,
                 const int numramp,
                 const unsigned char interp_levels)
 {
-  assert(ramp_colors != NULL);
+  assert(ramp_colors != nullptr);
   assert(numramp >= 2);
 
   unsigned short f, of;

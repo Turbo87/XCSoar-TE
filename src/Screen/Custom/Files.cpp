@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -25,13 +25,24 @@ Copyright_License {
 #include "OS/FileUtil.hpp"
 #include "Compiler.h"
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 static const char *const all_font_paths[] = {
 #ifdef __APPLE__
+#if TARGET_OS_IPHONE
+  "/System/Library/Fonts/Cache/Arial.ttf",
+  "/System/Library/Fonts/Cache/Georgia.ttf",
+  "/System/Library/Fonts/Cache/TimesNewRoman.ttf",
+#else
   "/Library/Fonts/Tahoma.ttf",
   "/Library/Fonts/Georgia.ttf",
   "/Library/Fonts/Arial Narrow.ttf",
   "/Library/Fonts/Times New Roman.ttf",
+  "/Library/Fonts/Arial.ttf",
   "/Library/Fonts/Microsoft/Arial.ttf",
+#endif
 #elif defined(WIN32) && !defined(HAVE_POSIX)
   /* just for the experimental WINSDL target */
   "c:\\windows\\fonts\\arial.ttf",
@@ -58,15 +69,22 @@ static const char *const all_font_paths[] = {
   "/usr/share/fonts/unifont/unifont.ttf",
   "/usr/share/fonts/corefonts/tahoma.ttf",
 #endif
-  NULL
+  nullptr
 };
 
 static const char *const all_bold_font_paths[] = {
 #ifdef __APPLE__
+#if TARGET_OS_IPHONE
+  "/System/Library/Fonts/Cache/ArialBold.ttf",
+  "/System/Library/Fonts/Cache/GeorgiaBold.ttf",
+  "/System/Library/Fonts/Cache/TimesNewRomanBold.ttf",
+#else
   "/Library/Fonts/Tahoma Bold.ttf",
   "/Library/Fonts/Georgia Bold.ttf",
   "/Library/Fonts/Arial Narrow Bold.ttf",
+  "/Library/Fonts/Arial Bold.ttf",
   "/Library/Fonts/Microsoft/Arial Bold.ttf",
+#endif
 #elif defined(KOBO)
   "/mnt/onboard/XCSoar/fonts/DejaVuSansCondensed-Bold.ttf",
   "/mnt/onboard/fonts/VeraBd.ttf",
@@ -91,7 +109,18 @@ static const char *const all_bold_font_paths[] = {
 };
 
 static const char *const all_italic_font_paths[] = {
-#if defined(KOBO)
+#ifdef __APPLE__
+#if TARGET_OS_IPHONE
+  "/System/Library/Fonts/Cache/ArialItalic.ttf",
+  "/System/Library/Fonts/Cache/GeorgiaItalic.ttf",
+  "/System/Library/Fonts/Cache/TimesNewRomanItalic.ttf",
+#else
+  "/Library/Fonts/Arial Italic.ttf",
+  "/Library/Fonts/Microsoft/Arial Italic.ttf",
+  "/Library/Fonts/Georgia Italic.ttf",
+  "/Library/Fonts/Arial Narrow Italic.ttf",
+#endif
+#elif defined(KOBO)
   "/mnt/onboard/XCSoar/fonts/DejaVuSansCondensed-Oblique.ttf",
   "/mnt/onboard/fonts/VeraIt.ttf",
   "/mnt/onboard/XCSoar/fonts/VeraIt.ttf",
@@ -111,7 +140,18 @@ static const char *const all_italic_font_paths[] = {
 };
 
 static const char *const all_bold_italic_font_paths[] = {
-#if defined(KOBO)
+#ifdef __APPLE__
+#if TARGET_OS_IPHONE
+  "/System/Library/Fonts/Cache/ArialBoldItalic.ttf",
+  "/System/Library/Fonts/Cache/GeorgiaBoldItalic.ttf",
+  "/System/Library/Fonts/Cache/TimesNewRomanBoldItalic.ttf",
+#else
+  "/Library/Fonts/Arial Bold Italic.ttf",
+  "/Library/Fonts/Microsoft/Arial Bold Italic.ttf",
+  "/Library/Fonts/Georgia Bold Italic.ttf",
+  "/Library/Fonts/Arial Narrow Bold Italic.ttf",
+#endif
+#elif defined(KOBO)
   "/mnt/onboard/XCSoar/fonts/DejaVuSansCondensed-BoldOblique.ttf",
   "/mnt/onboard/fonts/VeraBI.ttf",
   "/mnt/onboard/XCSoar/fonts/VeraBI.ttf",
@@ -132,7 +172,11 @@ static const char *const all_bold_italic_font_paths[] = {
 
 static const char *const all_monospace_font_paths[] = {
 #ifdef __APPLE__
+#if TARGET_OS_IPHONE
+  "/System/Library/Fonts/Cache/CourierNew.ttf",
+#else
   "/Library/Fonts/Courier New.ttf",
+#endif
 #elif defined(KOBO)
   "/mnt/onboard/XCSoar/fonts/DejaVuSansMono.ttf",
   "/mnt/onboard/fonts/VeraMono.ttf",
@@ -149,7 +193,7 @@ static const char *const all_monospace_font_paths[] = {
   "/usr/share/fonts/truetype/freefont/FreeMono.ttf",
   "/usr/share/fonts/TTF/freefont/FreeMono.ttf",
 #endif
-  NULL
+  nullptr
 };
 
 gcc_const

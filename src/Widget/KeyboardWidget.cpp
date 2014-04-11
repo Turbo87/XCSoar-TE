@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -103,8 +103,8 @@ void
 KeyboardWidget::SetAllowedCharacters(const TCHAR *allowed)
 {
   for (unsigned i = 0; i < num_buttons; ++i)
-    buttons[i].SetVisible(allowed == NULL ||
-                          _tcschr(allowed, buttons[i].GetCharacter()) != NULL);
+    buttons[i].SetVisible(allowed == nullptr ||
+                          _tcschr(allowed, buttons[i].GetCharacter()) != nullptr);
 }
 
 ButtonWindow *
@@ -114,7 +114,7 @@ KeyboardWidget::FindButton(unsigned ch)
     if (buttons[i].GetUpperCharacter() == ch)
       return &buttons[i];
 
-  return NULL;
+  return nullptr;
 
 }
 

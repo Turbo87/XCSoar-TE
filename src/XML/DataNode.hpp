@@ -1,7 +1,7 @@
 /* Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@ public:
    *
    * @param name Name of child
    *
-   * @return Pointer to child if found, or NULL
+   * @return Pointer to child if found, or nullptr
    */
   virtual DataNode *GetChildNamed(const TCHAR *name) const = 0;
 
@@ -145,7 +145,7 @@ public:
    *
    * @param name Name of attribute
    *
-   * @return the value or NULL if it does not exist
+   * @return the value or nullptr if it does not exist
    */
   virtual const TCHAR *GetAttribute(const TCHAR *name) const = 0;
 

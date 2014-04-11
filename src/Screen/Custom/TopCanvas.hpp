@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -33,6 +33,10 @@ Copyright_License {
 #include "Screen/Canvas.hpp"
 #endif
 
+#ifdef ENABLE_OPENGL
+#include "Screen/OpenGL/Features.hpp"
+#endif
+
 #ifdef USE_EGL
 #include "Screen/EGL/System.hpp"
 #endif
@@ -45,6 +49,10 @@ Copyright_License {
 
 #ifdef ENABLE_SDL
 #include <SDL_version.h>
+#endif
+
+#ifdef SOFTWARE_ROTATE_DISPLAY
+enum class DisplayOrientation : uint8_t;
 #endif
 
 struct SDL_Surface;
@@ -234,6 +242,10 @@ public:
   void SetEnableDither(bool _enable_dither) {
     enable_dither = _enable_dither;
   }
+#endif
+
+#ifdef SOFTWARE_ROTATE_DISPLAY
+  void SetDisplayOrientation(DisplayOrientation orientation);
 #endif
 
 private:

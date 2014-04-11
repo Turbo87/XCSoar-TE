@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -28,7 +28,13 @@ Copyright_License {
 #ifdef ENABLE_OPENGL
 #include "Screen/OpenGL/Texture.hpp"
 #include "Screen/OpenGL/Scope.hpp"
+
+#ifdef USE_GLSL
+#include "Screen/OpenGL/Shaders.hpp"
+#include "Screen/OpenGL/Program.hpp"
+#else
 #include "Screen/OpenGL/Compatibility.hpp"
+#endif
 #endif
 
 void
@@ -82,9 +88,13 @@ MaskedIcon::Draw(Canvas &canvas, PixelScalar x, PixelScalar y) const
     /* hack: do the postponed layout calcuation now */
     const_cast<MaskedIcon *>(this)->CalculateLayout((bool)size.cy);
 
-  OpenGL::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
+#ifdef USE_GLSL
+  OpenGL::texture_shader->Use();
+#else
   const GLEnable scope(GL_TEXTURE_2D);
+  OpenGL::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+#endif
+
   const GLBlend blend(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   GLTexture &texture = *bitmap.GetNative();

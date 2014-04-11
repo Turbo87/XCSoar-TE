@@ -1,7 +1,7 @@
 PKG_CONFIG = pkg-config
 
 ifeq ($(TARGET_IS_DARWIN),y)
-  PKG_CONFIG += --static
+  PKG_CONFIG := PKG_CONFIG_LIBDIR=$(DARWIN_LIBS)/lib/pkgconfig $(PKG_CONFIG) --static
 endif
 
 ifeq ($(HOST_IS_WIN32)$(HAVE_WIN32)$(HAVE_CE)$(call string_equals,WINE,$(TARGET)),nynn)
@@ -14,6 +14,10 @@ endif
 
 ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)
   PKG_CONFIG := PKG_CONFIG_LIBDIR=$(PI)/usr/lib/arm-linux-gnueabihf/pkgconfig $(PKG_CONFIG) --define-variable=prefix=$(PI)/usr
+endif
+
+ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)
+  PKG_CONFIG := PKG_CONFIG_LIBDIR=$(CUBIE)/usr/lib/arm-linux-gnueabihf/pkgconfig $(PKG_CONFIG) --define-variable=prefix=$(CUBIE)/usr
 endif
 
 # Generates a pkg-config lookup for a library.

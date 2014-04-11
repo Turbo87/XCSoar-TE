@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -120,6 +120,9 @@ Middle(const GeoPoint &a, const GeoPoint &b);
 
 /** 
  * Calculate and add distances between point 1 and 2, and point 2 and 3.
+ * Warning: this method uses spherical calculations only! That's ok since
+ *          it's only used to calculate alternate airports, which is no
+ *          distance-critical task.
  * 
  * @param loc1 Location 1
  * @param loc2 Location 2

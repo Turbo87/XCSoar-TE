@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ public:
   constexpr
   static bool SupportsPartialRedraw() {
 #ifdef USE_GDI
-    /* we can use the GDI function InvalidateRect() with a non-NULL
+    /* we can use the GDI function InvalidateRect() with a non-nullptr
        RECT */
     return true;
 #else
@@ -97,7 +97,7 @@ public:
 #ifndef USE_GDI
     Window::Invalidate();
 #else
-    ::InvalidateRect(hWnd, NULL, false);
+    ::InvalidateRect(hWnd, nullptr, false);
 #endif
   }
 

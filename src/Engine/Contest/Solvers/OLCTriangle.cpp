@@ -1,7 +1,7 @@
 /* Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -207,7 +207,7 @@ OLCTriangle::SolveTriangle(bool exhaustive)
            relaxed->first <= closing_pair->first + relax &&
            relaxed->second <= closing_pair->second + relax;
            ++relaxed)
-        relax_last = relaxed->second;
+        relax_last = std::max(relax_last, relaxed->second);
 
       relaxed_pairs.insert(ClosingPair(relax_first, relax_last));
     }
@@ -314,6 +314,15 @@ OLCTriangle::RunBranchAndBound(unsigned from, unsigned to, unsigned worst_d, boo
    * How to use this method for solving FAI triangles is described here:
    * http://www.penguin.cz/~ondrap/algorithm.pdf
    */
+
+  // Return early if this tp-range can't beat the current best_d...
+  // Assume a maximum speed of 100 m/s
+  const unsigned fastskiprange = GetPoint(to).DeltaTime(GetPoint(from)) * 100;
+  const unsigned fastskiprange_flat =
+    trace_master.ProjectRange(GetPoint(from).GetLocation(), fixed(fastskiprange));
+
+  if (fastskiprange_flat < worst_d)
+    return std::tuple<unsigned, unsigned, unsigned, unsigned>(0, 0, 0, 0);
 
   bool integral_feasible = false;
   unsigned best_d = 0,

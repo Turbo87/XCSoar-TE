@@ -31,6 +31,8 @@ STRIP = strip$(EXE)
 WINDRES = wrc$(EXE)
 endif
 
+CXX_VERSION := $(shell $(CXX) -dumpversion)
+
 ####### paths
 
 ifeq ($(LLVM),y)
@@ -41,7 +43,7 @@ OBJ_SUFFIX = .o
 endif
 
 # Converts a list of source file names to *.o
-SRC_TO_OBJ = $(subst /./,/,$(patsubst %.cpp,%$(OBJ_SUFFIX),$(patsubst %.c,%$(OBJ_SUFFIX),$(addprefix $(TARGET_OUTPUT_DIR)/,$(1)))))
+SRC_TO_OBJ = $(subst /./,/,$(patsubst %.cpp,%$(OBJ_SUFFIX),$(patsubst %.c,%$(OBJ_SUFFIX),$(patsubst %.mm,%$(OBJ_SUFFIX),$(addprefix $(TARGET_OUTPUT_DIR)/,$(1))))))
 
 ####### dependency handling
 
@@ -49,6 +51,9 @@ DEPFILE = $(@:$(OBJ_SUFFIX)=.d)
 DEPFLAGS = -Wp,-MD,$(DEPFILE),-MT,$@
 cc-flags = $(DEPFLAGS) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(TARGET_ARCH) $(FLAGS_COVERAGE)
 cxx-flags = $(DEPFLAGS) $(ALL_CXXFLAGS) $(ALL_CPPFLAGS) $(TARGET_ARCH) $(FLAGS_COVERAGE)
+
+cc-flags-filter = $(filter-out $(FILTER_FLAGS),$(cc-flags))
+cxx-flags-filter = $(filter-out $(FILTER_FLAGS),$(cxx-flags))
 
 #
 # Useful debugging targets - make preprocessed versions of the source
@@ -81,3 +86,7 @@ $(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.cpp $(TARGET_OUTPUT_DIR)/%/../dirstamp
 ifeq ($(IWYU),y)
 	$(Q)iwyu $< $(cxx-flags)
 endif
+
+$(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.mm $(TARGET_OUTPUT_DIR)/%/../dirstamp
+	@$(NQ)echo "  CXX     $@"
+	$(Q)$(WRAPPED_CXX) $< -c -o $@ $(cxx-flags)

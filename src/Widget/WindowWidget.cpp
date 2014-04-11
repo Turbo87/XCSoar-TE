@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -26,14 +26,14 @@ Copyright_License {
 
 WindowWidget::WindowWidget(Window *_window)
   :window(_window) {
-  assert(window != NULL);
+  assert(window != nullptr);
   assert(!window->IsDefined() || !window->IsVisible());
 }
 
 void
 WindowWidget::DeleteWindow()
 {
-  assert(window != NULL);
+  assert(window != nullptr);
 
   /* we must call Window::Destroy() explicitly here, because when
      Window::~Window() attempts to do that, it's too late already to
@@ -45,7 +45,7 @@ WindowWidget::DeleteWindow()
 void
 WindowWidget::Show(const PixelRect &rc)
 {
-  assert(window != NULL);
+  assert(window != nullptr);
   assert(window->IsDefined());
   assert(!window->IsVisible());
 
@@ -55,7 +55,7 @@ WindowWidget::Show(const PixelRect &rc)
 void
 WindowWidget::Hide()
 {
-  assert(window != NULL);
+  assert(window != nullptr);
   assert(window->IsDefined());
   assert(window->IsVisible());
 
@@ -65,7 +65,7 @@ WindowWidget::Hide()
 void
 WindowWidget::Move(const PixelRect &rc)
 {
-  assert(window != NULL);
+  assert(window != nullptr);
   assert(window->IsDefined());
   assert(window->IsVisible());
 

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ PolygonToTriangles(const RasterPoint *points, unsigned num_points,
                    unsigned min_distance=1);
 unsigned
 PolygonToTriangles(const ShapePoint *points, unsigned num_points,
-                   GLushort *triangles, unsigned min_distance=1);
+                   GLushort *triangles, float min_distance=1);
 
 /**
  * Pack triangle indices into a triangle strip.

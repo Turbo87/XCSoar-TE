@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -393,7 +393,7 @@ RasterWeather::ValueToText(TCHAR* Buffer, short val) const
     _stprintf(Buffer, _T("%d%%"), Clamp(int(val), 0, 100));
     return;
   case 6: // sfctemp
-    _stprintf(Buffer, _T("%d")_T(DEG), val / 2 - 20);
+    _stprintf(Buffer, _T("%d") _T(DEG), val / 2 - 20);
     return;
   case 7: // hwcrit
     _stprintf(Buffer, _T("%.0f%s"), (double)

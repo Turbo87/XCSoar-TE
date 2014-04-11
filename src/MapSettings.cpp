@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -55,8 +55,8 @@ MapSettings::SetDefaults()
   airspace.SetDefaults();
   glider_screen_position = 35; // 35% from bottom
   map_shift_bias = MapShiftBias::TRACK;
-  circling_orientation = DisplayOrientation::NORTH_UP;
-  cruise_orientation = DisplayOrientation::NORTH_UP;
+  circling_orientation = MapOrientation::NORTH_UP;
+  cruise_orientation = MapOrientation::NORTH_UP;
   circling_scale = fixed(1) / 2;
   cruise_scale = fixed(1) / 60;
   show_flarm_on_map = true;

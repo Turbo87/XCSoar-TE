@@ -1,7 +1,7 @@
 /* Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -61,13 +61,13 @@ static const char *const expect[] = {
   "AXCSFOO",
   "HFDTE040910",
   "HFFXA050",
-  "HFPLTPILOT:Pilot Name",
+  "HFPLTPILOTINCHARGE:Pilot Name",
   "HFGTYGLIDERTYPE:ASK-21",
   "HFGIDGLIDERID:D-1234",
   "HFCIDCOMPETITIONID:34",
   "HFFTYFRTYPE:XCSOAR XCSOAR",
   "HFGPS:bar",
-  "HFDTM100DATUM:WGS-84",
+  "HFDTM100DATUM:WGS-1984",
   "I023638FXA3940SIU",
   "C040910112233000000000001",
   "C0000000N00000000ETAKEOFF",

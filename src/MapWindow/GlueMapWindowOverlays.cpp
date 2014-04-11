@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ GlueMapWindow::DrawGesture(Canvas &canvas) const
     return;
 
   const TCHAR *gesture = gestures.GetGesture();
-  if (gesture != NULL && !InputEvents::IsGesture(gesture))
+  if (gesture != nullptr && !InputEvents::IsGesture(gesture))
     canvas.Select(gesture_look.invalid_pen);
   else
     canvas.Select(gesture_look.pen);
@@ -130,7 +130,7 @@ GlueMapWindow::DrawPanInfo(Canvas &canvas) const
   TCHAR *start = buffer;
   while (true) {
     TCHAR *newline = _tcschr(start, _T('\n'));
-    if (newline != NULL)
+    if (newline != nullptr)
       *newline = _T('\0');
 
     TextInBox(canvas, start, x, y, mode,
@@ -139,7 +139,7 @@ GlueMapWindow::DrawPanInfo(Canvas &canvas) const
 
     y += height;
 
-    if (newline == NULL)
+    if (newline == nullptr)
       break;
 
     start = newline + 1;
@@ -175,7 +175,7 @@ GlueMapWindow::DrawGPSStatus(Canvas &canvas, const PixelRect &rc,
 
   const Font &font = *look.overlay_font;
   canvas.Select(font);
-  TextInBox(canvas, txt, x, y, mode, rc, NULL);
+  TextInBox(canvas, txt, x, y, mode, rc, nullptr);
 }
 
 void
@@ -184,7 +184,7 @@ GlueMapWindow::DrawFlightMode(Canvas &canvas, const PixelRect &rc) const
   PixelScalar offset = 0;
 
   // draw logger status
-  if (logger != NULL && logger->IsLoggerActive()) {
+  if (logger != nullptr && logger->IsLoggerActive()) {
     bool flip = (Basic().date_time_utc.second % 2) == 0;
     const MaskedIcon &icon = flip ? look.logger_on_icon : look.logger_off_icon;
     offset = icon.GetSize().cx;
@@ -344,9 +344,9 @@ GlueMapWindow::DrawMapScale(Canvas &canvas, const PixelRect &rc,
         _T("BALLAST %d LITERS "),
         (int)GetComputerSettings().polar.glide_polar_task.GetBallastLitres());
 
-  if (weather != NULL && weather->GetParameter() > 0) {
+  if (weather != nullptr && weather->GetParameter() > 0) {
     const TCHAR *label = weather->ItemLabel(weather->GetParameter());
-    if (label != NULL)
+    if (label != nullptr)
       buffer += label;
   }
 
@@ -393,6 +393,7 @@ GlueMapWindow::RenderTrail(Canvas &canvas, const RasterPoint aircraft_pos)
     min_time = std::max(0, (int)Basic().time - 600);
     break;
   case TrailSettings::Length::FULL:
+  default:
     min_time = 0; // full
     break;
   }
@@ -422,7 +423,7 @@ GlueMapWindow::DrawThermalBand(Canvas &canvas, const PixelRect &rc) const
   tb_rect.bottom = (rc.bottom-rc.top)/5 - Layout::Scale(2);
 
   const ThermalBandRenderer &renderer = thermal_band_renderer;
-  if (task != NULL) {
+  if (task != nullptr) {
     ProtectedTaskManager::Lease task_manager(*task);
     renderer.DrawThermalBand(Basic(),
                              Calculated(),

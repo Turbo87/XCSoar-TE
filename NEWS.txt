@@ -58,8 +58,12 @@ XCSoar TE
 
 
 Version 6.8 - not yet released
+* data files
+  - optimise the topography loader
 * calculations
   - use maximum speed configured in plane setup as limit for calculations
+  - use WGS84 earth ellipsoid for distance calculations (#2809)
+  - simplified EKF wind algorithm
 * airspace cross-section
   - sync map & cross-section view zoom setting (#2913)
 * infoboxes
@@ -69,11 +73,31 @@ Version 6.8 - not yet released
   - show name of loaded/saved tasks in dialog title (#1924)
 * user interface 
   - checklist remembers last opened list (#3110)
+  - display rotation for Raspberry Pi and Cubieboard (#3238)
+  - use /dev/input/event* on Raspberry Pi and Cubieboard (#3179)
+  - support mouse wheel on Raspberry Pi and Cubieboard
+  - scale touchscreen coordinates to screen size
+* Android
+  - fix IOIO connection on Android 4.x (#2959, #3260)
 * Kobo
   - add UI allowing the start of external scripts to KoboMenu (#3194)
   - support Wifi with WEP (#3138)
+  - support USB-OTG
 
 Version 6.7.4 - not yet released
+* map
+  - fix topography rendering for polygon shapes (#3245)
+  - fix SDL clipped polygon rendering algorithm (#3250)
+* devices
+  - Westerboer: ignore implausible values from buggy devices
+* logger
+  - create "logs" directory automatically for external flight downloads
+* user interface
+  - show status message when switching to next turnpoint (#3270)
+* airspace
+  - relax parsing of TNP airspace files (#3272)
+* infoboxes
+  - don't use depreciated content in default configuration (#3278)
 
 Version 6.7.3 - 2014/01/22
 * tracking

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -337,7 +337,7 @@ InputEvents::eventTaskTransition(const TCHAR *misc)
               _("Speed"), TempSpeed,
               _("Time"), TempTime);
     Message::AddMessage(_("Task start"), TempAll);
-  } else if (StringIsEqual(misc, _T("tp"))) {
+  } else if (StringIsEqual(misc, _T("next"))) {
     Message::AddMessage(_("Next turnpoint"));
   } else if (StringIsEqual(misc, _T("finish"))) {
     Message::AddMessage(_("Task finished"));

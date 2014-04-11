@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -317,7 +317,7 @@ Update()
 
   case AnalysisPage::WIND:
     _stprintf(sTmp, _T("%s: %s"), _("Analysis"),
-              _("Wind At Altitude"));
+              _("Wind at Altitude"));
     wf->SetCaption(sTmp);
     wInfo->SetCaption(_T(""));
     SetCalcCaption(_("Set Wind"));

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ Copyright_License {
 void
 EditWindow::Create(ContainerWindow &parent, PixelRect rc,
                    const EditWindowStyle style, size_t max_length) {
-  Window::Create(&parent, WC_EDIT, NULL, rc, style);
+  Window::Create(&parent, WC_EDIT, nullptr, rc, style);
 
   if (max_length > 0)
     ::SendMessage(hWnd, EM_LIMITTEXT, (WPARAM)(max_length - 1), (LPARAM)0);

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -148,7 +148,7 @@ MapItemListBuilder::AddLocation(const NMEAInfo &basic,
     vector.SetInvalid();
 
   short elevation;
-  if (terrain != NULL)
+  if (terrain != nullptr)
     elevation = terrain->GetTerrainHeight(location);
   else
     elevation = RasterBuffer::TERRAIN_INVALID;
@@ -166,7 +166,7 @@ MapItemListBuilder::AddArrivalAltitudes(
 
   // Calculate terrain elevation if possible
   short elevation;
-  if (terrain != NULL)
+  if (terrain != nullptr)
     elevation = terrain->GetTerrainHeight(location);
   else
     elevation = RasterBuffer::TERRAIN_INVALID;
@@ -214,7 +214,7 @@ MapItemListBuilder::AddVisibleAirspace(
     const MoreData &basic, const DerivedInfo &calculated)
 {
   AirspaceWarningList warnings;
-  if (warning_manager != NULL)
+  if (warning_manager != nullptr)
     warnings.Fill(*warning_manager);
 
   const AircraftState aircraft = ToAircraftState(basic, calculated);

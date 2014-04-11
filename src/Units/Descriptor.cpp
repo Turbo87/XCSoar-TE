@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -44,8 +44,8 @@ const UnitDescriptor Units::unit_descriptors[] = {
   { _T("ft"), fixed(3.2808399), fixed(0) },
   { _T("FL"), fixed(0.032808399), fixed(0) },
   { _T("K"), fixed(1), fixed(0) },
-  { _T(DEG)_T("C"), fixed(1), -CELSIUS_OFFSET },
-  { _T(DEG)_T("F"), fixed(1.8), fixed(-459.67) },
+  { _T(DEG) _T("C"), fixed(1), -CELSIUS_OFFSET },
+  { _T(DEG) _T("F"), fixed(1.8), fixed(-459.67) },
   { _T("hPa"), fixed(1), fixed(0) },
   { _T("mb"), fixed(1), fixed(0) },
   { _T("mmHg"), fixed(0.7500616827041698), fixed(0) },

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -129,14 +129,14 @@ TopWindow::OnEvent(const Event &event)
 
   case Event::KEY_DOWN:
     w = GetFocusedWindow();
-    if (w == NULL)
+    if (w == nullptr)
       w = this;
 
     return w->OnKeyDown(event.param);
 
   case Event::KEY_UP:
     w = GetFocusedWindow();
-    if (w == NULL)
+    if (w == nullptr)
       w = this;
 
     return w->OnKeyUp(event.param);
@@ -159,6 +159,9 @@ TopWindow::OnEvent(const Event &event)
     double_click.Moved(event.point);
 
     return OnMouseUp(event.point.x, event.point.y);
+
+  case Event::MOUSE_WHEEL:
+    return OnMouseWheel(event.point.x, event.point.y, (int)event.param);
   }
 
   return false;

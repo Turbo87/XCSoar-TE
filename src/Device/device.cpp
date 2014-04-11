@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -130,7 +130,7 @@ devStartup()
   }
 
   if (none_available) {
-#ifdef ANDROID
+#if defined(ANDROID) || defined(__APPLE__)
     /* fall back to built-in GPS when no configured device is
        available on this platform */
     LogFormat("Falling back to built-in GPS");

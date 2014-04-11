@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -67,6 +67,11 @@ public:
   virtual long Tell() const = 0;
   virtual bool Next() = 0;
 
+  /* Return a detail level for this fix - only used for skylines */
+  virtual int Level() const {
+    return 0;
+  }
+
   const MoreData &Basic() const {
     return computed_basic;
   }
@@ -82,6 +87,11 @@ public:
   DerivedInfo &SetCalculated() {
     return calculated;
   }
+
+  FlyingComputer &SetFlyingComputer() {
+    return flying_computer;
+  }
+
 
 protected:
   void Compute();

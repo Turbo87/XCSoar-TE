@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -55,45 +55,48 @@ public:
 static bool
 PWES0(NMEAInputLine &line, NMEAInfo &info)
 {
-  int i, k;
+  int i;
 
   line.Skip(); /* device */
 
-  if (line.ReadChecked(i))
+  if (line.ReadChecked(i) && i >= -999 && i <= 999)
     info.ProvideTotalEnergyVario(fixed(i) / 10);
 
   line.Skip(); /* average vario */
 
-  if (line.ReadChecked(i))
+  if (line.ReadChecked(i) && i >= -999 && i <= 999)
     info.ProvideNettoVario(fixed(i) / 10);
 
   line.Skip(); /* average netto vario */
   line.Skip(); /* speed to fly */
 
-  if (line.ReadChecked(i))
-    info.ProvidePressureAltitude(fixed(i));
+  unsigned altitude;
+  if (line.ReadChecked(altitude) && altitude <= 99999)
+    info.ProvidePressureAltitude(fixed(altitude));
 
-  if (line.ReadChecked(i))
-    info.ProvideBaroAltitudeTrue(fixed(i));
+  if (line.ReadChecked(altitude) && altitude <= 99999)
+    info.ProvideBaroAltitudeTrue(fixed(altitude));
 
-  bool have_ias = line.ReadChecked(i);
-  bool have_tas = line.ReadChecked(k);
+  unsigned ias, tas;
+  bool have_ias = line.ReadChecked(ias) && ias <= 9999;
+  bool have_tas = line.ReadChecked(tas) && tas <= 9999;
   if (have_ias && have_tas)
-    info.ProvideBothAirspeeds(Units::ToSysUnit(fixed(i) / 10,
+    info.ProvideBothAirspeeds(Units::ToSysUnit(fixed(ias) / 10,
                                                Unit::KILOMETER_PER_HOUR),
-                              Units::ToSysUnit(fixed(k) / 10,
+                              Units::ToSysUnit(fixed(tas) / 10,
                                                Unit::KILOMETER_PER_HOUR));
 
   else if (!have_ias && have_tas)
-    info.ProvideTrueAirspeed(Units::ToSysUnit(fixed(k) / 10,
+    info.ProvideTrueAirspeed(Units::ToSysUnit(fixed(tas) / 10,
                                               Unit::KILOMETER_PER_HOUR));
 
-  if (line.ReadChecked(i)) {
-    info.voltage = fixed(i) / 10;
+  unsigned voltage;
+  if (line.ReadChecked(voltage) && voltage <= 999) {
+    info.voltage = fixed(voltage) / 10;
     info.voltage_available.Update(info.clock);
   }
 
-  if (line.ReadChecked(i)) {
+  if (line.ReadChecked(i) && i >= -999 && i <= 999) {
     info.temperature = CelsiusToKelvin(fixed(i) / 10);
     info.temperature_available = true;
   }

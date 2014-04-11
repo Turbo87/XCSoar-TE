@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -25,18 +25,17 @@ Copyright_License {
 #define XCSOAR_SCREEN_OPENGL_VERTEX_ARRAY_HPP
 
 #include "Screen/OpenGL/Point.hpp"
+#include "VertexPointer.hpp"
 #include "Compiler.h"
 
 template<unsigned n>
 struct GLVertexArray {
-  enum {
-    SIZE = n,
-  };
+  static constexpr unsigned SIZE = n;
 
   RasterPoint v[SIZE];
 
-  void bind() const {
-    glVertexPointer(2, GL_VALUE, 0, v);
+  void Bind(ScopeVertexPointer &vp) const {
+    vp.Update(v);
   }
 };
 
@@ -45,10 +44,8 @@ struct GLCircleVertices : public GLVertexArray<32> {
 };
 
 struct GLDonutVertices : public GLVertexArray<66> {
-  enum {
-    CIRCLE_SIZE = (SIZE - 2) / 2,
-    MAX_ANGLE = CIRCLE_SIZE * 2u,
-  };
+  static constexpr unsigned CIRCLE_SIZE = (SIZE - 2) / 2;
+  static constexpr unsigned MAX_ANGLE = CIRCLE_SIZE * 2u;
 
   gcc_const
   static unsigned FixAngle(unsigned angle) {
@@ -73,12 +70,12 @@ struct GLDonutVertices : public GLVertexArray<66> {
   GLDonutVertices(GLvalue center_x, GLvalue center_y,
                   GLvalue radius_inner, GLvalue radius_outer);
 
-  void bind_inner_circle() const {
-    glVertexPointer(2, GL_VALUE, sizeof(v[0]) * 2, v);
+  void BindInnerCircle(ScopeVertexPointer &vp) const {
+    vp.Update(GL_VALUE, sizeof(v[0]) * 2, v);
   }
 
-  void bind_outer_circle() const {
-    glVertexPointer(2, GL_VALUE, sizeof(v[0]) * 2, v + 1);
+  void BindOuterCircle(ScopeVertexPointer &vp) const {
+    vp.Update(GL_VALUE, sizeof(v[0]) * 2, v + 1);
   }
 };
 

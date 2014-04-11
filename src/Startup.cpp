@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -97,6 +97,7 @@ Copyright_License {
 
 #ifdef ENABLE_OPENGL
 #include "Screen/OpenGL/Globals.hpp"
+#include "Screen/OpenGL/Dynamic.hpp"
 #else
 #include "DrawThread.hpp"
 #endif
@@ -211,12 +212,18 @@ Startup()
 #ifdef HAVE_OES_DRAW_TEXTURE
             "oesdt=%d "
 #endif
+#ifdef HAVE_DYNAMIC_MULTI_DRAW_ARRAYS
+            "mda=%d "
+#endif
             "npot=%d vbo=%d fbo=%d stencil=%#x",
 #ifdef HAVE_DYNAMIC_EGL
              OpenGL::egl,
 #endif
 #ifdef HAVE_OES_DRAW_TEXTURE
             OpenGL::oes_draw_texture,
+#endif
+#ifdef HAVE_DYNAMIC_MULTI_DRAW_ARRAYS
+            GLExt::HaveMultiDrawElements(),
 #endif
              OpenGL::texture_non_power_of_two,
              OpenGL::vertex_buffer_object,

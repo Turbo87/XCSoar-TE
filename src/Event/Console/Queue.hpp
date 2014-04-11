@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -34,19 +34,23 @@ Copyright_License {
 #include "../Linux/SignalListener.hpp"
 
 #ifndef NON_INTERACTIVE
+#include "../Linux/MergeMouse.hpp"
 #ifdef KOBO
 #include "../Linux/Input.hpp"
-#include "../Shared/RotatePointer.hpp"
-#include "DisplaySettings.hpp"
+#elif defined(USE_LINUX_INPUT)
+#include "../Linux/AllInput.hpp"
 #else
 #include "../Linux/TTYKeyboard.hpp"
 #include "../Linux/Mouse.hpp"
 #endif
 #endif
 
+#include <stdint.h>
+
 #include <queue>
 #include <set>
 
+enum class DisplayOrientation : uint8_t;
 class Window;
 class Timer;
 
@@ -61,13 +65,18 @@ class EventQueue final : private SignalListener {
   IOLoop io_loop;
 
 #ifndef NON_INTERACTIVE
+  MergeMouse merge_mouse;
 #ifdef KOBO
   LinuxInputDevice keyboard;
   LinuxInputDevice mouse;
-  RotatePointer rotate_mouse;
+#else
+#ifdef USE_LINUX_INPUT
+  AllLinuxInputDevices all_input;
 #else
   TTYKeyboard keyboard;
   LinuxMouse mouse;
+#endif
+
 #endif
 #endif
 
@@ -89,27 +98,23 @@ public:
 #ifndef NON_INTERACTIVE
 
   void SetScreenSize(unsigned width, unsigned height) {
-#ifdef KOBO
-    rotate_mouse.SetSize(width, height);
-#else
-    mouse.SetScreenSize(width, height);
-#endif
+    merge_mouse.SetScreenSize(width, height);
   }
 
-#ifdef KOBO
   void SetMouseRotation(bool swap, bool invert_x, bool invert_y) {
-    rotate_mouse.SetSwap(swap);
-    rotate_mouse.SetInvert(invert_x, invert_y);
+    merge_mouse.SetSwap(swap);
+    merge_mouse.SetInvert(invert_x, invert_y);
   }
 
-  void SetMouseRotation(DisplaySettings::Orientation orientation);
-#endif
+  void SetMouseRotation(DisplayOrientation orientation);
 
-#ifndef KOBO
+  bool HasPointer() const {
+    return merge_mouse.HasPointer();
+  }
+
   RasterPoint GetMousePosition() const {
-    return { int(mouse.GetX()), int(mouse.GetY()) };
+    return { int(merge_mouse.GetX()), int(merge_mouse.GetY()) };
   }
-#endif
 
 #endif /* !NON_INTERACTIVE */
 

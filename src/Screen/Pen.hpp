@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -72,14 +72,14 @@ public:
 #ifdef USE_GDI
 
   /** Base Constructor for the Pen class */
-  Pen() : pen(NULL) {}
+  Pen() : pen(nullptr) {}
   /**
    * Constructor that creates a Pen object, based on the given parameters
    * @param style Line style (SOLID, DASH, BLANK)
    * @param width Width of the line/Pen
    * @param c Color of the Pen
    */
-  Pen(Style Style, unsigned width, const Color c):pen(NULL) {
+  Pen(Style Style, unsigned width, const Color c):pen(nullptr) {
     Set(Style, width, c);
   }
   /**
@@ -87,7 +87,7 @@ public:
    * @param width Width of the line/Pen
    * @param c Color of the Pen
    */
-  Pen(unsigned width, Color c):pen(NULL) {
+  Pen(unsigned width, Color c):pen(nullptr) {
     Set(width, c);
   }
 
@@ -134,12 +134,12 @@ public:
    */
   void Set(unsigned width, const Color c);
   /**
-   * Resets the Pen to NULL
+   * Resets the Pen to nullptr
    */
   void Reset();
 
   /**
-   * Returns whether the Pen is defined (!= NULL)
+   * Returns whether the Pen is defined (!= nullptr)
    * @return True if the Pen is defined, False otherwise
    */
   bool
@@ -173,25 +173,13 @@ public:
 #endif
 
 #ifdef ENABLE_OPENGL
-  /**
-   * Configures this pen in the OpenGL context.
-   */
-  void Set() const {
-    color.Set();
-
-#ifdef HAVE_GLES
+private:
+  void BindStyle() const {
+#if defined(HAVE_GLES) && !defined(HAVE_GLES2)
     glLineWidthx(width << 16);
 #else
     glLineWidth(width);
 #endif
-  }
-
-  /**
-   * Configure the Pen in the OpenGL context.  Don't forget to call
-   * UnbindStyle() when you're done with this Pen.
-   */
-  void Bind() const {
-    Set();
 
 #ifndef HAVE_GLES
     if (style == DASH) {
@@ -201,6 +189,23 @@ public:
     }
 #endif
   }
+
+public:
+  /**
+   * Configure the Pen in the OpenGL context.  Don't forget to call
+   * Unbind() when you're done with this Pen.
+   */
+  void Bind() const {
+    color.Set();
+    BindStyle();
+  }
+
+#ifdef USE_GLSL
+  void BindUniform(GLint location) const {
+    color.Uniform(location);
+    BindStyle();
+  }
+#endif
 
   void Unbind() const {
 #ifndef HAVE_GLES

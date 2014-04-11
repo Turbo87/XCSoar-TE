@@ -21,45 +21,13 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_MATH_FAST_PIXEL_ROTATION_HPP
-#define XCSOAR_MATH_FAST_PIXEL_ROTATION_HPP
+#ifndef XCSOAR_SCREEN_SDL_FEATURES_HPP
+#define XCSOAR_SCREEN_SDL_FEATURES_HPP
 
-#include "Math/FastRotation.hpp"
+#include <SDL_version.h>
 
-/**
- * Same as #FastIntegerRotation, but works with PixelScalar /
- * RasterPoint coordinates.
- */
-class FastPixelRotation {
-  FastIntegerRotation rotation;
-
-public:
-  FastPixelRotation() = default;
-  FastPixelRotation(Angle angle):rotation(angle) {}
-
-  Angle GetAngle() const {
-    return rotation.GetAngle();
-  }
-
-  void SetAngle(Angle angle) {
-    rotation.SetAngle(angle);
-  }
-
-  const FastPixelRotation &operator =(Angle angle) {
-    SetAngle(angle);
-    return *this;
-  }
-
-  gcc_pure
-  RasterPoint Rotate(int x, int y) const {
-    auto result = rotation.Rotate(x, y);
-    return RasterPoint{result.first, result.second};
-  }
-
-  gcc_pure
-  RasterPoint Rotate(const RasterPoint pt) const {
-    return Rotate(pt.x, pt.y);
-  }
-};
+#if SDL_MAJOR_VERSION >= 2
+#define HAVE_MULTI_TOUCH
+#endif
 
 #endif

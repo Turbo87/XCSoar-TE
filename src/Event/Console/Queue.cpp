@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@ Copyright_License {
 */
 
 #include "Queue.hpp"
+#include "DisplayOrientation.hpp"
 #include "OS/Clock.hpp"
 
 EventQueue::EventQueue()
@@ -29,11 +30,17 @@ EventQueue::EventQueue()
    thread(ThreadHandle::GetCurrent()),
    now_us(MonotonicClockUS()),
 #ifndef NON_INTERACTIVE
-   keyboard(*this, io_loop),
 #ifdef KOBO
-   mouse(*this, io_loop),
+   keyboard(io_loop, *this, merge_mouse),
+#elif !defined(USE_LINUX_INPUT)
+   keyboard(*this, io_loop),
+#endif
+#ifdef KOBO
+   mouse(io_loop, *this, merge_mouse),
+#elif defined(USE_LINUX_INPUT)
+   all_input(io_loop, *this, merge_mouse),
 #else
-   mouse(io_loop),
+   mouse(io_loop, merge_mouse),
 #endif
 #endif
    running(true)
@@ -50,6 +57,8 @@ EventQueue::EventQueue()
 
   /* Kobo touch screen */
   mouse.Open("/dev/input/event1");
+#elif defined(USE_LINUX_INPUT)
+  all_input.Open();
 #else
   mouse.Open();
 #endif
@@ -61,32 +70,30 @@ EventQueue::~EventQueue()
 }
 
 #ifndef NON_INTERACTIVE
-#ifdef KOBO
 
 void
-EventQueue::SetMouseRotation(DisplaySettings::Orientation orientation)
+EventQueue::SetMouseRotation(DisplayOrientation orientation)
 {
   switch (orientation) {
-  case DisplaySettings::Orientation::DEFAULT:
-  case DisplaySettings::Orientation::PORTRAIT:
+  case DisplayOrientation::DEFAULT:
+  case DisplayOrientation::PORTRAIT:
     SetMouseRotation(true, true, false);
     break;
 
-  case DisplaySettings::Orientation::LANDSCAPE:
+  case DisplayOrientation::LANDSCAPE:
     SetMouseRotation(false, false, false);
     break;
 
-  case DisplaySettings::Orientation::REVERSE_PORTRAIT:
+  case DisplayOrientation::REVERSE_PORTRAIT:
     SetMouseRotation(true, false, true);
     break;
 
-  case DisplaySettings::Orientation::REVERSE_LANDSCAPE:
+  case DisplayOrientation::REVERSE_LANDSCAPE:
     SetMouseRotation(false, true, true);
     break;
   }
 }
 
-#endif
 #endif
 
 void
@@ -138,14 +145,9 @@ EventQueue::Generate(Event &event)
   }
 
 #ifndef NON_INTERACTIVE
-  event = mouse.Generate();
-  if (event.type != Event::Type::NOP) {
-#ifdef KOBO
-    rotate_mouse.Do(event.point);
-#endif
-
+  event = merge_mouse.Generate();
+  if (event.type != Event::Type::NOP)
     return true;
-  }
 #endif
 
   return false;

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -24,6 +24,12 @@ Copyright_License {
 #ifndef XCSOAR_GEO_CONSTANTS_HPP
 #define XCSOAR_GEO_CONSTANTS_HPP
 
+// FAI Sphere
 static constexpr unsigned REARTH = 6371000;
+
+// WGS 84
+static constexpr fixed REARTH_A = fixed(6378137);
+static constexpr fixed REARTH_B = fixed(6356752.3142);
+static constexpr fixed FLATTENING = fixed(1/298.257223563);
 
 #endif

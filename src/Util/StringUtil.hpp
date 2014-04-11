@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -305,13 +305,13 @@ CopyASCII(char *dest, size_t dest_size, const TCHAR *src, const TCHAR *src_end);
  */
 gcc_nonnull_all
 void
-CopyASCIIUppper(char *dest, const char *src);
+CopyASCIIUpper(char *dest, const char *src);
 
 #ifdef _UNICODE
 
 gcc_nonnull_all
 void
-CopyASCIIUppper(char *dest, const TCHAR *src);
+CopyASCIIUpper(char *dest, const TCHAR *src);
 
 #endif
 
@@ -431,6 +431,24 @@ StringIsEqualIgnoreCase(const TCHAR *a, const TCHAR *b, size_t size)
   assert(b != nullptr);
 
   return _tcsnicmp(a, b, size) == 0;
+}
+#endif
+
+gcc_pure
+static inline bool
+StringStartsWithIgnoreCase(const char *haystack, const char *needle)
+{
+  return StringIsEqualIgnoreCase(haystack, needle,
+                                 StringLength(needle) * sizeof(needle[0]));
+}
+
+#ifdef _UNICODE
+gcc_pure
+static inline bool
+StringStartsWithIgnoreCase(const TCHAR *haystack, const TCHAR *needle)
+{
+  return StringIsEqualIgnoreCase(haystack, needle,
+                                 StringLength(needle) * sizeof(needle[0]));
 }
 #endif
 

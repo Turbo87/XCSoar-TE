@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ DockWindow::SetWidget(Widget *_widget)
 
   widget = _widget;
 
-  if (widget != NULL) {
+  if (widget != nullptr) {
     const PixelRect rc = GetClientRect();
     widget->Initialise(*this, rc);
     widget->Prepare(*this, rc);
@@ -44,19 +44,19 @@ DockWindow::SetWidget(Widget *_widget)
 void
 DockWindow::DeleteWidget()
 {
-  if (widget == NULL)
+  if (widget == nullptr)
     return;
 
   widget->Hide();
   widget->Unprepare();
   delete widget;
-  widget = NULL;
+  widget = nullptr;
 }
 
 void
 DockWindow::MoveWidget()
 {
-  assert(widget != NULL);
+  assert(widget != nullptr);
 
   widget->Move(GetClientRect());
 }
@@ -66,7 +66,7 @@ DockWindow::OnResize(PixelSize new_size)
 {
   ContainerWindow::OnResize(new_size);
 
-  if (widget != NULL)
+  if (widget != nullptr)
     widget->Move(GetClientRect());
 }
 

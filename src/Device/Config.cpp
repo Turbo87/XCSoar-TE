@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ DeviceConfig::IsAvailable() const
     return IsWindowsCE();
 
   case PortType::INTERNAL:
-    return IsAndroid();
+    return IsAndroid() || IsApple();
 
   case PortType::TCP_CLIENT:
     return !IsWindowsCE();
@@ -105,7 +105,7 @@ DeviceConfig::ShouldReopenOnTimeout() const
     return false;
 
   case PortType::INTERNAL:
-    /* reopening the Android internal GPS doesn't help */
+    /* reopening the Android / Apple internal GPS doesn't help */
     return false;
 
   case PortType::TCP_LISTENER:

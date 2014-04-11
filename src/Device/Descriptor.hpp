@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -136,6 +136,10 @@ class DeviceDescriptor final : private Notify, private PortLineSplitter {
   I2CbaroDevice *i2cbaro[3]; // static, pitot, tek; in any order
   NunchuckDevice *nunchuck;
   VoltageDevice *voltage;
+#endif
+
+#ifdef __APPLE__
+  InternalSensors *internal_sensors;
 #endif
 
   /**

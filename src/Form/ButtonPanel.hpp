@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -105,10 +105,10 @@ public:
 
 protected:
   gcc_pure
-  UPixelScalar Width(unsigned i) const;
+  unsigned Width(unsigned i) const;
 
   gcc_pure
-  UPixelScalar RangeMaxWidth(unsigned start, unsigned end) const;
+  unsigned RangeMaxWidth(unsigned start, unsigned end) const;
 
   PixelRect VerticalRange(PixelRect rc, unsigned start, unsigned end);
 

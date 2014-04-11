@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ namespace NMEALogger
 bool
 NMEALogger::Start()
 {
-  if (writer != NULL)
+  if (writer != nullptr)
     return true;
 
   BrokenDateTime dt = BrokenDateTime::NowUTC();
@@ -63,7 +63,7 @@ NMEALogger::Start()
   LocalPath(path, _T("logs"), name);
 
   writer = new TextWriter(path, false);
-  return writer != NULL;
+  return writer != nullptr;
 }
 
 void

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -22,12 +22,16 @@ Copyright_License {
 */
 
 #include "Input.hpp"
+#include "MergeMouse.hpp"
 #include "Event/Shared/Event.hpp"
 #include "Event/Queue.hpp"
 #include "IO/Async/IOLoop.hpp"
 #include "Asset.hpp"
 
+#include <algorithm>
+
 #include <linux/input.h>
+#include <sys/ioctl.h>
 
 #ifdef KEY_DOWN
 #undef KEY_DOWN
@@ -51,6 +55,43 @@ TranslateKeyCode(unsigned key_code)
   return key_code;
 }
 
+template<typename T>
+static constexpr unsigned
+BitSize()
+{
+  return 8 * sizeof(T);
+}
+
+template<typename T>
+static constexpr size_t
+BitsToInts(unsigned n_bits)
+{
+  return (n_bits + BitSize<T>() - 1) / BitSize<T>();
+}
+
+template<typename T>
+static constexpr bool
+CheckBit(const T bits[], unsigned i)
+{
+  return bits[i / BitSize<T>()] & (T(1) << (i % BitSize<T>()));
+}
+
+/**
+ * Check if the EVDEV supports EV_ABS or EV_REL..
+ */
+gcc_pure
+static bool
+IsPointerDevice(int fd)
+{
+  assert(fd >= 0);
+
+  unsigned long features[BitsToInts<unsigned long>(std::max(EV_ABS, EV_REL))];
+  if (ioctl(fd, EVIOCGBIT(0, sizeof(features)), features) < 0)
+    return false;
+
+  return CheckBit(features, EV_ABS) || CheckBit(features, EV_REL);
+}
+
 bool
 LinuxInputDevice::Open(const char *path)
 {
@@ -60,8 +101,33 @@ LinuxInputDevice::Open(const char *path)
   fd.SetNonBlocking();
   io_loop.Add(fd.Get(), io_loop.READ, *this);
 
+  min_x = max_x = min_y = max_y = 0;
+
+  is_pointer = IsPointerDevice(fd.Get());
+  if (is_pointer) {
+    merge.AddPointer();
+
+    if (!IsKobo()) {
+      /* obtain touch screen information */
+      /* no need to do that on the Kobo, because we know its touch
+         screen is well-calibrated */
+
+      input_absinfo abs;
+      if (ioctl(fd.Get(), EVIOCGABS(ABS_X), &abs) == 0) {
+        min_x = abs.minimum;
+        max_x = abs.maximum;
+      }
+
+      if (ioctl(fd.Get(), EVIOCGABS(ABS_Y), &abs) == 0) {
+        min_y = abs.minimum;
+        max_y = abs.maximum;
+      }
+    }
+  }
+
+  rel_x = rel_y = rel_wheel = 0;
   down = false;
-  moving = moved = pressing = releasing = pressed = released = false;
+  moving = pressing = releasing = false;
   return true;
 }
 
@@ -71,15 +137,25 @@ LinuxInputDevice::Close()
   if (!IsOpen())
     return;
 
+  if (is_pointer)
+    merge.RemovePointer();
+
   io_loop.Remove(fd.Get());
   fd.Close();
 }
 
-void
+inline void
 LinuxInputDevice::Read()
 {
   struct input_event buffer[64];
   const ssize_t nbytes = fd.Read(buffer, sizeof(buffer));
+  if (nbytes < 0) {
+    /* device has failed or was unplugged - bail out */
+    if (errno != EAGAIN && errno != EINTR)
+      Close();
+    return;
+  }
+
   unsigned n = size_t(nbytes) / sizeof(buffer[0]);
 
   for (unsigned i = 0; i < n; ++i) {
@@ -90,9 +166,15 @@ LinuxInputDevice::Read()
       if (e.code == SYN_REPORT) {
         /* commit the finger movement */
 
-        pressed = pressing;
-        released = releasing;
+        const bool pressed = pressing;
+        const bool released = releasing;
         pressing = releasing = false;
+
+        if (pressed)
+          merge.SetDown(true);
+
+        if (released)
+          merge.SetDown(false);
 
         if (IsKobo() && released) {
           /* workaround: on the Kobo Touch N905B, releasing the touch
@@ -104,15 +186,24 @@ LinuxInputDevice::Read()
 
         if (moving) {
           moving = false;
-          moved = true;
           public_position = edit_position;
+          merge.MoveAbsolute(public_position.x, public_position.y,
+                             min_x, max_x, min_y, max_y);
+        } else if (rel_x != 0 || rel_y != 0) {
+          merge.MoveRelative(rel_x, rel_y);
+          rel_x = rel_y = 0;
+        }
+
+        if (rel_wheel != 0) {
+          merge.MoveWheel(rel_wheel);
+          rel_wheel = 0;
         }
       }
 
       break;
 
     case EV_KEY:
-      if (e.code == BTN_TOUCH) {
+      if (e.code == BTN_TOUCH || e.code == BTN_MOUSE) {
         bool new_down = e.value;
         if (new_down != down) {
           down = new_down;
@@ -141,32 +232,25 @@ LinuxInputDevice::Read()
       }
 
       break;
+
+    case EV_REL:
+      switch (e.code) {
+      case REL_X:
+        rel_x += e.value;
+        break;
+
+      case REL_Y:
+        rel_y += e.value;
+        break;
+
+      case REL_WHEEL:
+        rel_wheel += e.value;
+        break;
+      }
+
+      break;
     }
   }
-}
-
-Event
-LinuxInputDevice::Generate()
-{
-  if (!IsOpen())
-    return Event(Event::Type::NOP);
-
-  if (moved) {
-    moved = false;
-    return Event(Event::MOUSE_MOTION, public_position.x, public_position.y);
-  }
-
-  if (pressed) {
-    pressed = false;
-    return Event(Event::MOUSE_DOWN, public_position.x, public_position.y);
-  }
-
-  if (released) {
-    released = false;
-    return Event(Event::MOUSE_UP, public_position.x, public_position.y);
-  }
-
-  return Event(Event::Type::NOP);
 }
 
 bool

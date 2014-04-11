@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -240,14 +240,14 @@ WaypointCommandsWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   RowFormWidget::Prepare(parent, rc);
 
   if (task_manager != nullptr) {
-    AddButton(_("Replace In Task"), *this, REPLACE_IN_TASK);
-    AddButton(_("Insert In Task"), *this, INSERT_IN_TASK);
-    AddButton(_("Append To Task"), *this, APPEND_TO_TASK);
+    AddButton(_("Replace in Task"), *this, REPLACE_IN_TASK);
+    AddButton(_("Insert in Task"), *this, INSERT_IN_TASK);
+    AddButton(_("Append to Task"), *this, APPEND_TO_TASK);
 
     if (MapTaskManager::GetIndexInTask(waypoint) >= 0)
-      AddButton(_("Remove From Task"), *this, REMOVE_FROM_TASK);
+      AddButton(_("Remove from Task"), *this, REMOVE_FROM_TASK);
   }
 
-  AddButton(_("Set As New Home"), *this, SET_HOME);
-  AddButton(_("Pan To Waypoint"), *this, PAN);
+  AddButton(_("Set as New Home"), *this, SET_HOME);
+  AddButton(_("Pan to Waypoint"), *this, PAN);
 }

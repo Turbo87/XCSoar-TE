@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -33,7 +33,13 @@ Copyright_License {
 #ifdef ENABLE_OPENGL
 #include "Screen/OpenGL/Texture.hpp"
 #include "Screen/OpenGL/Scope.hpp"
+
+#ifdef USE_GLSL
+#include "Screen/OpenGL/Shaders.hpp"
+#include "Screen/OpenGL/Program.hpp"
+#else
 #include "Screen/OpenGL/Compatibility.hpp"
+#endif
 #endif
 
 #include <assert.h>
@@ -158,6 +164,14 @@ TabDisplay::PaintButton(Canvas &canvas, unsigned CaptionStyle,
 
 #ifdef ENABLE_OPENGL
 
+#ifdef USE_GLSL
+    if (inverse)
+      OpenGL::invert_shader->Use();
+    else
+      OpenGL::texture_shader->Use();
+#else
+    const GLEnable scope(GL_TEXTURE_2D);
+
     if (inverse) {
       OpenGL::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
@@ -173,8 +187,8 @@ TabDisplay::PaintButton(Canvas &canvas, unsigned CaptionStyle,
     } else
       /* simple copy */
       OpenGL::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+#endif
 
-    const GLEnable scope(GL_TEXTURE_2D);
     const GLBlend blend(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLTexture &texture = *bmp->GetNative();

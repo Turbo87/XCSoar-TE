@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@ Copyright_License {
 */
 
 #include "Topography/XShape.hpp"
+#include "Convert.hpp"
 #include "Util/UTF8.hpp"
-#include "shapelib/mapserver.h"
 #ifdef ENABLE_OPENGL
 #include "Projection/Projection.hpp"
 #include "Screen/OpenGL/Triangulate.hpp"
@@ -48,21 +48,22 @@ import_label(const char *src)
 
   src = TrimLeft(src);
   if (strcmp(src, "RAILWAY STATION") == 0 ||
-      strcmp(src, "RAILROAD STATION") == 0)
-    return NULL;
+      strcmp(src, "RAILROAD STATION") == 0 ||
+      strcmp(src, "UNK") == 0)
+    return nullptr;
 
 #ifdef _UNICODE
   size_t length = strlen(src);
   TCHAR *dest = new TCHAR[length + 1];
   if (::MultiByteToWideChar(CP_UTF8, 0, src, -1, dest, length + 1) <= 0) {
     delete[] dest;
-    return NULL;
+    return nullptr;
   }
 
   return dest;
 #else
   if (!ValidateUTF8(src))
-    return NULL;
+    return nullptr;
 
   return strdup(src);
 #endif
@@ -92,26 +93,20 @@ min_points_for_type(int shapelib_type)
   }
 }
 
-XShape::XShape(shapefileObj *shpfile, int i, int label_field)
-  :label(NULL)
+XShape::XShape(shapefileObj *shpfile, const GeoPoint &file_center, int i,
+               int label_field)
+  :label(nullptr)
 {
 #ifdef ENABLE_OPENGL
-  for (unsigned l=0; l < THINNING_LEVELS; l++)
-    index_count[l] = indices[l] = NULL;
+  std::fill_n(index_count, THINNING_LEVELS, nullptr);
+  std::fill_n(indices, THINNING_LEVELS, nullptr);
 #endif
 
   shapeObj shape;
   msInitShape(&shape);
   msSHPReadShape(shpfile->hSHP, i, &shape);
 
-  bounds = GeoBounds(GeoPoint(Angle::Degrees(fixed(shape.bounds.minx)),
-                              Angle::Degrees(fixed(shape.bounds.maxy))),
-                     GeoPoint(Angle::Degrees(fixed(shape.bounds.maxx)),
-                              Angle::Degrees(fixed(shape.bounds.miny))));
-
-#ifdef ENABLE_OPENGL
-  center = bounds.GetCenter();
-#endif
+  bounds = ImportRect(shape.bounds);
 
   type = shape.type;
 
@@ -120,7 +115,7 @@ XShape::XShape(shapefileObj *shpfile, int i, int label_field)
   const int min_points = min_points_for_type(shape.type);
   if (min_points < 0) {
     /* not supported, leave an empty XShape object */
-    points = NULL;
+    points = nullptr;
     msFreeShape(&shape);
     return;
   }
@@ -139,16 +134,8 @@ XShape::XShape(shapefileObj *shpfile, int i, int label_field)
   }
 
 #ifdef ENABLE_OPENGL
-  /* OpenGL:
-   * Convert all points of all lines to ShapePoints, using a projection
-   * that assumes the center of the screen is also the center of the shape.
-   * Resolution is set to 1m per pixel. This enables us to use a simple matrix
-   * multiplication to draw the shape.
-   * This approximation should work well with shapes of limited size
-   * (<< 400km). Perceivable distortion will only happen, when the latitude of
-   * the actual center of the screen is far away from the latitude of the
-   * center of the shape and the shape has a big vertical size.
-   */
+  /* OpenGL: convert GeoPoints to ShapePoints, make them relative to
+     the map's boundary center */
 
   points = new ShapePoint[num_points];
   ShapePoint *p = points;
@@ -163,8 +150,8 @@ XShape::XShape(shapefileObj *shpfile, int i, int label_field)
     num_points = lines[l];
     for (unsigned j = 0; j < num_points; ++j, ++src)
 #ifdef ENABLE_OPENGL
-      *p++ = geo_to_shape(GeoPoint(Angle::Degrees(fixed(src->x)),
-                                   Angle::Degrees(fixed(src->y))));
+      *p++ = ShapePoint(ShapeScalar((Angle::Degrees(src->x) - file_center.longitude).Native()),
+                        ShapeScalar((Angle::Degrees(src->y) - file_center.latitude).Native()));
 #else
       *p++ = GeoPoint(Angle::Degrees(fixed(src->x)),
                       Angle::Degrees(fixed(src->y)));
@@ -185,7 +172,7 @@ XShape::~XShape()
   delete[] points;
 #ifdef ENABLE_OPENGL
   // Note: index_count and indices share one buffer
-  for (int i=0; i < THINNING_LEVELS; i++)
+  for (unsigned i = 0; i < THINNING_LEVELS; i++)
     delete[] index_count[i];
 #endif
 }
@@ -193,9 +180,9 @@ XShape::~XShape()
 #ifdef ENABLE_OPENGL
 
 bool
-XShape::BuildIndices(unsigned thinning_level, unsigned min_distance)
+XShape::BuildIndices(unsigned thinning_level, ShapeScalar min_distance)
 {
-  assert(indices[thinning_level] == NULL);
+  assert(indices[thinning_level] == nullptr);
 
   unsigned short *idx, *idx_count;
   unsigned num_points = 0;
@@ -263,29 +250,17 @@ XShape::BuildIndices(unsigned thinning_level, unsigned min_distance)
 }
 
 const unsigned short *
-XShape::get_indices(int thinning_level, unsigned min_distance,
+XShape::get_indices(int thinning_level, ShapeScalar min_distance,
                     const unsigned short *&count) const
 {
-  if (indices[thinning_level] == NULL) {
+  if (indices[thinning_level] == nullptr) {
     XShape &deconst = const_cast<XShape &>(*this);
     if (!deconst.BuildIndices(thinning_level, min_distance))
-      return NULL;
+      return nullptr;
   }
 
   count = index_count[thinning_level];
   return indices[thinning_level];
-}
-
-ShapePoint
-XShape::geo_to_shape(const GeoPoint &origin, const GeoPoint &point) const
-{
-  const GeoPoint d = point-origin;
-
-  ShapePoint pt;
-  pt.x = (ShapeScalar)fast_mult(point.latitude.fastcosine(),
-                                AngleToEarthDistance(d.longitude), 16);
-  pt.y = (ShapeScalar)-AngleToEarthDistance(d.latitude);
-  return pt;
 }
 
 #endif // ENABLE_OPENGL

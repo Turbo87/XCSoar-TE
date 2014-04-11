@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ Copyright_License {
 #ifdef ENABLE_OPENGL
 #include "Screen/OpenGL/Init.hpp"
 #include "Screen/OpenGL/Features.hpp"
+#include "Math/Point2D.hpp"
 #else
 #include "Screen/Canvas.hpp"
 #endif
@@ -37,10 +38,14 @@ Copyright_License {
 #include "Screen/Memory/Dither.hpp"
 #endif
 
+#include <SDL_platform.h>
 #include <SDL_version.h>
 #include <SDL_video.h>
-#if defined(USE_MEMORY_CANVAS) && (SDL_MAJOR_VERSION >= 2)
+#if SDL_MAJOR_VERSION >= 2
+#include <SDL_hints.h>
+#ifdef USE_MEMORY_CANVAS
 #include <SDL_render.h>
+#endif
 #endif
 
 #include <assert.h>
@@ -88,7 +93,7 @@ MakeSDLFlags(bool full_screen, bool resizable)
   flags |= SDL_ASYNCBLIT;
 
   const SDL_VideoInfo *info = SDL_GetVideoInfo();
-  assert(info != NULL);
+  assert(info != nullptr);
 
   if (info->hw_available)
     flags |= SDL_HWSURFACE;
@@ -109,6 +114,11 @@ MakeSDLFlags(bool full_screen, bool resizable)
     flags |= SDL_WINDOW_RESIZABLE;
 #else
     flags |= SDL_RESIZABLE;
+#endif
+
+#if defined(__IPHONEOS__) && __IPHONEOS__
+  /* Hide status bar on iOS devices */
+  flags |= SDL_WINDOW_BORDERLESS;
 #endif
 
   return flags;
@@ -150,7 +160,7 @@ TopCanvas::Create(PixelSize new_size,
   }
   int width, height;
   SDL_GetWindowSize(window, &width, &height);
-  texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_UNKNOWN,
+  texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888,
                               SDL_TEXTUREACCESS_STREAMING,
                               width, height);
   if (texture == nullptr) {
@@ -165,7 +175,7 @@ TopCanvas::Create(PixelSize new_size,
 
 #else
   SDL_Surface *s = ::SDL_SetVideoMode(new_size.cx, new_size.cy, 0, flags);
-  if (s == NULL) {
+  if (s == nullptr) {
     fprintf(stderr, "SDL_SetVideoMode(%u, %u, 0, %#x) has failed: %s\n",
             new_size.cx, new_size.cy, (unsigned)flags,
             ::SDL_GetError());
@@ -189,7 +199,7 @@ TopCanvas::Create(PixelSize new_size,
 #endif
 
   OpenGL::SetupContext();
-  OpenGL::SetupViewport(new_size.cx, new_size.cy);
+  OpenGL::SetupViewport(Point2D<unsigned>(new_size.cx, new_size.cy));
   Canvas::Create(new_size);
 #elif (SDL_MAJOR_VERSION < 2)
   surface = s;
@@ -225,7 +235,9 @@ TopCanvas::OnResize(PixelSize new_size)
 #else
 #if SDL_MAJOR_VERSION >= 2
   int texture_width, texture_height;
-  SDL_QueryTexture(texture, NULL, NULL, &texture_width, &texture_height);
+  Uint32 texture_format;
+  if (SDL_QueryTexture(texture, &texture_format, NULL, &texture_width, &texture_height) != 0)
+    return;
   if (new_size.cx == texture_width && new_size.cy == texture_height)
     return;
 #else
@@ -234,7 +246,7 @@ TopCanvas::OnResize(PixelSize new_size)
 #endif
 
 #if SDL_MAJOR_VERSION >= 2
-  SDL_Texture *t = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_UNKNOWN,
+  SDL_Texture *t = SDL_CreateTexture(renderer, texture_format,
                                      SDL_TEXTUREACCESS_STREAMING,
                                      new_size.cx, new_size.cy);
   if (t == nullptr)
@@ -252,12 +264,12 @@ TopCanvas::OnResize(PixelSize new_size)
   const Uint32 flags = old->flags;
 
   SDL_Surface *s = ::SDL_SetVideoMode(new_size.cx, new_size.cy, 0, flags);
-  if (s == NULL)
+  if (s == nullptr)
     return;
 #endif
 
 #ifdef ENABLE_OPENGL
-  OpenGL::SetupViewport(new_size.cx, new_size.cy);
+  OpenGL::SetupViewport(Point2D<unsigned>(new_size.cx, new_size.cy));
   Canvas::Create(new_size);
 #else
 #if (SDL_MAJOR_VERSION >= 2)
@@ -349,8 +361,8 @@ CopyFromGreyscale(
 #if SDL_MAJOR_VERSION >= 2
   uint8_t *dest_pixels;
   int pitch_as_int, dest_with, dest_height;
-  SDL_QueryTexture(dest, NULL, NULL, &dest_with, &dest_height);
-  if (SDL_LockTexture(dest, NULL,
+  SDL_QueryTexture(dest, nullptr, nullptr, &dest_with, &dest_height);
+  if (SDL_LockTexture(dest, nullptr,
                       reinterpret_cast<void**>(&dest_pixels),
                       &pitch_as_int) != 0)
     return;
@@ -432,7 +444,7 @@ TopCanvas::Lock()
   WritableImageBuffer<SDLPixelTraits> buffer;
   void* pixels;
   int pitch, width, height;
-  SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+  SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
   if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0)
     return Canvas();
   buffer.data = (SDLPixelTraits::pointer_type)pixels;
@@ -493,7 +505,7 @@ TopCanvas::Flip()
 
 #if SDL_MAJOR_VERSION >= 2
   ::SDL_RenderClear(renderer);
-  ::SDL_RenderCopy(renderer, texture, NULL, NULL);
+  ::SDL_RenderCopy(renderer, texture, nullptr, nullptr);
   ::SDL_RenderPresent(renderer);
 #else
   ::SDL_Flip(surface);

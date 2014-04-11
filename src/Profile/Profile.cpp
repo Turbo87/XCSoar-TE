@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -143,7 +143,7 @@ Profile::SetFiles(const TCHAR *override_path)
 
   if (IsAltair() && !File::Exists(startProfileFile)) {
     /* backwards compatibility with old Altair firmware */
-    LocalPath(startProfileFile, _T("config/")_T(OLDXCSPROFILE));
+    LocalPath(startProfileFile, _T("config/") _T(OLDXCSPROFILE));
     if (!File::Exists(startProfileFile))
       LocalPath(startProfileFile, _T(XCSPROFILE));
   }

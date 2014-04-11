@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ Copyright_License {
 #include "Device/All.hpp"
 
 MergeThread::MergeThread(DeviceBlackboard &_device_blackboard)
-  :WorkerThread(150, 50, 20),
+  :WorkerThread("MergeThread", 150, 50, 20),
    device_blackboard(_device_blackboard)
 {
   last_fix.Reset();

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -186,21 +186,21 @@ GlueMapWindow::UpdateScreenAngle()
   const MapSettings &settings = CommonInterface::GetMapSettings();
   const UIState &ui_state = CommonInterface::GetUIState();
 
-  DisplayOrientation orientation =
+  MapOrientation orientation =
     ui_state.display_mode == DisplayMode::CIRCLING
     ? settings.circling_orientation
     : settings.cruise_orientation;
 
-  if (orientation == DisplayOrientation::TARGET_UP &&
+  if (orientation == MapOrientation::TARGET_UP &&
       calculated.task_stats.current_leg.vector_remaining.IsValid())
     visible_projection.SetScreenAngle(calculated.task_stats.current_leg.
                                       vector_remaining.bearing);
-  else if (orientation == DisplayOrientation::HEADING_UP)
+  else if (orientation == MapOrientation::HEADING_UP)
     visible_projection.SetScreenAngle(
       basic.attitude.IsHeadingUseable() ? basic.attitude.heading : Angle::Zero());
-  else if (orientation == DisplayOrientation::NORTH_UP)
+  else if (orientation == MapOrientation::NORTH_UP)
     visible_projection.SetScreenAngle(Angle::Zero());
-  else if (orientation == DisplayOrientation::WIND_UP &&
+  else if (orientation == MapOrientation::WIND_UP &&
            calculated.wind_available &&
            calculated.wind.norm >= fixed(0.5))
     visible_projection.SetScreenAngle(calculated.wind.bearing);
@@ -209,8 +209,8 @@ GlueMapWindow::UpdateScreenAngle()
     visible_projection.SetScreenAngle(
       basic.track_available ? basic.track : Angle::Zero());
 
-if (settings.circling_orientation == DisplayOrientation::NORTH_UP
-      && settings.cruise_orientation == DisplayOrientation::NORTH_UP)
+if (settings.circling_orientation == MapOrientation::NORTH_UP
+      && settings.cruise_orientation == MapOrientation::NORTH_UP)
     compass_visible = false;
   else
     compass_visible = true;
@@ -290,8 +290,8 @@ GlueMapWindow::UpdateProjection()
 
   if (circling || !IsNearSelf())
     visible_projection.SetScreenOrigin(center.x, center.y);
-  else if (settings_map.cruise_orientation == DisplayOrientation::NORTH_UP ||
-           settings_map.cruise_orientation == DisplayOrientation::WIND_UP) {
+  else if (settings_map.cruise_orientation == MapOrientation::NORTH_UP ||
+           settings_map.cruise_orientation == MapOrientation::WIND_UP) {
     RasterPoint offset{0, 0};
     if (settings_map.glider_screen_position != 50 &&
         settings_map.map_shift_bias != MapShiftBias::NONE) {

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -106,7 +106,7 @@ GlueMapWindow::ShowMapItems(const GeoPoint &location,
   ShowMapItemListDialog(list,
                         UIGlobals::GetDialogLook(), look, traffic_look,
                         final_glide_bar_renderer.GetLook(), settings,
-                        glide_computer != NULL
-                        ? &glide_computer->GetAirspaceWarnings() : NULL);
+                        glide_computer != nullptr
+                        ? &glide_computer->GetAirspaceWarnings() : nullptr);
   return true;
 }

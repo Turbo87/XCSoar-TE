@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ Copyright_License {
 
 #ifdef ENABLE_OPENGL
 #include "Screen/OpenGL/Scope.hpp"
+#include "Screen/OpenGL/VertexPointer.hpp"
+#include "Screen/OpenGL/Triangulate.hpp"
 #endif
 
 #include <stdio.h>
@@ -137,12 +139,6 @@ struct ProjectedFans {
 
     points.push_back(pt);
   }
-
-#ifdef ENABLE_OPENGL
-  void Prepare() {
-    glVertexPointer(2, GL_VALUE, 0, &points[0]);
-  }
-#endif
 
   void DrawFill(Canvas &canvas) const {
     assert(remaining == 0);
@@ -262,7 +258,7 @@ MapWindow::DrawTerrainAbove(Canvas &canvas)
   if (!Basic().location_available
       || !Calculated().flight.flying
       || GetComputerSettings().features.final_glide_terrain == FeaturesSettings::FinalGlideTerrain::OFF
-      || route_planner == NULL)
+      || route_planner == nullptr)
     return;
 
   // Create a visitor for the Reach code
@@ -285,7 +281,7 @@ MapWindow::DrawTerrainAbove(Canvas &canvas)
 
 #ifdef ENABLE_OPENGL
 
-    visitor.fans.Prepare();
+    const ScopeVertexPointer vp(&visitor.fans.points[0]);
 
     const GLEnable stencil_test(GL_STENCIL_TEST);
     glClear(GL_STENCIL_BUFFER_BIT);
@@ -353,7 +349,7 @@ MapWindow::DrawTerrainAbove(Canvas &canvas)
     /* only one fan: we can draw a simple polygon */
 
 #ifdef ENABLE_OPENGL
-    visitor.fans.Prepare();
+    const ScopeVertexPointer vp(&visitor.fans.points[0]);
     look.reach_pen.Bind();
 #else
     // Select the TerrainLine pen
@@ -377,7 +373,7 @@ MapWindow::DrawTerrainAbove(Canvas &canvas)
        stencil to draw the outline, because the fans may overlap */
 
 #ifdef ENABLE_OPENGL
-  visitor.fans.Prepare();
+  const ScopeVertexPointer vp(&visitor.fans.points[0]);
 
   glEnable(GL_STENCIL_TEST);
   glClear(GL_STENCIL_BUFFER_BIT);

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ Copyright_License {
 #include "IO/Async/FileEventHandler.hpp"
 
 class IOLoop;
-struct Event;
+class MergeMouse;
 
 /**
  * A driver for the Linux mouse (/dev/input/mouse*, /dev/input/mice).
@@ -36,32 +36,16 @@ struct Event;
 class LinuxMouse final : private FileEventHandler {
   IOLoop &io_loop;
 
-  unsigned screen_width, screen_height;
-  unsigned x, y;
-  bool down;
-
-  bool moved, pressed, released;
+  MergeMouse &merge;
 
   FileDescriptor fd;
 
 public:
-  explicit LinuxMouse(IOLoop &_io_loop)
-    :io_loop(_io_loop),
-     screen_width(0), screen_height(0),
-     x(0), y(0) {}
+  explicit LinuxMouse(IOLoop &_io_loop, MergeMouse &_merge)
+    :io_loop(_io_loop), merge(_merge) {}
 
   ~LinuxMouse() {
     Close();
-  }
-
-  void SetScreenSize(unsigned width, unsigned height);
-
-  unsigned GetX() const {
-    return x;
-  }
-
-  unsigned GetY() const {
-    return y;
   }
 
   bool Open(const char *path="/dev/input/mice");
@@ -70,8 +54,6 @@ public:
   bool IsOpen() const {
     return fd.IsDefined();
   }
-
-  Event Generate();
 
 private:
   void Read();

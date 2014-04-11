@@ -1,7 +1,7 @@
 /* Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ DataNodeXML::Load(const TCHAR* path)
 {
   std::unique_ptr<XMLNode> child(XML::ParseFile(path));
   if (!child)
-    return NULL;
+    return nullptr;
 
   return new DataNodeXML(std::move(*child));
 }
@@ -59,8 +59,8 @@ DataNode *
 DataNodeXML::GetChildNamed(const TCHAR *name) const
 {
   const XMLNode *child = node.GetChildNode(name);
-  if (child == NULL)
-    return NULL;
+  if (child == nullptr)
+    return nullptr;
 
   return new DataNodeXML(*child);
 }

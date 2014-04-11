@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -28,6 +28,10 @@ Copyright_License {
 
 #ifdef ANDROID
 #include "Android/Product.hpp"
+#endif
+
+#ifdef __APPLE__
+#include <TargetConditionals.h>
 #endif
 
 #include <tchar.h>
@@ -153,6 +157,48 @@ IsAndroid()
 }
 
 /**
+ * Returns whether the application is running on an apple device
+ */
+constexpr
+static inline bool
+IsApple()
+{
+#if defined(__APPLE__)
+  return true;
+#else
+  return false;
+#endif
+}
+
+/**
+ * Returns whether the application is running on a Mac OS X device
+ */
+constexpr
+static inline bool
+IsMacOSX()
+{
+#if defined(__APPLE__) && TARGET_OS_MAC && !TARGET_OS_IPHONE
+  return true;
+#else
+  return false;
+#endif
+}
+
+/**
+ * Returns whether the application is running on an iOS device
+ */
+constexpr
+static inline bool
+IsIOS()
+{
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+  return true;
+#else
+  return false;
+#endif
+}
+
+/**
  * Returns whether the application is running on a Kobo e-book reader.
  */
 constexpr
@@ -207,12 +253,19 @@ HasIOIOLib()
  * @return True if a touch screen or mouse is assumed for the hardware
  * that XCSoar is running on, False if the hardware has only buttons
  */
+#if defined(USE_CONSOLE) && !defined(KOBO)
+gcc_pure
+bool
+HasPointer();
+#else
 constexpr
 static inline bool
 HasPointer()
 {
   return !IsAltair();
 }
+
+#endif
 
 /**
  * Does this device have a touch screen?  This is useful to know for

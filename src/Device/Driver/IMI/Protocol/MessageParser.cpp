@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -36,8 +36,12 @@ namespace MessageParser {
     STATE_COMM_MSG
   } state;
 
+  static union {
   /** Parsed message buffer */
-  IMIBYTE buffer[IMICOMM_MAX_MSG_SIZE];
+    IMIBYTE buffer[IMICOMM_MAX_MSG_SIZE];
+    TMsg tmsg;
+  };
+
   /** Current position in a message buffer */
   unsigned buffer_pos;
   /** Remaining number of bytes of the message to parse */
@@ -63,7 +67,7 @@ namespace MessageParser {
 IMI::TMsg &
 IMI::MessageParser::GetMessage()
 {
-  return *(TMsg *)buffer;
+  return tmsg;
 }
 
 void

@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -94,7 +94,7 @@ InitialiseLogFonts(FontSettings &settings)
   }
 
 #ifndef USE_GDI
-  unsigned font_height = Layout::SmallScale((IsAndroid()||IsKobo()) ? 30 : 24);
+  unsigned font_height = Layout::SmallScale((IsAndroid()||IsKobo()) ? 30 : (IsIOS() ? 35 : 24));
 #else
   unsigned font_height = Layout::SmallScale(35);
 #endif

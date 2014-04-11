@@ -1,7 +1,7 @@
 /* Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -25,8 +25,6 @@
 #include "Util/StaticString.hpp"
 #include "Util/NumberParser.hpp"
 #include "Time/RoughTime.hpp"
-
-#include <stdio.h>
 
 DataNode::~DataNode()
 {
@@ -97,10 +95,10 @@ bool
 DataNode::GetAttribute(const TCHAR *name, fixed &value) const
 {
   const TCHAR *val = GetAttribute(name);
-  if (val == NULL)
+  if (val == nullptr)
     return false;
 
-  value = (fixed)_tcstod(val, NULL);
+  value = (fixed)_tcstod(val, nullptr);
   return true;
 }
 
@@ -108,7 +106,7 @@ bool
 DataNode::GetAttribute(const TCHAR *name, int &value) const
 {
   const TCHAR *val = GetAttribute(name);
-  if (val == NULL)
+  if (val == nullptr)
     return false;
 
   value = ParseInt(val);
@@ -119,7 +117,7 @@ bool
 DataNode::GetAttribute(const TCHAR *name, unsigned &value) const
 {
   const TCHAR *val = GetAttribute(name);
-  if (val == NULL)
+  if (val == nullptr)
     return false;
 
   value = ParseInt(val);
@@ -130,7 +128,7 @@ bool
 DataNode::GetAttribute(const TCHAR *name, bool &value) const
 {
   const TCHAR *val = GetAttribute(name);
-  if (val == NULL)
+  if (val == nullptr)
     return false;
 
   value = ParseInt(val) > 0;

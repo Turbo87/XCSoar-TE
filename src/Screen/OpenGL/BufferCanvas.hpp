@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -25,8 +25,14 @@ Copyright_License {
 #define XCSOAR_SCREEN_OPENGL_BUFFER_CANVAS_HPP
 
 #include "Canvas.hpp"
+#include "Math/Point2D.hpp"
 #include "Util/DebugFlag.hpp"
 #include "Screen/OpenGL/Surface.hpp"
+
+#ifdef SOFTWARE_ROTATE_DISPLAY
+#include <stdint.h>
+enum class DisplayOrientation : uint8_t;
+#endif
 
 class GLTexture;
 class GLFrameBuffer;
@@ -42,14 +48,26 @@ class BufferCanvas : public Canvas, private GLSurfaceListener {
 
   GLRenderBuffer *stencil_buffer;
 
+#ifdef HAVE_GLES
+  GLint old_viewport[4];
+#endif
+
+#ifdef USE_GLSL
+  glm::mat4 old_projection_matrix;
+#endif
+
   RasterPoint old_translate;
-  PixelSize old_size;
+  Point2D<unsigned> old_size;
+
+#ifdef SOFTWARE_ROTATE_DISPLAY
+  DisplayOrientation old_orientation;
+#endif
 
   DebugFlag active;
 
 public:
   BufferCanvas()
-    :texture(NULL), frame_buffer(NULL), stencil_buffer(NULL) {}
+    :texture(nullptr), frame_buffer(nullptr), stencil_buffer(nullptr) {}
   BufferCanvas(const Canvas &canvas,
                UPixelScalar _width, UPixelScalar _height);
   ~BufferCanvas() {
@@ -57,7 +75,7 @@ public:
   }
 
   bool IsDefined() const {
-    return texture != NULL;
+    return texture != nullptr;
   }
 
   void Create(PixelSize new_size);

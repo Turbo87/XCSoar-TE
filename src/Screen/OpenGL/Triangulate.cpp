@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -119,7 +119,7 @@ Normalize(RasterPoint *v, float length)
 template <typename PT>
 static unsigned
 _PolygonToTriangles(const PT *points, unsigned num_points,
-                    GLushort *triangles, unsigned min_distance)
+                    GLushort *triangles, typename PT::scalar_type min_distance)
 {
   // no redundant start/end please
   if (num_points >= 1 && points[0] == points[num_points - 1])
@@ -130,7 +130,7 @@ _PolygonToTriangles(const PT *points, unsigned num_points,
 
   assert(num_points < 65536);
   // next vertex pointer
-  GLushort *next = new GLushort[num_points];
+  auto next = new GLushort[num_points];
   // index of the first vertex
   GLushort start = 0;
 
@@ -152,10 +152,11 @@ _PolygonToTriangles(const PT *points, unsigned num_points,
          a = b, b = c, c = next[c], heat++) {
       bool point_removeable = TriangleEmpty(points[a], points[b], points[c]);
       if (!point_removeable) {
-        unsigned distance = manhattan_distance(points[a], points[b]);
+        typename PT::scalar_type distance = manhattan_distance(points[a],
+                                                               points[b]);
         if (distance < min_distance) {
           point_removeable = true;
-          if (distance != 0) {
+          if (distance > 0) {
             for (unsigned p = next[c]; p != a; p = next[p]) {
               if (InsideTriangle(points[p], points[a], points[b], points[c])) {
                 point_removeable = false;
@@ -184,7 +185,7 @@ _PolygonToTriangles(const PT *points, unsigned num_points,
   }
 
   // triangulation
-  GLushort *t = triangles;
+  auto t = triangles;
   for (unsigned a = start, b = next[a], c = next[b], heat = 0;
        num_points > 2; a = b, b = c, c = next[c]) {
     typename PT::SquareType bendiness =
@@ -275,7 +276,7 @@ PolygonToTriangles(const RasterPoint *points, unsigned num_points,
 
 unsigned
 PolygonToTriangles(const ShapePoint *points, unsigned num_points,
-                   GLushort *triangles, unsigned min_distance)
+                   GLushort *triangles, float min_distance)
 {
   return _PolygonToTriangles(points, num_points, triangles, min_distance);
 }
@@ -287,7 +288,7 @@ static void
 AddValueCounts(unsigned *counts, unsigned max_value,
                const GLushort *values, const GLushort *values_end)
 {
-  for (const GLushort *i = values; i != values_end; ++i) {
+  for (auto i = values; i != values_end; ++i) {
     const unsigned value = *i;
     assert(value < max_value);
     counts[value]++;
@@ -299,7 +300,7 @@ static GLushort *
 FindOne(const unsigned *counts, unsigned max_value,
         GLushort *values, const GLushort *values_end)
 {
-  for (GLushort *i = values; i != values_end; ++i) {
+  for (auto i = values; i != values_end; ++i) {
     const unsigned value = *i;
     assert(value < max_value);
     if (counts[value] == 1)
@@ -314,7 +315,7 @@ static GLushort *
 FindSharedEdge(const unsigned idx1, const unsigned idx2,
                GLushort *values, const GLushort *values_end)
 {
-  for (GLushort *v = values; v < values_end; v += 3)
+  for (auto v = values; v < values_end; v += 3)
     if ((idx1 == v[0] || idx1 == v[1] || idx1 == v[2]) &&
         (idx2 == v[0] || idx2 == v[1] || idx2 == v[2]))
       return v;
@@ -333,15 +334,15 @@ TriangleToStrip(GLushort *triangles, unsigned index_count,
     return 0;
 
   // count the number of occurrences for each vertex
-  unsigned *vcount = new unsigned[vertex_count]();
-  GLushort *t = triangles;
-  const GLushort * const t_end = triangles + index_count;
+  auto vcount = new unsigned[vertex_count]();
+  auto t = triangles;
+  const auto t_end = triangles + index_count;
 
   AddValueCounts(vcount, vertex_count, t, t_end);
 
   const unsigned triangle_buffer_size = index_count + 2 * (polygon_count - 1);
-  GLushort *triangle_strip = new GLushort[triangle_buffer_size];
-  GLushort *strip = triangle_strip;
+  const auto triangle_strip = new GLushort[triangle_buffer_size];
+  auto strip = triangle_strip;
 
   // search a start point with only one reference
   GLushort *v = FindOne(vcount, vertex_count, t, t_end);
@@ -497,7 +498,7 @@ LineToTriangles(const RasterPoint *points, unsigned num_points,
 
   // pointer to the end of the original points array
   // used for faster loop conditions
-  const RasterPoint * const points_end = points + num_points;
+  const auto points_end = points + num_points;
 
   // initialize a, b and c vertices
   if (loop) {
@@ -534,9 +535,7 @@ LineToTriangles(const RasterPoint *points, unsigned num_points,
 
   if (!loop) {
     // add flat or triangle cap at beginning of line
-    RasterPoint ba;
-    ba.x = a->x - b->x;
-    ba.y = a->y - b->y;
+    RasterPoint ba = *a - *b;
     Normalize(&ba, half_line_width);
 
     if (tcap)
@@ -558,11 +557,7 @@ LineToTriangles(const RasterPoint *points, unsigned num_points,
       // skip zero or 180 degree bends
       // TODO: support 180 degree bends!
       if (!TriangleEmpty(*a, *b, *c)) {
-        RasterPoint g, h;
-        g.x = b->x - a->x;
-        g.y = b->y - a->y;
-        h.x = c->x - b->x;
-        h.y = c->y - b->y;
+        RasterPoint g = *b - *a, h = *c - *b;
         Normalize(&g, 1000.);
         Normalize(&h, 1000.);
         int bisector_x = -g.y - h.y;
@@ -609,9 +604,7 @@ LineToTriangles(const RasterPoint *points, unsigned num_points,
     }
   } else {
     // add flat or triangle cap at end of line
-    RasterPoint ab;
-    ab.x = b->x - a->x;
-    ab.y = b->y - a->y;
+    RasterPoint ab = *b - *a;
     Normalize(&ab, half_line_width);
 
     RasterPoint p;

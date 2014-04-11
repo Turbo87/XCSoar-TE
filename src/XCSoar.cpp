@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -55,6 +55,10 @@ Copyright_License {
 /* this is necessary on Mac OS X, to let libSDL bootstrap Quartz
    before entering our main() */
 #include <SDL_main.h>
+#endif
+
+#ifdef __APPLE__
+#include <TargetConditionals.h>
 #endif
 
 #include <assert.h>
@@ -157,6 +161,12 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   Net::Deinitialise();
 
   assert(!ExistsAnyThread());
+
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+  /* For some reason, the app process does not exit on iOS, but a black
+   * screen remains, if the process is not explicitly terminated */
+  exit(ret);
+#endif
 
   return ret;
 }

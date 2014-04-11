@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -215,14 +215,14 @@ Canvas::DrawKeyhole(int x, int y,
 const PixelSize
 Canvas::CalcTextSize(const TCHAR *text) const
 {
-  assert(text != NULL);
+  assert(text != nullptr);
 #ifndef UNICODE
   assert(ValidateUTF8(text));
 #endif
 
   PixelSize size = { 0, 0 };
 
-  if (font == NULL)
+  if (font == nullptr)
     return size;
 
   /* see if the TextCache can handle this request */
@@ -249,7 +249,7 @@ RenderText(const Font *font, const TCHAR *text)
 void
 Canvas::DrawText(int x, int y, const TCHAR *text)
 {
-  assert(text != NULL);
+  assert(text != nullptr);
 #ifndef UNICODE
   assert(ValidateUTF8(text));
 #endif
@@ -280,7 +280,7 @@ Canvas::DrawText(int x, int y, const TCHAR *text)
 void
 Canvas::DrawTransparentText(int x, int y, const TCHAR *text)
 {
-  assert(text != NULL);
+  assert(text != nullptr);
 #ifndef UNICODE
   assert(ValidateUTF8(text));
 #endif

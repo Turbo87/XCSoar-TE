@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2013 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@ Copyright_License {
 #ifndef XCSOAR_SCREEN_MEMORY_CANVAS_HPP
 #define XCSOAR_SCREEN_MEMORY_CANVAS_HPP
 
-#include "Math/fixed.hpp"
 #include "Screen/Brush.hpp"
 #include "Screen/Font.hpp"
 #include "Screen/Pen.hpp"
@@ -54,7 +53,6 @@ using SDLPixelTraits = BGRAPixelTraits;
 
 /**
  * Base drawable canvas class
- * 
  */
 class Canvas {
   friend class WindowCanvas;
@@ -76,11 +74,11 @@ protected:
 public:
   Canvas()
     :buffer(WritableImageBuffer<SDLPixelTraits>::Empty()),
-     font(NULL), background_mode(OPAQUE) {}
+     font(nullptr), background_mode(OPAQUE) {}
 
   explicit Canvas(WritableImageBuffer<SDLPixelTraits> _buffer)
     :buffer(_buffer),
-     font(NULL), background_mode(OPAQUE) {}
+     font(nullptr), background_mode(OPAQUE) {}
 
   void Create(WritableImageBuffer<SDLPixelTraits> _buffer) {
     buffer = _buffer;
@@ -327,7 +325,7 @@ public:
 
   gcc_pure
   unsigned GetFontHeight() const {
-    return font != NULL ? font->GetHeight() : 0;
+    return font != nullptr ? font->GetHeight() : 0;
   }
 
   void DrawText(int x, int y, const TCHAR *text);

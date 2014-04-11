@@ -48,6 +48,9 @@
 #
 #   LLVM        "y" to compile LLVM bitcode with clang
 #
+#   WGS84       "y" to use WGS84 instead of FAI sphere for distance calculations.
+#               This is enabled by default.
+#
 #   LIBCXX      "y" to compile with libc++, or the absolute path of the
 #               libc++ svn/git working directory.
 #
@@ -70,8 +73,6 @@ include $(topdir)/build/detect.mk
 include $(topdir)/build/targets.mk
 include $(topdir)/build/pkgconfig.mk
 include $(topdir)/build/languages.mk
-include $(topdir)/build/resource.mk
-include $(topdir)/build/libdata.mk
 include $(topdir)/build/options.mk
 include $(topdir)/build/debug.mk
 include $(topdir)/build/coverage.mk
@@ -91,11 +92,15 @@ include $(topdir)/build/charset.mk
 include $(topdir)/build/warnings.mk
 include $(topdir)/build/compile.mk
 include $(topdir)/build/link.mk
+include $(topdir)/build/resource.mk
+include $(topdir)/build/libdata.mk
 include $(topdir)/build/java.mk
 include $(topdir)/build/android.mk
 include $(topdir)/build/llvm.mk
 include $(topdir)/build/tools.mk
 include $(topdir)/build/version.mk
+include $(topdir)/build/darwin.mk
+include $(topdir)/build/ios.mk
 include $(topdir)/build/osx.mk
 include $(topdir)/build/generate.mk
 include $(topdir)/build/doxygen.mk
@@ -145,6 +150,8 @@ include $(topdir)/build/main.mk
 include $(topdir)/build/kobo.mk
 include $(topdir)/build/test.mk
 include $(topdir)/build/hot.mk
+
+include $(topdir)/build/python.mk
 
 # Load local-config a second time
 # to set (override) choices for GXX and friends.
