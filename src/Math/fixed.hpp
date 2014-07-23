@@ -26,8 +26,7 @@
 
 #ifndef FIXED_MATH
 #include <math.h>
-#define FIXED_DOUBLE(x) (x)
-#define FIXED_INT(x) ((int)x)
+
 typedef double fixed;
 
 gcc_const
@@ -43,9 +42,24 @@ sin_cos(const fixed thetha)
 #endif
 }
 
-#define positive(x) (x > 0)
-#define negative(x) (x < 0)
-#define sigmoid(x) (2.0 / (1.0 + exp(-x)) - 1.0)
+static inline constexpr bool
+positive(fixed x)
+{
+  return x > 0;
+}
+
+static inline constexpr bool
+negative(fixed x)
+{
+  return x < 0;
+}
+
+gcc_const
+static inline fixed
+sigmoid(fixed x)
+{
+  return 2.0 / (1.0 + exp(-x)) - 1.0;
+}
 
 constexpr
 static inline fixed
@@ -110,8 +124,6 @@ inline fixed accurate_half_sin(fixed a) {
 }
 
 #else
-#define FIXED_DOUBLE(x) x.as_double()
-#define FIXED_INT(x) x.as_int()
 
 #include <type_traits>
 #include <climits>

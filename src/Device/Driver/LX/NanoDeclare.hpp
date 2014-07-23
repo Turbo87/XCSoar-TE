@@ -21,29 +21,16 @@ Copyright_License {
 }
 */
 
-#include "Device/Internal.hpp"
+#ifndef XCSOAR_DEVICE_DRIVER_LX_NANO_DECLARE_HPP
+#define XCSOAR_DEVICE_DRIVER_LX_NANO_DECLARE_HPP
 
-#include "Port/Port.hpp"
-#include "NMEA/Checksum.hpp"
+class Port;
+struct Declaration;
+class OperationEnvironment;
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-
-bool
-PortWriteNMEA(Port &port, const char *line, OperationEnvironment &env)
-{
-  assert(line != NULL);
-
-  /* reasonable hard-coded timeout; do we need to make this a
-     parameter? */
-  const unsigned timeout_ms = 1000;
-
-  if (!port.Write('$') ||
-      !port.FullWrite(line, strlen(line), env, timeout_ms))
-    return false;
-
-  char checksum[16];
-  sprintf(checksum, "*%02X\r\n", NMEAChecksum(line));
-  return port.FullWrite(checksum, strlen(checksum), env, timeout_ms);
+namespace Nano {
+  bool Declare(Port &port, const Declaration &declaration,
+               OperationEnvironment &env);
 }
+
+#endif

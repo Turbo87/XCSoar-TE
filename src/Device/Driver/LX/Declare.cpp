@@ -21,9 +21,9 @@ Copyright_License {
 }
 */
 
-#include "Device/Driver/LX.hpp"
-#include "Device/Driver/LX/Internal.hpp"
-#include "Device/Driver/LX/Protocol.hpp"
+#include "Internal.hpp"
+#include "NanoDeclare.hpp"
+#include "Protocol.hpp"
 #include "Device/Port/Port.hpp"
 #include "Device/Declaration.hpp"
 #include "OS/ByteOrder.hpp"
@@ -217,6 +217,9 @@ LXDevice::Declare(const Declaration &declaration,
 {
   if (declaration.Size() < 2 || declaration.Size() > 12)
     return false;
+
+  if (IsNano())
+    return Nano::Declare(port, declaration, env);
 
   if (!EnableCommandMode(env))
     return false;

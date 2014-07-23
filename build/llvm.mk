@@ -20,10 +20,13 @@ ifeq ($(USE_CCACHE),y)
   CCACHE := export CCACHE_CPP2=yes && $(CCACHE)
 endif
 
+ifneq ($(LLVM_TARGET),)
+  TARGET_ARCH += -target $(LLVM_TARGET)
+endif
+
 ifeq ($(TARGET),ANDROID)
   TARGET_ARCH := $(filter-out -mthumb-interwork,$(TARGET_ARCH))
   TARGET_ARCH += -gcc-toolchain $(ANDROID_GCC_TOOLCHAIN)
-  TARGET_ARCH += -target $(LLVM_TRIPLE)
   TARGET_ARCH += -integrated-as
   TARGET_CPPFLAGS += -DBIONIC -DLIBCPP_NO_IOSTREAM
   TARGET_LDLIBS += -latomic
@@ -32,7 +35,7 @@ endif # Android
 ifeq ($(TARGET_IS_PI),y)
   TARGET_LLVM_FLAGS = -march=arm -mcpu=arm1136jf-s -mattr=+vfp2 -float-abi=hard \
 	-enable-no-infs-fp-math -enable-no-nans-fp-math -enable-unsafe-fp-math
-  TARGET_ARCH += -target armv6-none-linux-gnueabihf -integrated-as
+  TARGET_ARCH += -integrated-as
 endif
 
 ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)

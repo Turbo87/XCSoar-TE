@@ -33,35 +33,9 @@
 
 #include <utility>
 #include <algorithm>
+#include <unordered_set>
 
 class GlidePolar;
-
-// define PLANNER_SET if STL tr1 extensions are not to be used
-// (with performance penalty)
-#define PLANNER_SET
-
-#ifdef PLANNER_SET
-#include <set>
-#else
-#include <tr1/unordered_set>
-#include <tr1/unordered_map>
-
-namespace std
-{
-  namespace tr1
-  {
-    template <>
-    struct hash<RouteLinkBase> : public unary_function<RouteLinkBase, size_t>
-    {
-      gcc_pure
-      size_t operator()(const RouteLinkBase& __val) const {
-        return std::tr1::_Fnv_hash<sizeof(size_t)>::hash ((const char*)&__val, sizeof(__val));
-      }
-    };
-  }
-}
-
-#endif
 
 /**
  * RoutePlanner is an abstract class for planning paths (routes) through
@@ -107,6 +81,21 @@ namespace std
  * (RoutePlannerGlue) is responsible for locking the RasterMap on solve() calls.
  */
 class RoutePlanner {
+  struct RoutePointHasher : std::unary_function<RoutePoint, size_t> {
+    gcc_const
+    result_type operator()(const argument_type p) const {
+      return p.longitude * result_type(104729) + p.latitude;
+    }
+  };
+
+  struct RouteLinkBaseHasher : std::unary_function<RouteLinkBase, size_t> {
+    gcc_const
+    result_type operator()(const argument_type l) const {
+      RoutePointHasher p;
+      return p(l.first) * result_type(27644437) + p(l.second);
+    }
+  };
+
 protected:
   typedef std::pair<AFlatGeoPoint, AFlatGeoPoint> ClearingPair;
 
@@ -126,15 +115,8 @@ protected:
   RoughAltitude h_max;
 
 private:
-  struct CompareRoutePoint {
-    gcc_pure
-    bool operator()(const RoutePoint &a, const RoutePoint &b) const {
-      return a.Sort(b);
-    }
-  };
-
   /** A* search algorithm */
-  AStar<RoutePoint, CompareRoutePoint> planner;
+  AStar<RoutePoint, RoutePointHasher> planner;
 
   /**
    * Convex hull of search to date, used by terrain node
@@ -142,11 +124,8 @@ private:
    */
   SearchPointVector search_hull;
 
-#ifdef PLANNER_SET
-  typedef std::set< RouteLinkBase> RouteLinkSet;
-#else
-  typedef std::tr1::unordered_set< RouteLinkBase > RouteLinkSet;
-#endif
+  typedef std::unordered_set<RouteLinkBase, RouteLinkBaseHasher> RouteLinkSet;
+
   /** Links that have been visited during solution */
   RouteLinkSet unique_links;
   typedef std::queue< RouteLink> RouteLinkQueue;

@@ -56,6 +56,7 @@ class StaticStringBase
 {
 public:
   typedef T value_type;
+  typedef T &reference;
   typedef T *pointer;
   typedef const T *const_pointer;
   typedef const_pointer const_iterator;
@@ -172,7 +173,7 @@ public:
   /**
    * Returns one writable character.  No bounds checking.
    */
-  value_type &operator[](size_type i) {
+  reference operator[](size_type i) {
     assert(i <= length());
 
     return data[i];
@@ -326,20 +327,29 @@ public:
 template<size_t max>
 class NarrowString: public StaticStringBase<char, max>
 {
+  typedef StaticStringBase<char, max> Base;
+
 public:
+  typedef typename Base::value_type value_type;
+  typedef typename Base::reference reference;
+  typedef typename Base::pointer pointer;
+  typedef typename Base::const_pointer const_pointer;
+  typedef typename Base::const_iterator const_iterator;
+  typedef typename Base::size_type size_type;
+
   NarrowString() = default;
-  explicit NarrowString(const char *value):StaticStringBase<char, max>(value) {}
+  explicit NarrowString(const_pointer value):Base(value) {}
 
-  NarrowString<max> &operator =(const char *new_value) {
-    return (NarrowString<max> &)StaticStringBase<char, max>::operator =(new_value);
+  NarrowString<max> &operator =(const_pointer new_value) {
+    return (NarrowString<max> &)Base::operator =(new_value);
   }
 
-  NarrowString<max> &operator +=(const char *new_value) {
-    return (NarrowString<max> &)StaticStringBase<char, max>::operator +=(new_value);
+  NarrowString<max> &operator +=(const_pointer new_value) {
+    return (NarrowString<max> &)Base::operator +=(new_value);
   }
 
-  NarrowString<max> &operator +=(char ch) {
-    return (NarrowString<max> &)StaticStringBase<char, max>::operator +=(ch);
+  NarrowString<max> &operator +=(value_type ch) {
+    return (NarrowString<max> &)Base::operator +=(ch);
   }
 
   void CropIncompleteUTF8() {
@@ -356,20 +366,29 @@ public:
 template<size_t max>
 class StaticString: public StaticStringBase<TCHAR, max>
 {
+  typedef StaticStringBase<TCHAR, max> Base;
+
 public:
+  typedef typename Base::value_type value_type;
+  typedef typename Base::reference reference;
+  typedef typename Base::pointer pointer;
+  typedef typename Base::const_pointer const_pointer;
+  typedef typename Base::const_iterator const_iterator;
+  typedef typename Base::size_type size_type;
+
   StaticString() = default;
-  explicit StaticString(const TCHAR *value):StaticStringBase<TCHAR, max>(value) {}
+  explicit StaticString(const_pointer value):Base(value) {}
 
-  StaticString<max> &operator =(const TCHAR *new_value) {
-    return (StaticString<max> &)StaticStringBase<TCHAR, max>::operator =(new_value);
+  StaticString<max> &operator =(const_pointer new_value) {
+    return (StaticString<max> &)Base::operator =(new_value);
   }
 
-  StaticString<max> &operator +=(const TCHAR *new_value) {
-    return (StaticString<max> &)StaticStringBase<TCHAR, max>::operator +=(new_value);
+  StaticString<max> &operator +=(const_pointer new_value) {
+    return (StaticString<max> &)Base::operator +=(new_value);
   }
 
-  StaticString<max> &operator +=(TCHAR ch) {
-    return (StaticString<max> &)StaticStringBase<TCHAR, max>::operator +=(ch);
+  StaticString<max> &operator +=(value_type ch) {
+    return (StaticString<max> &)Base::operator +=(ch);
   }
 
   void CropIncompleteUTF8() {

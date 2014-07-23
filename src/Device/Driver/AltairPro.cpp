@@ -23,7 +23,7 @@ Copyright_License {
 
 #include "Device/Driver/AltairPro.hpp"
 #include "Device/Driver.hpp"
-#include "Device/Internal.hpp"
+#include "Device/Util/NMEAWriter.hpp"
 #include "Device/Port/Port.hpp"
 #include "Device/Declaration.hpp"
 #include "NMEA/Checksum.hpp"
@@ -243,15 +243,8 @@ AltairProDevice::PropertySetGet(char *Buffer, size_t size,
 
   // read value eg bar
   while (size > 0) {
-    int remaining = timeout.GetRemainingSigned();
-    if (remaining < 0)
-      return false;
-
-    if (port.WaitRead(env, remaining) != Port::WaitResult::READY)
-      return false;
-
-    int nbytes = port.Read(Buffer, size);
-    if (nbytes < 0)
+    const size_t nbytes = port.WaitAndRead(Buffer, size, env, timeout);
+    if (nbytes == 0)
       return false;
 
     char *asterisk = (char *)memchr(Buffer, '*', nbytes);

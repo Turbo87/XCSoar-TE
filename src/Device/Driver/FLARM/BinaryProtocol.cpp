@@ -84,16 +84,13 @@ FLARM::SendEscaped(Port &port, const void *buffer, size_t length,
 
 static uint8_t *
 ReceiveSomeUnescape(Port &port, uint8_t *buffer, size_t length,
-                    OperationEnvironment &env, const TimeoutClock &timeout)
+                    OperationEnvironment &env, const TimeoutClock timeout)
 {
   /* read "length" bytes from the port, optimistically assuming that
      there are no escaped bytes */
 
-  if (port.WaitRead(env, timeout.GetRemainingOrZero()) != Port::WaitResult::READY)
-    return NULL;
-
-  int nbytes = port.Read(buffer, length);
-  if (nbytes <= 0)
+  size_t nbytes = port.WaitAndRead(buffer, length, env, timeout);
+  if (nbytes == 0)
     return NULL;
 
   /* unescape in-place */

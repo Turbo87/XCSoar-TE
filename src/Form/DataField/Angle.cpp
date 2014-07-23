@@ -102,7 +102,7 @@ AngleDataField::SetAsInteger(int _value)
 void
 AngleDataField::SetAsString(const TCHAR *_value)
 {
-  ModifyValue(Angle::Degrees(ParseDouble(_value, nullptr)));
+  ModifyValue(Angle::Degrees(ParseDouble(_value)));
 }
 
 void
@@ -151,7 +151,7 @@ AngleDataField::CreateComboList(const TCHAR *reference) const
 
   while (i < MAX) {
     if (!found_current && value <= i) {
-      combo_list.ComboPopupItemSavedIndex = combo_list.size();
+      combo_list.current_index = combo_list.size();
 
       if (value < i)
         /* the current value is not listed - insert it here */
@@ -185,7 +185,7 @@ AngleDataField::CreateComboList(const TCHAR *reference) const
 
   if (!found_current) {
     /* the current value out of range - append it here */
-    combo_list.ComboPopupItemSavedIndex = combo_list.size();
+    combo_list.current_index = combo_list.size();
     AppendComboValue(combo_list, value);
   }
 

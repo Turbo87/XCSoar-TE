@@ -71,7 +71,6 @@ class DeviceListWidget final
   };
 
   const DialogLook &look;
-  const TerminalLook &terminal_look;
 
   UPixelScalar font_height;
 
@@ -164,8 +163,8 @@ class DeviceListWidget final
   WndButton *debug_button;
 
 public:
-  DeviceListWidget(const DialogLook &_look, const TerminalLook &_terminal_look)
-    :look(_look), terminal_look(_terminal_look) {}
+  DeviceListWidget(const DialogLook &_look)
+    :look(_look) {}
 
   void CreateButtons(WidgetDialog &dialog);
 
@@ -291,7 +290,7 @@ DeviceListWidget::UpdateButtons()
   } else {
     const DeviceDescriptor &device = *device_list[current];
 
-    reconnect_button->SetEnabled(device.IsConfigured());
+    reconnect_button->SetEnabled(!device.GetConfig().IsDisabled());
     flight_button->SetEnabled(device.IsLogger());
     manage_button->SetEnabled(device.IsManageable());
     monitor_button->SetEnabled(device.GetConfig().UsesPort());
@@ -599,8 +598,7 @@ DeviceListWidget::MonitorCurrent()
     return;
 
   DeviceDescriptor &descriptor = *device_list[current];
-  ShowPortMonitor(UIGlobals::GetMainWindow(), look, terminal_look,
-                  descriptor);
+  ShowPortMonitor(descriptor);
 }
 
 inline void
@@ -667,9 +665,9 @@ DeviceListWidget::OnGPSUpdate(const MoreData &basic)
 }
 
 void
-ShowDeviceList(const TerminalLook &terminal_look)
+ShowDeviceList()
 {
-  DeviceListWidget widget(UIGlobals::GetDialogLook(), terminal_look);
+  DeviceListWidget widget(UIGlobals::GetDialogLook());
 
   WidgetDialog dialog(UIGlobals::GetDialogLook());
   dialog.CreateFull(UIGlobals::GetMainWindow(), _("Devices"), &widget);

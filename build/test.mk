@@ -92,6 +92,7 @@ TEST_NAMES = \
 	TestMathTables \
 	TestAngle TestUnits TestEarth TestSunEphemeris \
 	TestValidity TestUTM TestProfile \
+	TestAllocatedGrid \
 	TestRadixTree TestGeoBounds TestGeoClip \
 	TestLogger TestGRecord TestDriver TestClimbAvCalc \
 	TestWaypointReader TestThermalBase \
@@ -562,6 +563,12 @@ TEST_VALIDITY_SOURCES = \
 	$(TEST_SRC_DIR)/TestValidity.cpp
 $(eval $(call link-program,TestValidity,TEST_VALIDITY))
 
+TEST_ALLOCATED_GRID_SOURCES = \
+	$(TEST_SRC_DIR)/tap.c \
+	$(TEST_SRC_DIR)/TestAllocatedGrid.cpp
+TEST_ALLOCATED_GRID_DEPENDS = UTIL
+$(eval $(call link-program,TestAllocatedGrid,TEST_ALLOCATED_GRID))
+
 TEST_RADIX_TREE_SOURCES = \
 	$(TEST_SRC_DIR)/tap.c \
 	$(TEST_SRC_DIR)/TestRadixTree.cpp
@@ -572,6 +579,7 @@ TEST_LOGGER_SOURCES = \
 	$(SRC)/IGC/IGCFix.cpp \
 	$(SRC)/IGC/IGCWriter.cpp \
 	$(SRC)/IGC/IGCString.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/Units/Descriptor.cpp \
 	$(SRC)/Units/System.cpp \
 	$(SRC)/Logger/LoggerFRecord.cpp \
@@ -596,8 +604,10 @@ $(eval $(call link-program,TestGRecord,TEST_GRECORD))
 
 TEST_DRIVER_SOURCES = \
 	$(SRC)/Device/Port/NullPort.cpp \
+	$(SRC)/Device/Port/Port.cpp \
 	$(SRC)/Device/Parser.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Config.cpp \
@@ -615,6 +625,7 @@ TEST_DRIVER_SOURCES = \
 	$(SRC)/Units/Descriptor.cpp \
 	$(SRC)/Units/System.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/Computer/ClimbAverageCalculator.cpp \
 	$(SRC)/Operation/Operation.cpp \
 	$(SRC)/Operation/ProxyOperationEnvironment.cpp \
@@ -772,9 +783,11 @@ DEBUG_REPLAY_SOURCES = \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Register.cpp \
 	$(SRC)/Device/Parser.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/Units/Descriptor.cpp \
 	$(SRC)/Units/System.cpp \
 	$(ENGINE_SRC_DIR)/Airspace/AirspaceWarningConfig.cpp \
@@ -1191,7 +1204,8 @@ RUN_DEVICE_DRIVER_SOURCES = \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Register.cpp \
 	$(SRC)/Device/Parser.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/FLARM/Traffic.cpp \
 	$(SRC)/FLARM/List.cpp \
@@ -1203,6 +1217,7 @@ RUN_DEVICE_DRIVER_SOURCES = \
 	$(SRC)/NMEA/InputLine.cpp \
 	$(SRC)/NMEA/Checksum.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/FLARM/FlarmCalculations.cpp \
 	$(SRC)/Computer/ClimbAverageCalculator.cpp \
 	$(SRC)/Operation/Operation.cpp \
@@ -1223,7 +1238,8 @@ RUN_DECLARE_SOURCES = \
 	$(SRC)/Units/System.cpp \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Register.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/NMEA/InputLine.cpp \
@@ -1234,6 +1250,7 @@ RUN_DECLARE_SOURCES = \
 	$(SRC)/NMEA/Attitude.cpp \
 	$(SRC)/NMEA/Acceleration.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/OS/LogError.cpp \
 	$(SRC)/Operation/Operation.cpp \
 	$(SRC)/Operation/ProxyOperationEnvironment.cpp \
@@ -1258,7 +1275,8 @@ RUN_ENABLE_NMEA_SOURCES = \
 	$(SRC)/Units/System.cpp \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Register.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/NMEA/InputLine.cpp \
@@ -1269,6 +1287,7 @@ RUN_ENABLE_NMEA_SOURCES = \
 	$(SRC)/NMEA/Attitude.cpp \
 	$(SRC)/NMEA/Acceleration.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/Operation/Operation.cpp \
 	$(SRC)/Operation/ProxyOperationEnvironment.cpp \
 	$(SRC)/Operation/NoCancelOperationEnvironment.cpp \
@@ -1288,7 +1307,8 @@ $(eval $(call link-program,RunEnableNMEA,RUN_ENABLE_NMEA))
 RUN_VEGA_SETTINGS_SOURCES = \
 	$(VEGA_SOURCES) \
 	$(SRC)/Device/Driver.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Port/ConfiguredPort.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/NMEA/InputLine.cpp \
@@ -1307,7 +1327,8 @@ $(eval $(call link-program,RunVegaSettings,RUN_VEGA_SETTINGS))
 RUN_FLARM_UTILS_SOURCES = \
 	$(SRC)/Device/Port/ConfiguredPort.cpp \
 	$(SRC)/Device/Driver.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/OS/LogError.cpp \
@@ -1325,7 +1346,8 @@ $(eval $(call link-program,RunFlarmUtils,RUN_FLARM_UTILS))
 RUN_LX1600_UTILS_SOURCES = \
 	$(SRC)/Device/Port/ConfiguredPort.cpp \
 	$(SRC)/Device/Driver.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/OS/LogError.cpp \
@@ -1349,7 +1371,8 @@ RUN_FLIGHT_LIST_SOURCES = \
 	$(SRC)/Units/System.cpp \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Register.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/NMEA/InputLine.cpp \
@@ -1360,6 +1383,7 @@ RUN_FLIGHT_LIST_SOURCES = \
 	$(SRC)/NMEA/Attitude.cpp \
 	$(SRC)/NMEA/Acceleration.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/OS/LogError.cpp \
 	$(SRC)/Operation/Operation.cpp \
 	$(SRC)/Operation/ProxyOperationEnvironment.cpp \
@@ -1382,7 +1406,8 @@ RUN_DOWNLOAD_FLIGHT_SOURCES = \
 	$(SRC)/Units/System.cpp \
 	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Register.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Declaration.cpp \
 	$(SRC)/Device/Config.cpp \
 	$(SRC)/NMEA/InputLine.cpp \
@@ -1393,6 +1418,7 @@ RUN_DOWNLOAD_FLIGHT_SOURCES = \
 	$(SRC)/NMEA/Attitude.cpp \
 	$(SRC)/NMEA/Acceleration.cpp \
 	$(SRC)/IGC/IGCParser.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/OS/LogError.cpp \
 	$(SRC)/Operation/Operation.cpp \
 	$(SRC)/Operation/ProxyOperationEnvironment.cpp \
@@ -1458,6 +1484,7 @@ RUN_IGC_WRITER_SOURCES = \
 	$(SRC)/IGC/IGCFix.cpp \
 	$(SRC)/IGC/IGCWriter.cpp \
 	$(SRC)/IGC/IGCString.cpp \
+	$(SRC)/IGC/Generator.cpp \
 	$(SRC)/Logger/LoggerFRecord.cpp \
 	$(SRC)/Logger/GRecord.cpp \
 	$(SRC)/Logger/LoggerEPE.cpp \
@@ -2420,8 +2447,9 @@ $(eval $(call link-program,FeedVega,FEED_VEGA))
 
 EMULATE_DEVICE_SOURCES = \
 	$(SRC)/Device/Port/ConfiguredPort.cpp \
-	$(SRC)/Device/Port/LineSplitter.cpp \
-	$(SRC)/Device/Internal.cpp \
+	$(SRC)/Device/Util/LineSplitter.cpp \
+	$(SRC)/Device/Util/NMEAWriter.cpp \
+	$(SRC)/Device/Util/NMEAReader.cpp \
 	$(SRC)/Device/Driver/FLARM/BinaryProtocol.cpp \
 	$(SRC)/Device/Driver/FLARM/CRC16.cpp \
 	$(SRC)/Device/Config.cpp \

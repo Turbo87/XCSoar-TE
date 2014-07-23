@@ -45,7 +45,9 @@ static FastMutex all_threads_mutex;
  * This list keeps track of all active threads.  It is used to assert
  * that all threads have been cleaned up on shutdown.
  */
-static ListHead all_threads = ListHead(ListHead::empty());
+static boost::intrusive::list<Thread,
+                              boost::intrusive::member_hook<Thread, Thread::SiblingsHook, &Thread::siblings>,
+                              boost::intrusive::constant_time_size<false>> all_threads;
 #endif
 
 void
@@ -64,7 +66,7 @@ Thread::Start()
   creating = true;
 #endif
 
-  defined = pthread_create(&handle, NULL, ThreadProc, this) == 0;
+  defined = pthread_create(&handle, nullptr, ThreadProc, this) == 0;
 
 #ifndef NDEBUG
   creating = false;
@@ -72,15 +74,15 @@ Thread::Start()
 
   bool success = defined;
 #else
-  handle = ::CreateThread(NULL, 0, ThreadProc, this, 0, &id);
+  handle = ::CreateThread(nullptr, 0, ThreadProc, this, 0, &id);
 
-  bool success = handle != NULL;
+  bool success = handle != nullptr;
 #endif
 
 #ifndef NDEBUG
   if (success) {
     all_threads_mutex.Lock();
-    siblings.InsertAfter(all_threads);
+    all_threads.push_back(*this);
     all_threads_mutex.Unlock();
   }
 #endif
@@ -95,17 +97,17 @@ Thread::Join()
   assert(!IsInside());
 
 #ifdef HAVE_POSIX
-  pthread_join(handle, NULL);
+  pthread_join(handle, nullptr);
   defined = false;
 #else
   ::WaitForSingleObject(handle, INFINITE);
   ::CloseHandle(handle);
-  handle = NULL;
+  handle = nullptr;
 #endif
 
 #ifndef NDEBUG
   all_threads_mutex.Lock();
-  siblings.Remove();
+  all_threads.erase(all_threads.iterator_to(*this));
   all_threads_mutex.Unlock();
 #endif
 }
@@ -120,12 +122,12 @@ Thread::Join(unsigned timeout_ms)
   bool result = ::WaitForSingleObject(handle, timeout_ms) == WAIT_OBJECT_0;
   if (result) {
     ::CloseHandle(handle);
-    handle = NULL;
+    handle = nullptr;
 
 #ifndef NDEBUG
     {
       all_threads_mutex.Lock();
-      siblings.Remove();
+      all_threads.erase(all_threads.iterator_to(*this));
       all_threads_mutex.Unlock();
     }
 #endif
@@ -159,7 +161,7 @@ Thread::ThreadProc(void *p)
   Java::DetachCurrentThread();
 #endif
 
-  return NULL;
+  return nullptr;
 }
 
 #else /* !HAVE_POSIX */
@@ -181,7 +183,7 @@ bool
 ExistsAnyThread()
 {
   all_threads_mutex.Lock();
-  bool result = !all_threads.IsEmpty();
+  bool result = !all_threads.empty();
   all_threads_mutex.Unlock();
   return result;
 }

@@ -25,10 +25,9 @@
 #include "Geo/Flat/TaskProjection.hpp"
 
 RoutePlanner::RoutePlanner()
-  :terrain(NULL), planner(0), reach_polar_mode(RoutePlannerConfig::Polar::TASK)
-#ifndef PLANNER_SET
-  , unique_links(50000)
-#endif
+  :terrain(NULL), planner(0),
+   unique_links(50000),
+   reach_polar_mode(RoutePlannerConfig::Polar::TASK)
 {
   Reset();
 }
@@ -270,7 +269,7 @@ RoutePlanner::LinkCleared(const RouteLink &e)
                        (is_final ? 0 : RoutePolars::RoundTime(h)));
   // add one to tie-break towards lower number of links
 
-  planner.Reserve(ASTAR_QUEUE_SIZE);
+  planner.Reserve(planner.DEFAULT_QUEUE_SIZE);
   planner.Link(e.second, e.first, v);
   return true;
 }
@@ -278,10 +277,9 @@ RoutePlanner::LinkCleared(const RouteLink &e)
 bool
 RoutePlanner::IsSetUnique(const RouteLinkBase &e)
 {
-  if (unique_links.find(e) == unique_links.end()) {
-    unique_links.insert(e);
+  const bool inserted = unique_links.insert(e).second;
+  if (inserted)
     return true;
-  }
 
   count_supressed++;
   return false;
@@ -505,7 +503,6 @@ RoutePlanner::Intersection(const AGeoPoint& origin,
   - promote stable solutions with rounding of time value
   - adjustment to GlideSolution height/time in task manager according to path
     variation required for terrain/airspace avoidance
-  - tr1::hash function portability between compiler versions
   - AirspaceRoute synchronise method to disable/ignore airspaces that are
     acknowledged in the airspace warning manager.
   - more documentation

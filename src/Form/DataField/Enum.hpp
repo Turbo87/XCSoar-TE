@@ -25,8 +25,9 @@ Copyright_License {
 #define XCSOAR_DATA_FIELD_ENUM_HPP
 
 #include "Base.hpp"
-#include "Util/NonCopyable.hpp"
 #include "Util/StaticArray.hpp"
+
+#include <utility>
 
 #include <stdlib.h>
 
@@ -41,7 +42,7 @@ struct StaticEnumChoice {
 
 class DataFieldEnum final : public DataField {
 public:
-  class Entry : private NonCopyable {
+  class Entry {
     unsigned id;
     TCHAR *string;
     TCHAR *display_string;
@@ -50,6 +51,8 @@ public:
   public:
     Entry():string(nullptr), display_string(nullptr), help(nullptr) {}
     ~Entry();
+
+    Entry(const Entry &) = delete;
 
     Entry(Entry &&other)
       :id(other.id), string(other.string),
@@ -63,6 +66,13 @@ public:
       std::swap(display_string, other.display_string);
       std::swap(help, other.help);
       return *this;
+    }
+
+    friend void swap(Entry &a, Entry &b) {
+      std::swap(a.id, b.id);
+      std::swap(a.string, b.string);
+      std::swap(a.display_string, b.display_string);
+      std::swap(a.help, b.help);
     }
 
     unsigned GetId() const {
@@ -83,8 +93,8 @@ public:
 
     void SetString(const TCHAR *_string);
     void Set(unsigned _id, const TCHAR *_string,
-             const TCHAR *_display_string=NULL,
-             const TCHAR *_help=NULL);
+             const TCHAR *_display_string=nullptr,
+             const TCHAR *_help=nullptr);
   };
 
 private:
@@ -109,26 +119,27 @@ public:
 
   void replaceEnumText(unsigned int i, const TCHAR *Text);
 
-  bool AddChoice(unsigned id, const TCHAR *text, const TCHAR *display_string=NULL,
-                 const TCHAR *help=NULL);
+  bool AddChoice(unsigned id, const TCHAR *text,
+                 const TCHAR *display_string=nullptr,
+                 const TCHAR *help=nullptr);
 
   /**
-   * Add choices from the specified NULL-terminated list (the last
-   * entry has a NULL display_string).  All display strings and help
+   * Add choices from the specified nullptr-terminated list (the last
+   * entry has a nullptr display_string).  All display strings and help
    * texts are translated with gettext() by this method.
    */
   void AddChoices(const StaticEnumChoice *list);
 
-  bool addEnumText(const TCHAR *text, unsigned id, const TCHAR *help=NULL) {
-    return AddChoice(id, text, NULL, help);
+  bool addEnumText(const TCHAR *text, unsigned id, const TCHAR *help=nullptr) {
+    return AddChoice(id, text, nullptr, help);
   }
 
-  unsigned addEnumText(const TCHAR *Text, const TCHAR *display_string=NULL,
-                       const TCHAR *ItemHelpText=NULL);
+  unsigned addEnumText(const TCHAR *Text, const TCHAR *display_string=nullptr,
+                       const TCHAR *ItemHelpText=nullptr);
   void addEnumTexts(const TCHAR *const*list);
 
   /**
-   * @return help of current enum item or NULL if current item has no help
+   * @return help of current enum item or nullptr if current item has no help
    */
   const TCHAR *GetHelp() const;
 

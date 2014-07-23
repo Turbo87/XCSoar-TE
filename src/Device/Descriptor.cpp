@@ -26,7 +26,7 @@ Copyright_License {
 #include "Device/Parser.hpp"
 #include "Driver/FLARM/Device.hpp"
 #include "Driver/LX/Internal.hpp"
-#include "Device/Internal.hpp"
+#include "Device/Util/NMEAWriter.hpp"
 #include "Device/Register.hpp"
 #include "Blackboard/DeviceBlackboard.hpp"
 #include "Components.hpp"
@@ -239,7 +239,6 @@ DeviceDescriptor::OpenOnPort(DumpPort *_port, OperationEnvironment &env)
 
   parser.Reset();
   parser.SetReal(_tcscmp(driver->name, _T("Condor")) != 0);
-  parser.SetIgnoreChecksum(config.ignore_checksum);
   if (config.IsDriver(_T("Condor")))
     parser.DisableGeoid();
 

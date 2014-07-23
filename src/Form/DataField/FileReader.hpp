@@ -25,9 +25,10 @@ Copyright_License {
 #define XCSOAR_DATA_FIELD_FILE_READER_HPP
 
 #include "Base.hpp"
-#include "Util/NonCopyable.hpp"
 #include "Util/StaticArray.hpp"
 #include "Util/StaticString.hpp"
+
+#include <utility>
 
 /**
  * #DataField specialisation that supplies options as a list of
@@ -39,14 +40,34 @@ class DataFieldFileReader final : public DataField {
 
 public:
   /** FileList item */
-  struct Item : private NonCopyable {
+  struct Item {
     /** Filename */
     const TCHAR *filename;
     /** Path including Filename */
     TCHAR *path;
 
     Item():filename(nullptr), path(nullptr) {}
+
+    Item(Item &&src):filename(src.filename), path(src.path) {
+      src.filename = src.path = nullptr;
+    }
+
+    Item(const Item &) = delete;
+
     ~Item();
+
+    Item &operator=(Item &&src) {
+      filename = src.filename;
+      path = src.path;
+      src.filename = src.path = nullptr;
+      return *this;
+    }
+
+    friend void swap(Item &a, Item &b) {
+      using std::swap;
+      swap(a.filename, b.filename);
+      swap(a.path, b.path);
+    }
   };
 
 private:
@@ -57,7 +78,7 @@ private:
 #endif
 
   /** Index of the active file */
-  unsigned int mValue;
+  unsigned int current_index;
   /** FileList item array */
   StaticArray<Item, MAX_FILES> files;
 
@@ -116,7 +137,7 @@ public:
    * that item
    * @param text PathFile to search for
    */
-  void Lookup(const TCHAR* text);
+  void Lookup(const TCHAR *text);
 
   /**
    * Returns the PathFile of the currently selected item
@@ -129,7 +150,7 @@ public:
    * Sets the selection to the given index
    * @param Value The array index to select
    */
-  void Set(unsigned Value);
+  void Set(unsigned new_value);
 
   /** Sorts the filelist by filenames */
   void Sort();
