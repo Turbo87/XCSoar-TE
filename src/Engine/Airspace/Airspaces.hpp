@@ -26,7 +26,7 @@
 #include "AirspacesInterface.hpp"
 #include "AirspaceActivity.hpp"
 #include "Predicate/AirspacePredicate.hpp"
-#include "Util/NonCopyable.hpp"
+#include "Util/Serial.hpp"
 #include "Geo/Flat/TaskProjection.hpp"
 #include "Atmosphere/Pressure.hpp"
 #include "Compiler.h"
@@ -62,7 +62,7 @@ class AirspaceIntersectionVisitor;
  *     O(n)
  */
 
-class Airspaces : public AirspacesInterface, private NonCopyable {
+class Airspaces : public AirspacesInterface {
   AtmosphericPressure qnh;
   AirspaceActivity activity_mask;
 
@@ -73,8 +73,14 @@ class Airspaces : public AirspacesInterface, private NonCopyable {
 
   std::deque<AbstractAirspace *> tmp_as;
 
+  /**
+   * This attribute keeps track of changes to this project.  It is
+   * used by the renderer cache.
+   */
+  Serial serial;
+
 public:
-  /** 
+  /**
    * Constructor.
    * Note this class can't safely be copied (yet)
    *
@@ -86,12 +92,18 @@ public:
   Airspaces(bool _owns_children=true)
     :qnh(AtmosphericPressure::Zero()), owns_children(_owns_children) {}
 
+  Airspaces(const Airspaces &) = delete;
+
   /**
    * Destructor.
    * This also destroys Airspace objects contained in the tree or temporary buffer
    */
   ~Airspaces() {
     Clear();
+  }
+
+  const Serial &GetSerial() const {
+    return serial;
   }
 
   /**

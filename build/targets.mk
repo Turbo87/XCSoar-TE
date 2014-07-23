@@ -357,7 +357,7 @@ endif
 ifeq ($(TARGET),ANDROID)
   ANDROID_NDK ?= $(HOME)/opt/android-ndk-r9d
 
-  ANDROID_PLATFORM = android-17
+  ANDROID_PLATFORM = android-19
   ANDROID_SDK_PLATFORM = $(ANDROID_PLATFORM)
 
   # NDK r8b has only android-14
@@ -393,8 +393,11 @@ ifeq ($(TARGET),ANDROID)
 
   ANDROID_GCC_TOOLCHAIN_NAME = $(ANDROID_ABI2)-$(ANDROID_GCC_VERSION)
 
+  # clang is the default compiler on Android
+  CLANG ?= y
+
   ifeq ($(CLANG),y)
-    ANDROID_TOOLCHAIN_NAME = llvm-3.3
+    ANDROID_TOOLCHAIN_NAME = llvm-3.4
   else
     ANDROID_TOOLCHAIN_NAME = $(ANDROID_GCC_TOOLCHAIN_NAME)
   endif
@@ -524,6 +527,7 @@ endif
 ifeq ($(HAVE_MSVCRT),y)
   TARGET_CPPFLAGS += -DHAVE_MSVCRT
   TARGET_CPPFLAGS += -DUNICODE -D_UNICODE
+  TARGET_CPPFLAGS += -DSTRICT
 endif
 
 ifeq ($(HAVE_WIN32),n)

@@ -193,6 +193,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Airspace/AirspaceParser.cpp \
 	$(SRC)/Airspace/AirspaceVisibility.cpp \
 	$(SRC)/Airspace/AirspaceComputerSettings.cpp \
+	$(SRC)/Airspace/NearestAirspace.cpp \
 	$(SRC)/Renderer/AirspaceRendererSettings.cpp \
 	\
 	$(SRC)/Operation/Operation.cpp \
@@ -422,6 +423,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/Renderer/TaskRenderer.cpp \
 	$(SRC)/Renderer/AircraftRenderer.cpp \
 	$(SRC)/Renderer/AirspaceRenderer.cpp \
+	$(SRC)/Renderer/AirspaceRendererGL.cpp \
+	$(SRC)/Renderer/AirspaceRendererOther.cpp \
 	$(SRC)/Renderer/AirspaceListRenderer.cpp \
 	$(SRC)/Renderer/AirspacePreviewRenderer.cpp \
 	$(SRC)/Renderer/BestCruiseArrowRenderer.cpp \
@@ -687,7 +690,7 @@ ifeq ($(HAVE_CE),y)
 XCSOAR_SOURCES += \
 	$(SRC)/Device/Windows/Enumerator.cpp
 endif
-	
+
 ifeq ($(TARGET_IS_DARWIN),y)
 XCSOAR_SOURCES += \
 	$(SRC)/Apple/InternalSensors.mm
