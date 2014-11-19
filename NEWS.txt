@@ -57,9 +57,21 @@ XCSoar TE
   - TravisCI support
 
 
-Version 6.7.6 - not yet released
+Version 6.7.6 - 2014/10/18
+* tracking
+  - updated SkyLines server IP
+* user interface
+  - fix crash when switching pages with cross section (#3012, #3231, #3395)
 * devices
   - LX: relax download timeout (#3199)
+  - OpenVario: new device driver
+  - Vaulter: new device driver
+* replay
+  - accept "$GNRMC" in replay of NMEA files
+* calculations
+  - improve circling detection when using some external NMEA devices (#3360, #3372)
+* configuration
+  - report missing plane configuration file in log file
 
 Version 6.7.5 - 2014/06/09
 * fix crash in task manager (#3305)
@@ -215,7 +227,7 @@ Version 6.7 - 2013/09/30
   - show Bluetooth name instead of MAC address in device list
   - enable fast refresh mode on Nook Simple Touch
 * Analysis
-  - a retrospective task is compiled that summarises waypoints the aircraft has 
+  - a retrospective task is compiled that summarises waypoints the aircraft has
     visited (within 15km radius).  These waypoints are drawn on OLC page of analysis dialog.
 * data files
   - default profile is called "default.prf" instead of "xcsoar-registry.prf"
