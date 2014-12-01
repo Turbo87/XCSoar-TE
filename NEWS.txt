@@ -56,6 +56,7 @@ XCSoar TE
   - vagrant support
   - TravisCI support
 
+Version 6.7.7 - not yet released
 
 Version 6.7.6 - 2014/10/18
 * tracking
