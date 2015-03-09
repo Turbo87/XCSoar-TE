@@ -23,6 +23,12 @@ env:
 before_install:
   - sudo apt-get update
 
+  - openssl aes-256-cbc
+    -K $encrypted_cd16ea2a7c97_key
+    -iv $encrypted_cd16ea2a7c97_iv
+    -in xcsoar-release.keystore.enc
+    -out xcsoar-release.keystore -d
+
 install:
   # General
 
