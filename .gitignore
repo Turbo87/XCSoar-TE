@@ -33,5 +33,6 @@ build/local-config.mk
 *.pyo
 *.bak
 
-.vagrant
+.vagrant/
+.vagrant.*
 *.keystore
