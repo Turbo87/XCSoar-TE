@@ -2,6 +2,7 @@ language: cpp
 
 env:
   global:
+    - secure: QXDgJN/ksHCyNXDcHjQ91FoBmJ4ECnaWHaB5eCfQ6yhVoop3jAXsMGZsY1cNLgahnTNgvEvOhZO8d0ri8ox80wKz9lASxZgRVPzB2jh2WS4k598epnvXA+MQcK+TTuEMYCwZdv/D8/Uj1o79KSnkQ4AlPcGh0Wha3nveoKN9PwI=
     - ANDROID_API_LEVEL=17
     - ANDROID_SDK_VERSION=24.0.2
     - ANDROID_NDK_VERSION=9
