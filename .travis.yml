@@ -25,7 +25,10 @@ install:
   # General
   - sudo apt-get clean
   - sudo apt-get update
-  - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc imagemagick gettext ttf-dejavu
+  - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev
+      zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev
+      libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc
+      imagemagick gettext ttf-dejavu
 
   # PC
 
@@ -49,7 +52,7 @@ install:
       tar -xzf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
 
       ~/opt/android-sdk-linux/tools/android list sdk -a --extended;
-      echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk -u -a -t platform-tools,build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
+      echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools,build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
 
       wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
       tar -xjf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt;
@@ -66,7 +69,9 @@ install:
   # Manual
 
   - if [ "$TARGET" = "MANUAL" ]; then
-      sudo apt-get install --no-install-recommends texlive texlive-latex-extra texlive-lang-ukenglish texlive-lang-german texlive-lang-french latex-xcolor pgf liblocale-po-perl;
+      sudo apt-get install --no-install-recommends texlive texlive-latex-extra
+        texlive-lang-ukenglish texlive-lang-german texlive-lang-french
+        latex-xcolor pgf liblocale-po-perl;
     fi
 
 script:
