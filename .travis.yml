@@ -121,6 +121,15 @@ script:
       make TARGET=$TARGET check;
     fi
 
+deploy:
+  provider: releases
+  api_key:
+    secure: beqP+DeMLdnu7ieZzlcpoSQVdSVvjzn3GFg/I980Rc77nUtQpw8PHjLSkNm5dw7uoNnQYlK0GwcwKd4e1kuoP77TjUsFnzrtPYvIIGAi1Rp5WCk8Ma0P+R23mrSuwu7aAJt3pUwzObbYsWe9zYQKvL9xQWJuxkQ4u6+OdFEM+oY=
+  file: output/ANDROIDFAT/bin/XCSoar.apk
+  skip_cleanup: true
+  on:
+    tags: true
+
 notifications:
   email:
     on_failure: change
