@@ -80,6 +80,11 @@ install:
 
 after_install: sudo apt-get clean
 
+before_script:
+  - if [ "$TRAVIS_TAG" ]; then
+      export DEBUG=n;
+    fi
+
 script:
   # Compile
 
