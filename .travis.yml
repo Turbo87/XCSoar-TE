@@ -30,9 +30,9 @@ install:
   # PC
 
   - if [ "$TARGET" = "PC" ]; then
-      sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 gettext;
+      sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686;
     elif [ "$TARGET" = "WIN64" ]; then
-      sudo apt-get install binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gettext;
+      sudo apt-get install binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64;
     fi
 
   # Android
