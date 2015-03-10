@@ -29,15 +29,15 @@ install:
 
   # PC
 
-  - if [[ "$TARGET" == "PC" ]]; then
+  - if [ "$TARGET" = "PC" ]; then
       sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 gettext;
-    elif [[ "$TARGET" == "WIN64" ]]; then
+    elif [ "$TARGET" = "WIN64" ]; then
       sudo apt-get install binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gettext;
     fi
 
   # Android
 
-  - if [[ "$TARGET" == "ANDROID" ]]; then
+  - if [ "$TARGET" = "ANDROID" ]; then
       mkdir ~/opt;
       sudo apt-get install default-jre default-jdk ant vorbis-tools;
 
@@ -57,7 +57,7 @@ install:
 
   # Windows Mobile
 
-  - if [[ "$TARGET" == "WM"* ]] || [[ "$TARGET" == "PPC"* ]] || [[ "$TARGET" == "ALTAIR" ]]; then
+  - if [[ "$TARGET" == "WM"* ]] || [[ "$TARGET" == "PPC"* ]] || [ "$TARGET" = "ALTAIR" ]; then
       wget http://spekje.snt.utwente.nl/~roel/cegcc/mingw32ce-mk-2013-04-03-amd64.tar.xz;
       tar -xJf mingw32ce-mk-2013-04-03-amd64.tar.xz -C ~/;
       export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH";
@@ -65,16 +65,16 @@ install:
 
   # Manual
 
-  - if [[ "$TARGET" == "MANUAL" ]]; then
+  - if [ "$TARGET" = "MANUAL" ]; then
       sudo apt-get install --no-install-recommends texlive texlive-latex-extra texlive-lang-ukenglish texlive-lang-german texlive-lang-french latex-xcolor pgf liblocale-po-perl;
     fi
 
 script:
   # Compile
 
-  - if [[ "$TARGET" == "MANUAL" ]]; then
+  - if [ "$TARGET" = "MANUAL" ]; then
       make -j8 TARGET=UNIX manual;
-    elif [[ "$TARGET" == "ANDROID" ]]; then
+    elif [ "$TARGET" = "ANDROID" ]; then
       make -j8 TARGET=ANDROID;
     else
       make -j8 TARGET=$TARGET everything;
@@ -82,7 +82,7 @@ script:
 
   # Run unit tests on platforms where possible (Unix)
 
-  - if [[ "$TARGET" == "UNIX" ]] || [[ "$TARGET" == "OPT" ]]; then
+  - if [ "$TARGET" = "UNIX" ] || [ "$TARGET" = "OPT" ]; then
       make TARGET=$TARGET check;
     fi
 
