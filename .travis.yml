@@ -40,21 +40,21 @@ install:
   # Android
 
   - if [ "$TARGET" = "ANDROID" ]; then
-      mkdir ~/opt;
-      sudo apt-get install default-jre default-jdk ant vorbis-tools;
+      mkdir -p ~/opt;
+      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools;
 
       if [ `uname -m` = x86_64 ]; then
-        sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch;
+        sudo apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386;
       fi
 
       wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
-      tar -xzf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
+      wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
+
+      tar -xf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
+      tar -xf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt;
 
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools;
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
-
-      wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
-      tar -xjf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt;
     fi
 
   # Windows Mobile
