@@ -1,64 +1,95 @@
 language: cpp
 
 env:
-  - TARGET=UNIX
-  - TARGET=PC
-  - TARGET=ANDROID
-  - TARGET=WM5
-  - TARGET=WM5X
-  - TARGET=PPC2000
-  - TARGET=PPC2003
-  - TARGET=PPC2003X
-  - TARGET=OPT
-  - TARGET=WIN64
-  - TARGET=ALTAIR
-  - TARGET=MANUAL
+  global:
+    - ANDROID_API_LEVEL=17
+    - ANDROID_SDK_VERSION=24.0.2
+    - ANDROID_NDK_VERSION=9
+    - ANDROID_BUILD_TOOLS_VERSION=20.0.0
 
-before_install:
-  - ANDROID_API_LEVEL=17
-  - ANDROID_SDK_VERSION=22.0.1
-  - ANDROID_NDK_VERSION=9
-  - ANDROID_BUILD_TOOLS_VERSION=18.1.0
-  - ANDROID_OS_VERSION=4.3
+  matrix:
+    - TARGET=ANDROID
+    - TARGET=UNIX
+    - TARGET=PC
+    - TARGET=WIN64
+    - TARGET=WM5
+    - TARGET=WM5X
+    - TARGET=PPC2000
+    - TARGET=PPC2003
+    - TARGET=PPC2003X
+    - TARGET=ALTAIR
+    - TARGET=MANUAL
 
 install:
   # General
   - sudo apt-get clean
   - sudo apt-get update
-  - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc imagemagick gettext ttf-dejavu
+  - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev
+      zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev
+      libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc
+      imagemagick gettext ttf-dejavu
 
   # PC
-  - if [[ "$TARGET" == "PC" ]]; then sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 gettext; fi
-  - if [[ "$TARGET" == "WIN64" ]]; then sudo apt-get install binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gettext; fi
+
+  - if [ "$TARGET" = "PC" ]; then
+      sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686;
+    elif [ "$TARGET" = "WIN64" ]; then
+      sudo apt-get install binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64;
+    fi
 
   # Android
-  - if [[ "$TARGET" == "ANDROID" ]]; then mkdir ~/opt; fi
-  - if [[ "$TARGET" == "ANDROID" ]]; then sudo apt-get install default-jre default-jdk ant vorbis-tools; fi
-  - if [[ "$TARGET" == "ANDROID" ]] && [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch; fi
-  # - Install SDK
-  - if [[ "$TARGET" == "ANDROID" ]]; then wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz; fi
-  - if [[ "$TARGET" == "ANDROID" ]]; then tar -xzf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt; fi
-  # - Install SDK components
-  - if [[ "$TARGET" == "ANDROID" ]]; then ~/opt/android-sdk-linux/tools/android list sdk -a --extended; fi
-  - if [[ "$TARGET" == "ANDROID" ]]; then echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk -u -a -t platform-tools,build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL; fi
-  # - Install NDK
-  - if [[ "$TARGET" == "ANDROID" ]]; then wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2; fi
-  - if [[ "$TARGET" == "ANDROID" ]]; then tar -xjf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt; fi
+
+  - if [ "$TARGET" = "ANDROID" ]; then
+      mkdir -p ~/opt;
+      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools;
+
+      if [ `uname -m` = x86_64 ]; then
+        sudo apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386;
+      fi
+
+      wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
+      wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
+
+      tar -xf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
+      tar -xf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt;
+
+      echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools;
+      echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
+    fi
 
   # Windows Mobile
-  - if [[ "$TARGET" == "WM"* ]] || [[ "$TARGET" == "PPC"* ]] || [[ "$TARGET" == "ALTAIR" ]]; then wget http://spekje.snt.utwente.nl/~roel/cegcc/mingw32ce-mk-2013-04-03-amd64.tar.xz; tar -xJf mingw32ce-mk-2013-04-03-amd64.tar.xz -C ~/; export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH"; fi
+
+  - if [[ "$TARGET" == "WM"* ]] || [[ "$TARGET" == "PPC"* ]] || [ "$TARGET" = "ALTAIR" ]; then
+      wget http://spekje.snt.utwente.nl/~roel/cegcc/mingw32ce-mk-2013-04-03-amd64.tar.xz;
+      tar -xJf mingw32ce-mk-2013-04-03-amd64.tar.xz -C ~/;
+      export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH";
+    fi
 
   # Manual
-  - if [[ "$TARGET" == "MANUAL" ]]; then sudo apt-get install --no-install-recommends texlive texlive-latex-extra texlive-lang-ukenglish texlive-lang-german texlive-lang-french latex-xcolor pgf liblocale-po-perl; fi
+
+  - if [ "$TARGET" = "MANUAL" ]; then
+      sudo apt-get install --no-install-recommends
+        texlive-latex-base texlive-latex-recommended texlive-latex-extra
+        texlive-lang-ukenglish texlive-lang-german texlive-lang-french
+        texlive-fonts-recommended latex-xcolor pgf liblocale-po-perl;
+    fi
 
 script:
   # Compile
-  - if [[ "$TARGET" != "MANUAL" ]] && [[ "$TARGET" != "ANDROID" ]]; then make -j8 TARGET=$TARGET everything; fi
-  - if [[ "$TARGET" == "ANDROID" ]]; then make -j8 TARGET=ANDROID; fi
-  - if [[ "$TARGET" == "MANUAL" ]]; then make -j8 TARGET=UNIX manual; fi
+
+  - if [ "$TARGET" = "MANUAL" ]; then
+      make -j8 TARGET=UNIX manual;
+    elif [ "$TARGET" = "ANDROID" ]; then
+      make -j8 TARGET=ANDROID;
+    else
+      make -j8 TARGET=$TARGET everything;
+    fi
 
   # Run unit tests on platforms where possible (Unix)
-  - if [[ "$TARGET" == "UNIX" ]] || [[ "$TARGET" == "OPT" ]]; then make TARGET=$TARGET check; fi
+
+  - if [ "$TARGET" = "UNIX" ]; then
+      make TARGET=$TARGET check;
+    fi
 
 notifications:
   email:
