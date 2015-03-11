@@ -20,10 +20,12 @@ env:
     - TARGET=ALTAIR
     - TARGET=MANUAL
 
+before_install:
+  - sudo apt-get update
+
 install:
   # General
-  - sudo apt-get clean
-  - sudo apt-get update
+
   - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev
       zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev
       libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc
@@ -76,6 +78,8 @@ install:
         texlive-lang-ukenglish texlive-lang-german texlive-lang-french
         texlive-fonts-recommended latex-xcolor pgf liblocale-po-perl;
     fi
+
+after_install: sudo apt-get clean
 
 script:
   # Compile
