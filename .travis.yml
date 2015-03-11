@@ -50,7 +50,6 @@ install:
       wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
       tar -xzf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
 
-      ~/opt/android-sdk-linux/tools/android list sdk -a --extended;
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools,build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
 
       wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
