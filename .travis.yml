@@ -121,11 +121,27 @@ script:
       make TARGET=$TARGET check;
     fi
 
+before_deploy:
+  - mkdir -p output/deploy
+
+  # Move results into deploy folder
+
+  - if [ "$TARGET" = "MANUAL" ]; then
+      mv output/manual/*.pdf output/deploy;
+
+    elif [ "$TARGET" = "ANDROID" ]; then
+      mv output/$TARGET/bin/XCSoar.apk output/deploy/;
+
+    elif [ "$TARGET" != "UNIX" ]; then
+      mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
+    fi
+
 deploy:
   provider: releases
   api_key:
     secure: beqP+DeMLdnu7ieZzlcpoSQVdSVvjzn3GFg/I980Rc77nUtQpw8PHjLSkNm5dw7uoNnQYlK0GwcwKd4e1kuoP77TjUsFnzrtPYvIIGAi1Rp5WCk8Ma0P+R23mrSuwu7aAJt3pUwzObbYsWe9zYQKvL9xQWJuxkQ4u6+OdFEM+oY=
-  file: output/ANDROIDFAT/bin/XCSoar.apk
+  file: output/deploy/*
+  file_glob: true
   skip_cleanup: true
   on:
     tags: true
