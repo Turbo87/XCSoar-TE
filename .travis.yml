@@ -8,16 +8,15 @@ env:
     - ANDROID_BUILD_TOOLS_VERSION=18.1.0
 
   matrix:
+    - TARGET=ANDROID
     - TARGET=UNIX
     - TARGET=PC
-    - TARGET=ANDROID
+    - TARGET=WIN64
     - TARGET=WM5
     - TARGET=WM5X
     - TARGET=PPC2000
     - TARGET=PPC2003
     - TARGET=PPC2003X
-    - TARGET=OPT
-    - TARGET=WIN64
     - TARGET=ALTAIR
     - TARGET=MANUAL
 
@@ -87,7 +86,7 @@ script:
 
   # Run unit tests on platforms where possible (Unix)
 
-  - if [ "$TARGET" = "UNIX" ] || [ "$TARGET" = "OPT" ]; then
+  - if [ "$TARGET" = "UNIX" ]; then
       make TARGET=$TARGET check;
     fi
 
