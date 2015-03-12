@@ -137,7 +137,7 @@ before_deploy:
       mv output/manual/*.pdf output/deploy;
 
     elif [ "$TARGET" = "ANDROID" ]; then
-      mv output/$TARGET/bin/XCSoar.apk output/deploy/;
+      mv output/ANDROIDFAT/bin/XCSoar.apk output/deploy/;
 
     elif [ "$TARGET" = "ALTAIR" ]; then
       mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
