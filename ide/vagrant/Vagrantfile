@@ -6,6 +6,7 @@ $script = <<SCRIPT
 cat >> ~/.profile << EOF
 export LANG=C
 export LC_CTYPE=C
+export USE_CCACHE=y
 EOF
 
 sudo bash -c "cat > /etc/apt/sources.list" << EOF
