@@ -20,10 +20,12 @@ env:
     - TARGET=ALTAIR
     - TARGET=MANUAL
 
+before_install:
+  - sudo apt-get update
+
 install:
   # General
-  - sudo apt-get clean
-  - sudo apt-get update
+
   - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev
       zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev
       libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc
@@ -41,17 +43,20 @@ install:
 
   - if [ "$TARGET" = "ANDROID" ]; then
       mkdir -p ~/opt;
+
+      wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
+      tar -xf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt;
+      rm android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
+
+      wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
+      tar -xf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
+      rm android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
+
       sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools;
 
       if [ `uname -m` = x86_64 ]; then
         sudo apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386;
       fi
-
-      wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
-      wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
-
-      tar -xf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
-      tar -xf android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt;
 
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools;
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
@@ -69,10 +74,11 @@ install:
 
   - if [ "$TARGET" = "MANUAL" ]; then
       sudo apt-get install --no-install-recommends
-        texlive-latex-base texlive-latex-recommended texlive-latex-extra
-        texlive-lang-ukenglish texlive-lang-german texlive-lang-french
-        texlive-fonts-recommended latex-xcolor pgf liblocale-po-perl;
+        texlive texlive-latex-extra latex-xcolor pgf liblocale-po-perl
+        texlive-lang-ukenglish texlive-lang-german texlive-lang-french;
     fi
+
+after_install: sudo apt-get clean
 
 script:
   # Compile
