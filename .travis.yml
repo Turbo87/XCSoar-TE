@@ -79,6 +79,10 @@ install:
       export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH";
     fi
 
+  - if [ "$TARGET" = "ALTAIR" ]; then
+      sudo apt-get install upx-ucl;
+    fi
+
   # Manual
 
   - if [ "$TARGET" = "MANUAL" ]; then
@@ -111,6 +115,9 @@ script:
         make -j8 TARGET=ANDROID;
       fi
 
+    elif [ "$TARGET" = "ALTAIR" ]; then
+      make -j8 TARGET=ALTAIR output/ALTAIR/XCSoarAltair.zip;
+
     else
       make -j8 TARGET=$TARGET everything;
     fi
@@ -131,6 +138,10 @@ before_deploy:
 
     elif [ "$TARGET" = "ANDROID" ]; then
       mv output/$TARGET/bin/XCSoar.apk output/deploy/;
+
+    elif [ "$TARGET" = "ALTAIR" ]; then
+      mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
+      mv output/$TARGET/XCSoarAltair.zip output/deploy/;
 
     elif [ "$TARGET" != "UNIX" ]; then
       mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
