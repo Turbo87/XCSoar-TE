@@ -74,9 +74,8 @@ install:
 
   - if [ "$TARGET" = "MANUAL" ]; then
       sudo apt-get install --no-install-recommends
-        texlive-latex-base texlive-latex-recommended texlive-latex-extra
-        texlive-lang-ukenglish texlive-lang-german texlive-lang-french
-        texlive-fonts-recommended latex-xcolor pgf liblocale-po-perl;
+        texlive texlive-latex-extra latex-xcolor pgf liblocale-po-perl
+        texlive-lang-ukenglish texlive-lang-german texlive-lang-french;
     fi
 
 after_install: sudo apt-get clean
