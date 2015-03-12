@@ -6,6 +6,7 @@ $script = <<SCRIPT
 cat >> ~/.profile << EOF
 export LANG=C
 export LC_CTYPE=C
+export USE_CCACHE=y
 EOF
 
 sudo bash -c "cat > /etc/apt/sources.list" << EOF
@@ -28,7 +29,7 @@ sudo apt-get update
 sudo apt-get install -y make g++ libsdl-image1.2-dev libboost-dev zlib1g-dev \
     libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev \
     libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc \
-    imagemagick gettext ttf-dejavu ccache zip git
+    imagemagick gettext ttf-dejavu ccache zip git upx-ucl
 
 mkdir -p ~/opt
 
@@ -56,9 +57,8 @@ echo "PATH=\"\$HOME/opt/mingw32ce-mk-2013-04-03-amd64/bin:\$PATH\"" >> ~/.profil
 
 # install Manual dependencies
 sudo apt-get install --no-install-recommends -y \
-    texlive-latex-base texlive-latex-recommended texlive-latex-extra \
-    texlive-lang-ukenglish texlive-lang-german texlive-lang-french \
-    texlive-fonts-recommended latex-xcolor pgf liblocale-po-perl
+    texlive texlive-latex-extra latex-xcolor pgf liblocale-po-perl \
+    texlive-lang-ukenglish texlive-lang-german texlive-lang-french
 
 SCRIPT
 
@@ -67,7 +67,7 @@ Vagrant.configure("2") do |config|
     config.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/ubuntu-server-12042-x64-vbox4210.box"
 
     config.vm.network "private_network", type: "dhcp"
-    config.vm.synced_folder ".", "/vagrant", type: "nfs"
+    config.vm.synced_folder "../..", "/vagrant", type: "nfs"
 
     config.vm.provider "virtualbox" do |v|
         host = RbConfig::CONFIG['host_os']
