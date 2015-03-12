@@ -2,10 +2,13 @@ language: cpp
 
 env:
   global:
+    - secure: QXDgJN/ksHCyNXDcHjQ91FoBmJ4ECnaWHaB5eCfQ6yhVoop3jAXsMGZsY1cNLgahnTNgvEvOhZO8d0ri8ox80wKz9lASxZgRVPzB2jh2WS4k598epnvXA+MQcK+TTuEMYCwZdv/D8/Uj1o79KSnkQ4AlPcGh0Wha3nveoKN9PwI=
     - ANDROID_API_LEVEL=17
     - ANDROID_SDK_VERSION=24.0.2
     - ANDROID_NDK_VERSION=9
     - ANDROID_BUILD_TOOLS_VERSION=20.0.0
+    - ANDROID_KEYSTORE=xcsoar-release.keystore
+    - ANDROID_KEY_ALIAS=xcsoar-release
 
   matrix:
     - TARGET=ANDROID
@@ -22,6 +25,12 @@ env:
 
 before_install:
   - sudo apt-get update
+
+  - openssl aes-256-cbc
+    -K $encrypted_cd16ea2a7c97_key
+    -iv $encrypted_cd16ea2a7c97_iv
+    -in xcsoar-release.keystore.enc
+    -out xcsoar-release.keystore -d
 
 install:
   # General
@@ -70,6 +79,10 @@ install:
       export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH";
     fi
 
+  - if [ "$TARGET" = "ALTAIR" ]; then
+      sudo apt-get install upx-ucl;
+    fi
+
   # Manual
 
   - if [ "$TARGET" = "MANUAL" ]; then
@@ -80,13 +93,31 @@ install:
 
 after_install: sudo apt-get clean
 
+before_script:
+  - if [ "$TRAVIS_TAG" ]; then
+      export DEBUG=n;
+    fi
+
 script:
   # Compile
 
   - if [ "$TARGET" = "MANUAL" ]; then
       make -j8 TARGET=UNIX manual;
+
     elif [ "$TARGET" = "ANDROID" ]; then
-      make -j8 TARGET=ANDROID;
+      if [ "$TRAVIS_TAG" ]; then
+        make -j3 TARGET=ANDROID &&
+        make -j3 TARGET=ANDROID7 &&
+        make -j3 TARGET=ANDROID86 &&
+        make -j3 TARGET=ANDROIDMIPS &&
+        make -j3 TARGET=ANDROIDFAT output/ANDROIDFAT/bin/XCSoar.apk;
+      else
+        make -j8 TARGET=ANDROID;
+      fi
+
+    elif [ "$TARGET" = "ALTAIR" ]; then
+      make -j8 TARGET=ALTAIR output/ALTAIR/XCSoarAltair.zip;
+
     else
       make -j8 TARGET=$TARGET everything;
     fi
@@ -96,6 +127,35 @@ script:
   - if [ "$TARGET" = "UNIX" ]; then
       make TARGET=$TARGET check;
     fi
+
+before_deploy:
+  - mkdir -p output/deploy
+
+  # Move results into deploy folder
+
+  - if [ "$TARGET" = "MANUAL" ]; then
+      mv output/manual/*.pdf output/deploy;
+
+    elif [ "$TARGET" = "ANDROID" ]; then
+      mv output/$TARGET/bin/XCSoar.apk output/deploy/;
+
+    elif [ "$TARGET" = "ALTAIR" ]; then
+      mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
+      mv output/$TARGET/XCSoarAltair.zip output/deploy/;
+
+    elif [ "$TARGET" != "UNIX" ]; then
+      mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
+    fi
+
+deploy:
+  provider: releases
+  api_key:
+    secure: beqP+DeMLdnu7ieZzlcpoSQVdSVvjzn3GFg/I980Rc77nUtQpw8PHjLSkNm5dw7uoNnQYlK0GwcwKd4e1kuoP77TjUsFnzrtPYvIIGAi1Rp5WCk8Ma0P+R23mrSuwu7aAJt3pUwzObbYsWe9zYQKvL9xQWJuxkQ4u6+OdFEM+oY=
+  file: output/deploy/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    tags: true
 
 notifications:
   email:
