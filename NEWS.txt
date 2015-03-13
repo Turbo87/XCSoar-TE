@@ -81,16 +81,26 @@ Version 6.8 - not yet released
   - use /dev/input/event* on Raspberry Pi and Cubieboard (#3179)
   - support mouse wheel on Raspberry Pi and Cubieboard
   - scale touchscreen coordinates to screen size
+  - new translation: Simplified Chinese
 * Android
   - fix IOIO connection on Android 4.x (#2959, #3260)
 * Kobo
   - add UI allowing the start of external scripts to KoboMenu (#3194)
   - support Wifi with WEP (#3138)
   - support USB-OTG
+  - export data partition via USB storage
 
 Version 6.7.6 - not yet released
+* tracking
+  - updated SkyLines server IP
 * devices
   - LX: relax download timeout (#3199)
+* replay
+  - accept "$GNRMC" in replay of NMEA files
+* calculations
+  - improve circling detection when using some external NMEA devices (#3360, #3372)
+* configuration
+  - report missing plane configuration file in log file
 
 Version 6.7.5 - 2014/06/09
 * fix crash in task manager (#3305)

@@ -356,7 +356,7 @@ ifeq ($(filter $(TARGET),UNIX WINE),$(TARGET))
 endif
 
 ifeq ($(TARGET),ANDROID)
-  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r9d
+  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r10b
 
   ANDROID_PLATFORM = android-19
   ANDROID_SDK_PLATFORM = $(ANDROID_PLATFORM)
@@ -369,7 +369,7 @@ ifeq ($(TARGET),ANDROID)
   ANDROID_ABI3 = armeabi
   ANDROID_ABI4 = $(ANDROID_ABI2)
   ANDROID_ABI5 = $(ANDROID_ABI3)
-  ANDROID_GCC_VERSION = 4.8
+  ANDROID_GCC_VERSION = 4.9
 
   ifeq ($(ARMV7),y)
     ANDROID_ABI3 = armeabi-v7a-hard
@@ -415,6 +415,7 @@ ifeq ($(TARGET),ANDROID)
 
   ifeq ($(CLANG),y)
     ANDROID_TOOLCHAIN_NAME = llvm-3.4
+    LIBCXX = y
   else
     ANDROID_TOOLCHAIN_NAME = $(ANDROID_GCC_TOOLCHAIN_NAME)
   endif

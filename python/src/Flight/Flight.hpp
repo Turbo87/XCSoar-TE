@@ -20,14 +20,17 @@
 }
 */
 
-#ifndef PYTHON_FLIGHT_HPP
-#define PYTHON_FLIGHT_HPP
+#ifndef PYTHON_FLIGHT_FLIGHT_HPP
+#define PYTHON_FLIGHT_FLIGHT_HPP
 
 #include "IGCFixEnhanced.hpp"
 #include "DebugReplayIGC.hpp"
 #include "DebugReplayVector.hpp"
 #include "FlightTimes.hpp"
 #include "AnalyseFlight.hpp"
+
+#include "Atmosphere/Pressure.hpp"
+#include "Computer/Settings.hpp"
 
 #include <vector>
 
@@ -40,12 +43,18 @@ private:
   const char *flight_file;
 
 public:
+  AtmosphericPressure qnh;
+  Validity qnh_available;
+
+public:
   /**
    * Create a empty flight object, used to create a flight from in-memory data
    */
   Flight()
     : keep_flight(true), flight_file(nullptr) {
     fixes = new std::vector<IGCFixEnhanced>;
+    qnh = AtmosphericPressure::Standard();
+    qnh_available.Clear();
   };
 
   /**
@@ -64,8 +73,15 @@ public:
    * the replay after use.
    */
   DebugReplay *Replay() {
-    if (keep_flight) return DebugReplayVector::Create(*fixes);
-    else return DebugReplayIGC::Create(flight_file);
+    DebugReplay *replay;
+
+    if (keep_flight) replay = DebugReplayVector::Create(*fixes);
+    else replay = DebugReplayIGC::Create(flight_file);
+
+    if (qnh_available)
+      replay->SetQNH(qnh);
+
+    return replay;
   };
 
   /* Search for flights within the fixes */
@@ -107,12 +123,21 @@ public:
     DebugReplay *replay = Replay();
     if (replay == nullptr) return false;
 
+    ComputerSettings computer_settings;
+    computer_settings.SetDefaults();
+
     AnalyseFlight(*replay, takeoff_time, scoring_start_time, scoring_end_time, landing_time,
                   olc_plus, dmst,
-                  phase_list, phase_totals, wind_list,
+                  phase_list, phase_totals, wind_list, computer_settings,
                   full, triangle, sprint,
                   max_iterations, max_tree_size);
     delete replay;
+
+    if (!qnh_available && computer_settings.pressure_available) {
+      qnh = computer_settings.pressure;
+      qnh_available = computer_settings.pressure_available;
+    }
+
     return true;
   };
 
@@ -125,9 +150,17 @@ public:
     fixes->push_back(fix);
   };
 
+  /**
+   * Set the QNH for this flight
+   */
+  void SetQNH(const double _qnh) {
+    qnh = AtmosphericPressure::HectoPascal(_qnh);
+    qnh_available.Update(1);
+  };
+
 private:
   /* Read the flight into memory */
   void ReadFlight();
 };
 
-#endif /* PYTHON_FLIGHT_HPP */
+#endif /* PYTHON_FLIGHT_FLIGHT_HPP */

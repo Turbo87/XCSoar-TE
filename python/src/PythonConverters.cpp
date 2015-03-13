@@ -59,6 +59,26 @@ PyObject* Python::WriteLonLat(const GeoPoint &location) {
     "latitude", location.latitude.Degrees());
 }
 
+GeoPoint Python::ReadLonLat(PyObject *py_location) {
+  if (!PyDict_Check(py_location)) {
+    PyErr_SetString(PyExc_TypeError, "Location is not a dictionary.");
+    return GeoPoint::Invalid();
+  }
+
+  PyObject *py_latitude = PyDict_GetItemString(py_location, "latitude"),
+           *py_longitude = PyDict_GetItemString(py_location, "longitude");
+
+  if (!PyNumber_Check(py_latitude) || !PyNumber_Check(py_longitude)) {
+    PyErr_SetString(PyExc_TypeError, "Failed to parse location.");
+    return GeoPoint::Invalid();
+  }
+
+  GeoPoint location(Angle::Degrees(PyFloat_AsDouble(py_longitude)),
+                    Angle::Degrees(PyFloat_AsDouble(py_latitude)));
+
+  return location;
+}
+
 PyObject* Python::WriteEvent(const BrokenDateTime &datetime,
                              const GeoPoint &location) {
   PyObject *py_event = PyDict_New();
@@ -118,12 +138,12 @@ PyObject* Python::WriteContest(const ContestResult &result,
                                const ContestTraceVector &trace) {
   PyObject *py_trace = PyList_New(0);
 
-  const ContestTracePoint *previous = NULL;
+  const ContestTracePoint *previous = nullptr;
   for (auto i = trace.begin(), end = trace.end(); i != end; ++i) {
     PyObject *py_point = WritePoint(*i, previous);
 
     if (PyList_Append(py_trace, py_point))
-      return NULL;
+      return nullptr;
 
     Py_DECREF(py_point);
     previous = &*i;
@@ -294,18 +314,18 @@ PyObject* Python::IGCFixEnhancedToPyTuple(const IGCFixEnhanced &fix) {
 }
 
 bool Python::PyTupleToIGCFixEnhanced(PyObject *py_fix, IGCFixEnhanced &fix) {
-  PyObject *py_datetime = NULL,
-           *py_location = NULL,
-           *py_gps_alt = NULL,
-           *py_pressure_alt = NULL,
-           *py_enl = NULL,
-           *py_trt = NULL,
-           *py_gsp = NULL,
-           *py_tas = NULL,
-           *py_ias = NULL,
-           *py_siu = NULL,
-           *py_elevation = NULL,
-           *py_level = NULL;
+  PyObject *py_datetime = nullptr,
+           *py_location = nullptr,
+           *py_gps_alt = nullptr,
+           *py_pressure_alt = nullptr,
+           *py_enl = nullptr,
+           *py_trt = nullptr,
+           *py_gsp = nullptr,
+           *py_tas = nullptr,
+           *py_ias = nullptr,
+           *py_siu = nullptr,
+           *py_elevation = nullptr,
+           *py_level = nullptr;
 
   fix.Clear();
 
@@ -321,33 +341,30 @@ bool Python::PyTupleToIGCFixEnhanced(PyObject *py_fix, IGCFixEnhanced &fix) {
   fix.date = PyToBrokenDateTime(py_datetime);
   fix.time = PyToBrokenDateTime(py_datetime);
 
-  PyObject *py_latitude = PyDict_GetItemString(py_location, "latitude"),
-           *py_longitude = PyDict_GetItemString(py_location, "longitude");
+  fix.location = ReadLonLat(py_location);
 
-  if (!PyNumber_Check(py_latitude) || !PyNumber_Check(py_longitude)) {
-    PyErr_SetString(PyExc_TypeError, "Failed to parse location.");
+  if (!fix.location.IsValid())
     return false;
-  }
-
-  fix.location.latitude = Angle::Degrees(PyFloat_AsDouble(py_latitude));
-  fix.location.longitude = Angle::Degrees(PyFloat_AsDouble(py_longitude));
 
   if (!PyNumber_Check(py_gps_alt) && !PyNumber_Check(py_pressure_alt)) {
     PyErr_SetString(PyExc_ValueError, "Need at least gps or pressure altitude");
     return false;
   }
 
-  if (PyNumber_Check(py_gps_alt))
+  if (PyNumber_Check(py_gps_alt)) {
     fix.gps_altitude = PyInt_AsLong(py_gps_alt);
-  else
+    fix.gps_valid = true;
+  } else {
     fix.gps_altitude = 0;
+    fix.gps_valid = false;
+  }
 
   if (PyNumber_Check(py_pressure_alt))
     fix.pressure_altitude = PyInt_AsLong(py_pressure_alt);
   else
-    fix.pressure_altitude = 0;
+    /* fall back to GPS altitude - this is the same behaviour as in IGCFix::Apply() */
+    fix.pressure_altitude = fix.gps_altitude;
 
-  fix.gps_valid = true;
 
   if (PyNumber_Check(py_enl))
     fix.enl = PyInt_AsLong(py_enl);
@@ -374,4 +391,18 @@ bool Python::PyTupleToIGCFixEnhanced(PyObject *py_fix, IGCFixEnhanced &fix) {
     fix.level = PyInt_AsLong(py_level);
 
   return true;
+}
+
+bool Python::PyStringToString(PyObject *py_string, tstring &string) {
+  if (PyUnicode_Check(py_string)) {
+    PyObject *py_string_utf8 = PyUnicode_AsUTF8String(py_string);
+    string.assign(PyString_AsString(py_string_utf8));
+    Py_DECREF(py_string_utf8);
+    return true;
+  } else if (PyString_Check(py_string)) {
+    string.assign(PyString_AsString(py_string));
+    return true;
+  }
+
+  return false;
 }

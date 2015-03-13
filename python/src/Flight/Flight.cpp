@@ -32,6 +32,9 @@ Flight::Flight(const char* _flight_file, bool _keep_flight)
   : fixes(nullptr), keep_flight(_keep_flight), flight_file(_flight_file) {
   if (keep_flight)
     ReadFlight();
+
+  qnh = AtmosphericPressure::Standard();
+  qnh_available.Clear();
 }
 
 void Flight::ReadFlight() {
@@ -40,6 +43,9 @@ void Flight::ReadFlight() {
   DebugReplay *replay = DebugReplayIGC::Create(flight_file);
 
   if (replay) {
+    if (qnh_available)
+      replay->SetQNH(qnh);
+
     while (replay->Next()) {
       IGCFixEnhanced fix;
       fix.Clear();

@@ -25,6 +25,8 @@
 
 #include <Python.h>
 
+#include "Util/tstring.hpp"
+
 struct BrokenDateTime;
 struct GeoPoint;
 struct ContestResult;
@@ -51,6 +53,7 @@ namespace Python {
    * Convert a GeoPoint to a python dict {longitude, latitude}
    */
   PyObject* WriteLonLat(const GeoPoint &location);
+  GeoPoint ReadLonLat(PyObject *py_location);
 
   /**
    * Convert a event (datetime + location) to a python dict
@@ -79,6 +82,11 @@ namespace Python {
    */
   PyObject* IGCFixEnhancedToPyTuple(const IGCFixEnhanced &fix);
   bool PyTupleToIGCFixEnhanced(PyObject *py_fix, IGCFixEnhanced &fix);
+
+  /**
+   * Convert a python string/unicode object to a tstring (aka std::[w]string)
+   */
+  bool PyStringToString(PyObject *py_string, tstring &string);
 };
 
 #endif /* PYTHON_PYTHONCONVERTERS_HPP */

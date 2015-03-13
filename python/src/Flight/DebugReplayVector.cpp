@@ -54,7 +54,7 @@ DebugReplayVector::Compute(const int elevation)
 
   FeaturesSettings features;
   features.nav_baro_altitude_enabled = true;
-  computer.Fill(computed_basic, AtmosphericPressure::Standard(), features);
+  computer.Fill(computed_basic, qnh, features);
   computer.Compute(computed_basic, last_basic, last_basic, calculated);
 
   if (elevation > -1000) {
@@ -86,26 +86,17 @@ DebugReplayVector::CopyFromFix(const IGCFixEnhanced &fix)
   basic.alive.Update(basic.clock);
   basic.location = fix.location;
 
-  if (fix.gps_valid)
+  if (fix.gps_valid) {
     basic.location_available.Update(basic.clock);
-  else
-    basic.location_available.Clear();
-
-  if (fix.gps_altitude != 0) {
     basic.gps_altitude = fixed(fix.gps_altitude);
-
-    if (fix.gps_valid)
-      basic.gps_altitude_available.Update(basic.clock);
-    else
-      basic.gps_altitude_available.Clear();
-  } else
+    basic.gps_altitude_available.Update(basic.clock);
+  } else {
+    basic.location_available.Clear();
     basic.gps_altitude_available.Clear();
-
-  if (fix.pressure_altitude != 0) {
-    basic.pressure_altitude = basic.baro_altitude = fixed(fix.pressure_altitude);
-    basic.pressure_altitude_available.Update(basic.clock);
-    basic.baro_altitude_available.Update(basic.clock);
   }
+
+  basic.pressure_altitude = fixed(fix.pressure_altitude);
+  basic.pressure_altitude_available.Update(basic.clock);
 
   if (fix.enl >= 0) {
     basic.engine_noise_level = fix.enl;

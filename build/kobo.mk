@@ -23,14 +23,16 @@ KOBO_MENU_SOURCES = \
 	$(TEST_SRC_DIR)/FakeLanguage.cpp \
 	$(SRC)/Kobo/WPASupplicant.cpp \
 	$(SRC)/Kobo/System.cpp \
+	$(SRC)/Kobo/Kernel.cpp \
 	$(SRC)/Kobo/NetworkDialog.cpp \
+	$(SRC)/Kobo/SystemDialog.cpp \
 	$(SRC)/Kobo/ToolsDialog.cpp \
 	$(SRC)/Kobo/WPASupplicant.cpp \
 	$(SRC)/Kobo/WifiDialog.cpp \
 	$(SRC)/Kobo/FakeSymbols.cpp \
 	$(SRC)/Kobo/KoboMenu.cpp
 KOBO_MENU_LDADD = $(FAKE_LIBS)
-KOBO_MENU_DEPENDS = WIDGET FORM SCREEN EVENT RESOURCE ASYNC OS THREAD MATH UTIL
+KOBO_MENU_DEPENDS = WIDGET FORM SCREEN EVENT RESOURCE IO ASYNC OS THREAD MATH UTIL
 KOBO_MENU_STRIP = y
 
 $(eval $(call link-program,KoboMenu,KOBO_MENU))
