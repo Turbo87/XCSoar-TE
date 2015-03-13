@@ -25,7 +25,7 @@ Copyright_License {
 #include "Look/MapLook.hpp"
 #include "Topography/CachedTopographyRenderer.hpp"
 #include "Terrain/RasterTerrain.hpp"
-#include "Terrain/RasterWeather.hpp"
+#include "Terrain/RasterWeatherCache.hpp"
 #include "Computer/GlideComputer.hpp"
 #include "Operation/Operation.hpp"
 
@@ -67,6 +67,7 @@ MapWindow::MapWindow(const MapLook &_look,
 MapWindow::~MapWindow()
 {
   delete topography_renderer;
+  delete weather;
 }
 
 void
@@ -160,14 +161,15 @@ MapWindow::UpdateTerrain()
 bool
 MapWindow::UpdateWeather()
 {
-  // always service weather even if it's not used by the map,
-  // because it's potentially used by other calculations
-
   if (weather == nullptr || !Calculated().date_time_local.IsTimePlausible())
     return false;
 
+  const WeatherUIState &state = GetUIState().weather;
+  weather->SetParameter(state.map);
+  weather->SetTime(state.time);
+
   QuietOperationEnvironment operation;
-  weather->Reload(Calculated().date_time_local.GetSecondOfDay(), operation);
+  weather->Reload(Calculated().date_time_local, operation);
   weather->SetViewCenter(visible_projection.GetGeoScreenCenter(),
                          visible_projection.GetScreenWidthMeters() / 2);
   return weather->IsDirty();
@@ -219,10 +221,13 @@ MapWindow::SetTerrain(RasterTerrain *_terrain)
 }
 
 void
-MapWindow::SetWeather(RasterWeather *_weather)
+MapWindow::SetWeather(const RasterWeatherStore *_weather)
 {
-  weather = _weather;
-  background.SetWeather(_weather);
+  delete weather;
+  weather = _weather != nullptr
+    ? new RasterWeatherCache(*_weather)
+    : nullptr;
+  background.SetWeather(weather);
 }
 
 void

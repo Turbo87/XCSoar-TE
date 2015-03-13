@@ -60,11 +60,14 @@ XCSoar TE
 Version 6.8 - not yet released
 * data files
   - optimise the topography loader
+  - faster RASP map change
+  - show all RASP maps
 * devices
   - remove option "Ignore checksum"
   - LX: implement LXNAV Nano3 task declaration (#3295)
   - Volkslogger: support DAeC keyhole declaration
 * calculations
+  - wave assistant
   - use maximum speed configured in plane setup as limit for calculations
   - use WGS84 earth ellipsoid for distance calculations (#2809)
   - simplified EKF wind algorithm
@@ -75,8 +78,9 @@ Version 6.8 - not yet released
 * task editor
   - added one-click task reversal (#1730)
   - show name of loaded/saved tasks in dialog title (#1924)
-* user interface 
+* user interface
   - checklist remembers last opened list (#3110)
+  - use configured coordinate format in waypoint editor
   - display rotation for Raspberry Pi and Cubieboard (#3238)
   - use /dev/input/event* on Raspberry Pi and Cubieboard (#3179)
   - support mouse wheel on Raspberry Pi and Cubieboard
@@ -87,8 +91,13 @@ Version 6.8 - not yet released
 * Kobo
   - add UI allowing the start of external scripts to KoboMenu (#3194)
   - support Wifi with WEP (#3138)
+  - support open Wifi networks (#3391)
   - support USB-OTG
   - export data partition via USB storage
+
+Version 6.7.7 - not yet released
+* airspace
+  - accept airspaces of class RMZ in OpenAir format files
 
 Version 6.7.6 - 2014/10/18
 * tracking
@@ -260,7 +269,7 @@ Version 6.7 - 2013/09/30
   - show Bluetooth name instead of MAC address in device list
   - enable fast refresh mode on Nook Simple Touch
 * Analysis
-  - a retrospective task is compiled that summarises waypoints the aircraft has 
+  - a retrospective task is compiled that summarises waypoints the aircraft has
     visited (within 15km radius).  These waypoints are drawn on OLC page of analysis dialog.
 * data files
   - default profile is called "default.prf" instead of "xcsoar-registry.prf"

@@ -29,6 +29,8 @@
 #
 #   EYE_CANDY   "n" disables eye candy rendering.
 #
+#   ICF         "y" enables Identical Code Folding (gold --icf=all)
+#
 #   DEBUG       If set to "y", the debugging version of XCSoar is built
 #               (default is "y")
 #
@@ -85,6 +87,7 @@ include $(topdir)/build/fb.mk
 include $(topdir)/build/egl.mk
 include $(topdir)/build/opengl.mk
 include $(topdir)/build/sdl.mk
+include $(topdir)/build/udev.mk
 endif
 
 include $(topdir)/build/flags.mk

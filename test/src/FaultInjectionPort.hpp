@@ -37,8 +37,10 @@ public:
   bool running;
   unsigned baud_rate;
 
-  FaultInjectionPort(DataHandler &_handler)
-    :Port(_handler), running(true), baud_rate(DEFAULT_BAUD_RATE) {}
+  FaultInjectionPort(PortListener *_listener, DataHandler &_handler)
+    :Port(_listener, _handler),
+     running(true),
+     baud_rate(DEFAULT_BAUD_RATE) {}
 
   /* virtual methods from class Port */
   virtual PortState GetState() const override {
@@ -80,7 +82,9 @@ public:
     if (inject_port_fault == 0)
       return -1;
 
-    --inject_port_fault;
+    if (--inject_port_fault == 0)
+      StateChanged();
+
     char *p = (char *)Buffer;
     std::fill_n(p, Size, ' ');
     return Size;

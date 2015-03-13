@@ -37,7 +37,7 @@ namespace Layout
    * 1024).
    */
   extern unsigned scale_1024;
-  extern int scale;
+  extern unsigned scale;
 
   /**
    * Fixed-point scaling factor for on-screen objects which don't grow
@@ -50,11 +50,11 @@ namespace Layout
   /**
    * Recommended padding from Window boundary to text.
    */
-  extern UPixelScalar text_padding;
+  extern unsigned text_padding;
 
-  extern UPixelScalar minimum_control_height, maximum_control_height;
+  extern unsigned minimum_control_height, maximum_control_height;
 
-  extern UPixelScalar hit_radius;
+  extern unsigned hit_radius;
 
   /**
    * Initializes the screen layout information provided by this
@@ -85,18 +85,54 @@ namespace Layout
   }
 
   gcc_const
-  static inline PixelScalar
-  Scale(PixelScalar x)
+  static inline int
+  Scale(int x)
   {
     if (!ScaleSupported())
       return x;
 
-    return ((int)x * (int)scale_1024) >> 10;
+    return (x * int(scale_1024)) >> 10;
   }
 
   gcc_const
-  static inline PixelScalar
-  FastScale(PixelScalar x)
+  static inline unsigned
+  Scale(unsigned x)
+  {
+    if (!ScaleSupported())
+      return x;
+
+    return (x * scale_1024) >> 10;
+  }
+
+#ifdef USE_GDI
+  gcc_const
+  static inline int
+  Scale(PixelScalar x)
+  {
+    return Scale(int(x));
+  }
+
+  gcc_const
+  static inline int
+  Scale(UPixelScalar x)
+  {
+    return Scale(unsigned(x));
+  }
+#endif
+
+  gcc_const
+  static inline int
+  FastScale(int x)
+  {
+    if (!ScaleSupported())
+      return x;
+
+    return x * int(scale);
+  }
+
+  gcc_const
+  static inline unsigned
+  FastScale(unsigned x)
   {
     if (!ScaleSupported())
       return x;
@@ -104,9 +140,25 @@ namespace Layout
     return x * scale;
   }
 
+#ifdef USE_GDI
   gcc_const
-  static inline PixelScalar
-  SmallScale(PixelScalar x)
+  static inline int
+  FastScale(PixelScalar x)
+  {
+    return FastScale(int(x));
+  }
+
+  gcc_const
+  static inline int
+  FastScale(UPixelScalar x)
+  {
+    return FastScale(unsigned(x));
+  }
+#endif
+
+  gcc_const
+  static inline int
+  SmallScale(int x)
   {
     if (!ScaleSupported())
       return x;
@@ -131,14 +183,14 @@ namespace Layout
    * circle.
    */
   gcc_const
-  static inline PixelScalar
-  ScaleY(PixelScalar y)
+  static inline int
+  ScaleY(int y)
   {
     return y;
   }
 
   gcc_const
-  static inline UPixelScalar
+  static inline unsigned
   GetTextPadding()
   {
     if (!ScaleSupported())
@@ -178,7 +230,7 @@ namespace Layout
    * items.
    */
   gcc_pure
-  static inline UPixelScalar
+  static inline unsigned
   GetHitRadius()
   {
     if (!HasPointer())

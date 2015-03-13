@@ -22,6 +22,7 @@ Copyright_License {
 */
 
 #include "Android/PortBridge.hpp"
+#include "Android/NativePortListener.hpp"
 #include "Android/NativeInputListener.hpp"
 #include "Java/Class.hpp"
 
@@ -29,6 +30,7 @@ Copyright_License {
 
 jmethodID PortBridge::close_method;
 jmethodID PortBridge::setListener_method;
+jmethodID PortBridge::setInputListener_method;
 jmethodID PortBridge::getState_method;
 jmethodID PortBridge::drain_method;
 jmethodID PortBridge::getBaudRate_method;
@@ -42,7 +44,9 @@ PortBridge::Initialise(JNIEnv *env)
 
   close_method = env->GetMethodID(cls, "close", "()V");
   setListener_method = env->GetMethodID(cls, "setListener",
-                                        "(Lorg/xcsoar/InputListener;)V");
+                                        "(Lorg/xcsoar/PortListener;)V");
+  setInputListener_method = env->GetMethodID(cls, "setInputListener",
+                                             "(Lorg/xcsoar/InputListener;)V");
   getState_method = env->GetMethodID(cls, "getState", "()I");
   drain_method = env->GetMethodID(cls, "drain", "()Z");
   getBaudRate_method = env->GetMethodID(cls, "getBaudRate", "()I");
@@ -56,15 +60,28 @@ PortBridge::PortBridge(JNIEnv *env, jobject obj)
 }
 
 void
-PortBridge::setListener(JNIEnv *env, DataHandler *handler)
+PortBridge::setListener(JNIEnv *env, PortListener *_listener)
 {
-  jobject listener = handler != NULL
-    ? NativeInputListener::Create(env, *handler)
-    : NULL;
+  jobject listener = _listener != nullptr
+    ? NativePortListener::Create(env, *_listener)
+    : nullptr;
 
   env->CallVoidMethod(Get(), setListener_method, listener);
 
-  if (listener != NULL)
+  if (listener != nullptr)
+    env->DeleteLocalRef(listener);
+}
+
+void
+PortBridge::setInputListener(JNIEnv *env, DataHandler *handler)
+{
+  jobject listener = handler != nullptr
+    ? NativeInputListener::Create(env, *handler)
+    : nullptr;
+
+  env->CallVoidMethod(Get(), setInputListener_method, listener);
+
+  if (listener != nullptr)
     env->DeleteLocalRef(listener);
 }
 
@@ -74,7 +91,7 @@ PortBridge::write(JNIEnv *env, const void *data, size_t length)
   if (length > write_buffer_size)
     length = write_buffer_size;
 
-  jbyte *dest = env->GetByteArrayElements(write_buffer, NULL);
+  jbyte *dest = env->GetByteArrayElements(write_buffer, nullptr);
   memcpy(dest, data, length);
   env->ReleaseByteArrayElements(write_buffer, dest, 0);
 

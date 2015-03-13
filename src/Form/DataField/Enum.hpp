@@ -119,6 +119,15 @@ public:
 
   void replaceEnumText(unsigned int i, const TCHAR *Text);
 
+  /**
+   * Clear the list of choices.  This will not notify the
+   * DataFieldListener.
+   */
+  void ClearChoices() {
+    entries.clear();
+    value = 0;
+  }
+
   bool AddChoice(unsigned id, const TCHAR *text,
                  const TCHAR *display_string=nullptr,
                  const TCHAR *help=nullptr);
@@ -147,7 +156,9 @@ public:
    * @param value True if display item help in text box below picker
    * Displays help strings associated with enums Items
    */
-  void EnableItemHelp(bool value) { item_help_enabled = value; }
+  void EnableItemHelp(bool value) override {
+    item_help_enabled = value;
+  }
 
   void Set(unsigned Value);
 

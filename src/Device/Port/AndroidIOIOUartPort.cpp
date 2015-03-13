@@ -31,14 +31,14 @@ Copyright_License {
 
 Port *
 OpenAndroidIOIOUartPort(unsigned uart_id, unsigned baud_rate,
-                        DataHandler &handler)
+                        PortListener *listener, DataHandler &handler)
 {
   assert(uart_id < AndroidIOIOUartPort::getNumberUarts());
 
   PortBridge *bridge = ioio_helper->openUart(Java::GetEnv(),
                                              uart_id, baud_rate);
-  if (bridge == NULL)
-    return NULL;
+  if (bridge == nullptr)
+    return nullptr;
 
-  return new AndroidPort(handler, bridge);
+  return new AndroidPort(listener, handler, bridge);
 }

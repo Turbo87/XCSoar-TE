@@ -38,6 +38,7 @@ HAVE_CE := n
 HAVE_FPU := y
 X64 := n
 TARGET_IS_ARM = n
+TARGET_IS_ARMHF = n
 XSCALE := n
 ARMV5 = n
 ARMV6 = n
@@ -94,6 +95,7 @@ endif
 
 ifeq ($(TARGET),ANDROID7)
   TARGET_IS_ARM = y
+  TARGET_IS_ARMHF = y
   ARMV7 := y
   override TARGET = ANDROID
 endif
@@ -207,6 +209,7 @@ ifeq ($(TARGET),UNIX)
   ARMV6 = $(HOST_IS_ARMV6)
   ARMV7 = $(HOST_IS_ARMV7)
   NEON = $(HOST_HAS_NEON)
+  TARGET_IS_ARMHF := $(call bool_or,$(ARMV7),$(TARGET_IS_PI))
   TARGET_HAS_MALI = $(HOST_HAS_MALI)
 endif
 
@@ -224,9 +227,9 @@ ifeq ($(TARGET),PI)
   override TARGET = UNIX
   TCPREFIX := arm-unknown-linux-gnueabi-
   PI ?= /opt/pi/root
-  TARGET_ARCH += -march=armv6j -mfpu=vfp -mfloat-abi=hard
   TARGET_IS_PI = y
   TARGET_IS_ARM = y
+  TARGET_IS_ARMHF = y
   ARMV6 = y
 endif
 
@@ -249,9 +252,10 @@ ifeq ($(TARGET),NEON)
   override TARGET = UNIX
   TCPREFIX = arm-unknown-linux-gnueabi-
   ifeq ($(CLANG),n)
-    TARGET_ARCH += -mcpu=cortex-a8 -mfloat-abi=hard
+    TARGET_ARCH += -mcpu=cortex-a8
   endif
   TARGET_IS_ARM = y
+  TARGET_IS_ARMHF = y
   ARMV7 := y
   NEON := y
 endif
@@ -322,6 +326,15 @@ ifeq ($(TARGET),IOS)
   ASFLAGS += -arch armv7
 endif
 
+ifeq ($(filter $(TARGET),UNIX WINE),$(TARGET))
+  ifeq ($(HOST_IS_LINUX)$(TARGET_IS_DARWIN),yn)
+    TARGET_IS_LINUX := y
+  endif
+  ifeq ($(HOST_IS_DARWIN),y)
+    TARGET_IS_DARWIN := y
+  endif
+endif
+
 ifeq ($(TARGET),UNIX)
   HAVE_POSIX := y
   HAVE_WIN32 := n
@@ -333,36 +346,36 @@ ifeq ($(TARGET),UNIX)
   endif
 
   ifeq ($(ARMV7),y)
-    ifeq ($(CLANG),y)
-      LLVM_TARGET = armv7a-none-linux-gnueabihf
-      TARGET_ARCH += -integrated-as
-    else
-      TARGET_ARCH += -march=armv7-a
+    TARGET_ARCH += -march=armv7-a
+  endif
+
+  ifeq ($(TARGET_IS_ARMHF),y)
+    ifeq ($(ARMV6),y)
+      TARGET_ARCH += -mfpu=vfp
     endif
+
+    ifeq ($(NEON),y)
+      TARGET_ARCH += -mfpu=neon
+    endif
+
+    TARGET_ARCH += -mfloat-abi=hard
   endif
 
-  ifeq ($(NEON),y)
-    TARGET_ARCH += -mfpu=neon
-  endif
-endif
-
-ifeq ($(filter $(TARGET),UNIX WINE),$(TARGET))
-  ifeq ($(HOST_IS_LINUX)$(TARGET_IS_DARWIN),yn)
-    TARGET_IS_LINUX := y
-  endif
-  ifeq ($(HOST_IS_DARWIN),y)
-    TARGET_IS_DARWIN := y
+  ifeq ($(TARGET_IS_ARM)$(TARGET_IS_LINUX),yy)
+    ifeq ($(TARGET_IS_ARMHF),y)
+      LLVM_TARGET = arm-linux-gnueabihf
+    else
+      LLVM_TARGET = arm-linux-gnueabi
+    endif
   endif
 endif
 
 ifeq ($(TARGET),ANDROID)
-  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r10b
+  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r10d
 
   ANDROID_PLATFORM = android-19
   ANDROID_SDK_PLATFORM = $(ANDROID_PLATFORM)
-
-  # NDK r8b has only android-14
-  ANDROID_NDK_PLATFORM = android-14
+  ANDROID_NDK_PLATFORM = $(ANDROID_PLATFORM)
 
   ANDROID_ARCH = arm
   ANDROID_ABI2 = arm-linux-androideabi
@@ -558,10 +571,6 @@ endif
 
 ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)
   TARGET_CPPFLAGS += --sysroot=$(PI) -isystem $(PI)/usr/include/arm-linux-gnueabihf
-endif
-
-ifeq ($(TARGET_IS_PI),y)
-  LLVM_TARGET = armv6-none-linux-gnueabihf
 endif
 
 ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)

@@ -45,7 +45,8 @@ struct TrafficLook;
 class TopographyStore;
 class CachedTopographyRenderer;
 class RasterTerrain;
-class RasterWeather;
+class RasterWeatherStore;
+class RasterWeatherCache;
 class ProtectedMarkers;
 class Waypoints;
 class Airspaces;
@@ -120,7 +121,7 @@ protected:
   GeoPoint terrain_center;
   fixed terrain_radius;
 
-  RasterWeather *weather;
+  RasterWeatherCache *weather;
 
   const TrafficLook &traffic_look;
 
@@ -210,7 +211,7 @@ public:
 
   void SetTopography(TopographyStore *_topography);
   void SetTerrain(RasterTerrain *_terrain);
-  void SetWeather(RasterWeather *_weather);
+  void SetWeather(const RasterWeatherStore *_weather);
 
   void SetMarks(ProtectedMarkers *_marks) {
     marks = _marks;
@@ -276,6 +277,7 @@ protected:
   void DrawTask(Canvas &canvas);
   void DrawRoute(Canvas &canvas);
   void DrawTaskOffTrackIndicator(Canvas &canvas);
+  void DrawWaves(Canvas &canvas);
   virtual void DrawThermalEstimate(Canvas &canvas) const;
 
   void DrawGlideThroughTerrain(Canvas &canvas) const;

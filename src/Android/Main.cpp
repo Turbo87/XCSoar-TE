@@ -30,6 +30,7 @@ Copyright_License {
 #include "Android/InternalSensors.hpp"
 #include "Android/PortBridge.hpp"
 #include "Android/BluetoothHelper.hpp"
+#include "Android/NativePortListener.hpp"
 #include "Android/NativeInputListener.hpp"
 #include "Android/TextUtil.hpp"
 #include "Android/LogCat.hpp"
@@ -114,6 +115,7 @@ Java_org_xcsoar_NativeView_initializeNative(JNIEnv *env, jobject obj,
 
   Environment::Initialise(env);
   InternalSensors::Initialise(env);
+  NativePortListener::Initialise(env);
   NativeInputListener::Initialise(env);
   PortBridge::Initialise(env);
   BluetoothHelper::Initialise(env);
@@ -136,7 +138,7 @@ Java_org_xcsoar_NativeView_initializeNative(JNIEnv *env, jobject obj,
   OpenGL::Initialise();
   TextUtil::Initialise(env);
 
-  assert(native_view == NULL);
+  assert(native_view == nullptr);
   native_view = new NativeView(env, obj, width, height, xdpi, ydpi,
                                sdk_version, product);
 #ifdef __arm__
@@ -208,14 +210,14 @@ Java_org_xcsoar_NativeView_deinitializeNative(JNIEnv *env, jobject obj)
   Fonts::Deinitialize();
 
   delete ioio_helper;
-  ioio_helper = NULL;
+  ioio_helper = nullptr;
 
   delete vibrator;
-  vibrator = NULL;
+  vibrator = nullptr;
 
   SoundUtil::Deinitialise(env);
   delete event_queue;
-  event_queue = NULL;
+  event_queue = nullptr;
   delete native_view;
   native_view = nullptr;
 
@@ -238,6 +240,7 @@ Java_org_xcsoar_NativeView_deinitializeNative(JNIEnv *env, jobject obj)
   IOIOHelper::Deinitialise(env);
   BluetoothHelper::Deinitialise(env);
   NativeInputListener::Deinitialise(env);
+  NativePortListener::Deinitialise(env);
   InternalSensors::Deinitialise(env);
   Environment::Deinitialise(env);
   Java::URL::Deinitialise(env);
@@ -250,7 +253,7 @@ JNIEXPORT void JNICALL
 Java_org_xcsoar_NativeView_resizedNative(JNIEnv *env, jobject obj,
                                          jint width, jint height)
 {
-  if (event_queue == NULL)
+  if (event_queue == nullptr)
     return;
 
   if (CommonInterface::main_window != nullptr)

@@ -144,13 +144,13 @@ private:
 public:
   /* virtual methods from Widget */
   virtual PixelSize GetMinimumSize() const override {
-    return { ::Layout::Scale(180),
-        PixelScalar(::Layout::GetMinimumControlHeight()) };
+    return { ::Layout::Scale(180u),
+        ::Layout::GetMinimumControlHeight() };
   }
 
   virtual PixelSize GetMaximumSize() const override {
-    return { ::Layout::Scale(400),
-        PixelScalar(::Layout::GetMaximumControlHeight()) };
+    return { ::Layout::Scale(400u),
+        ::Layout::GetMaximumControlHeight() };
   }
 
   virtual void Prepare(ContainerWindow &parent,
@@ -413,7 +413,7 @@ TaskEditPanel::OnPaintItem(Canvas &canvas, const PixelRect rc,
   assert(DrawListIndex <= ordered_task->TaskSize());
 
   const unsigned padding = Layout::GetTextPadding();
-  const PixelScalar line_height = rc.bottom - rc.top;
+  const unsigned line_height = rc.bottom - rc.top;
 
   TCHAR buffer[120];
 
@@ -435,16 +435,16 @@ TaskEditPanel::OnPaintItem(Canvas &canvas, const PixelRect rc,
   bool show_leg_info = leg.distance > fixed(0.01);
 
   // Y-Coordinate of the second row
-  PixelScalar top2 = rc.top + name_font.GetHeight() + Layout::FastScale(4);
+  const int top2 = rc.top + name_font.GetHeight() + Layout::FastScale(4u);
 
   // Use small font for details
   canvas.Select(small_font);
 
-  UPixelScalar leg_info_width = 0;
+  unsigned leg_info_width = 0;
   if (show_leg_info) {
     // Draw leg distance
     FormatUserDistanceSmart(leg.distance, buffer, true);
-    UPixelScalar width = leg_info_width = canvas.CalcTextWidth(buffer);
+    unsigned width = leg_info_width = canvas.CalcTextWidth(buffer);
     canvas.DrawText(rc.right - padding - width,
                     rc.top + padding +
                     (name_font.GetHeight() - small_font.GetHeight()) / 2,
@@ -462,7 +462,7 @@ TaskEditPanel::OnPaintItem(Canvas &canvas, const PixelRect rc,
   }
 
   // Draw details line
-  PixelScalar left = rc.left + line_height + padding;
+  const int left = rc.left + line_height + padding;
   OrderedTaskPointRadiusLabel(tp.GetObservationZone(), buffer);
   if (!StringIsEmpty(buffer))
     canvas.DrawClippedText(left, top2, rc.right - leg_info_width - left,
@@ -479,9 +479,8 @@ TaskEditPanel::OnPaintItem(Canvas &canvas, const PixelRect rc,
   const RasterPoint pt(rc.left + line_height / 2,
                        rc.top + line_height / 2);
 
-  PixelScalar radius = std::min(PixelScalar(line_height / 2
-                                            - Layout::FastScale(4)),
-                                Layout::FastScale(10));
+  const unsigned radius = std::min(line_height / 2 - Layout::FastScale(4u),
+                                   Layout::FastScale(10u));
 
   OZPreviewRenderer::Draw(canvas, tp.GetObservationZone(),
                           pt, radius, task_look,
@@ -634,7 +633,7 @@ void
 TaskEditPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
   const DialogLook &look = UIGlobals::GetDialogLook();
-  UPixelScalar line_height = look.list.font_bold->GetHeight()
+  const unsigned line_height = look.list.font_bold->GetHeight()
     + Layout::Scale(6) + look.small_font->GetHeight();
   CreateList(parent, look, rc, line_height);
 

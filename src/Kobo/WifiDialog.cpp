@@ -89,16 +89,16 @@ public:
   }
 
   /* virtual methods from class ListItemRenderer */
-  virtual void OnPaintItem(Canvas &canvas, const PixelRect rc,
-                           unsigned idx) override;
+  void OnPaintItem(Canvas &canvas, const PixelRect rc,
+                   unsigned idx) override;
 
   /* virtual methods from class ListCursorHandler */
-  virtual void OnCursorMoved(unsigned index) {
+  void OnCursorMoved(unsigned index) override {
     UpdateButtons();
   }
 
   /* virtual methods from class Timer */
-  virtual void OnTimer() {
+  void OnTimer() override {
     UpdateList();
   }
 
@@ -169,7 +169,8 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
 
   static char wifi_security[][20] = {
     "WPA",
-    "WEP"
+    "WEP",
+    "Open",
   };
 
   canvas.Select(*look.text_font);
@@ -259,13 +260,13 @@ WifiConnect(enum WifiSecurity security, WPASupplicant &wpa_supplicant, const cha
     if (!success)
       return false;
 
-    if (security == WEP_SECURITY) {
-
-      success = wpa_supplicant.SetNetworkID(id, "auth_alg", "OPEN\tSHARED");
-      if (!success)
-        return false;
-
-    }
+    success = wpa_supplicant.SetNetworkID(id, "auth_alg", "OPEN\tSHARED");
+    if (!success)
+      return false;
+  } else if (security == OPEN_SECURITY){
+    success = wpa_supplicant.SetNetworkID(id, "key_mgmt", "NONE");
+        if (!success)
+          return false;
   } else
     return false;
 
@@ -294,7 +295,9 @@ WifiListWidget::Connect()
 
     StaticString<32> passphrase;
     passphrase.clear();
-    if (!TextEntryDialog(passphrase, caption, false))
+    if (info.security == OPEN_SECURITY)
+      passphrase.clear();
+    else if (!TextEntryDialog(passphrase, caption, false))
       return;
 
     if (!WifiConnect(info.security, wpa_supplicant, info.ssid, passphrase))

@@ -26,11 +26,13 @@ Copyright_License {
 
 #include "Java/Object.hpp"
 
+class PortListener;
 class DataHandler;
 
 class PortBridge : protected Java::Object {
   static jmethodID close_method;
   static jmethodID setListener_method;
+  static jmethodID setInputListener_method;
   static jmethodID getState_method;
   static jmethodID drain_method;
   static jmethodID getBaudRate_method, setBaudRate_method;
@@ -56,7 +58,8 @@ public:
     env->CallVoidMethod(Get(), close_method);
   }
 
-  void setListener(JNIEnv *env, DataHandler *handler);
+  void setListener(JNIEnv *env, PortListener *listener);
+  void setInputListener(JNIEnv *env, DataHandler *handler);
 
   int getState(JNIEnv *env) {
     return env->CallIntMethod(Get(), getState_method);

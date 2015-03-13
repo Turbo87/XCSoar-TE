@@ -134,10 +134,10 @@ OrderedTask::SetTaskBehaviour(const TaskBehaviour &tb)
 
 static void
 UpdateObservationZones(OrderedTask::OrderedTaskPointVector &points,
-                       const TaskProjection &task_projection)
+                       const FlatProjection &projection)
 {
   for (auto i : points)
-    i->UpdateOZ(task_projection);
+    i->UpdateOZ(projection);
 }
 
 void
@@ -212,7 +212,7 @@ OrderedTask::ScanTotalStartTime()
 fixed
 OrderedTask::ScanLegStartTime()
 {
-  if (active_task_point)
+  if (active_task_point > 0)
     return task_points[active_task_point-1]->GetEnteredState().time;
 
   return fixed(-1);
@@ -1022,17 +1022,18 @@ OrderedTask::CalcBestMC(const AircraftState &aircraft,
 bool
 OrderedTask::AllowIncrementalBoundaryStats(const AircraftState &aircraft) const
 {
-  if (!active_task_point)
+  if (active_task_point == 0)
+    /* disabled for the start point */
     return false;
+
   assert(task_points[active_task_point]);
 
   if (task_points[active_task_point]->IsBoundaryScored())
     return true;
 
-  bool in_sector = task_points[active_task_point]->IsInSector(aircraft);
-  if (active_task_point>0) {
-    in_sector |= task_points[active_task_point-1]->IsInSector(aircraft);
-  }
+  bool in_sector = task_points[active_task_point]->IsInSector(aircraft) ||
+    task_points[active_task_point-1]->IsInSector(aircraft);
+
   return !in_sector;
 }
 

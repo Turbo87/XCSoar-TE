@@ -153,7 +153,7 @@ MapItemListRenderer::Draw(Canvas &canvas, const PixelRect rc,
                           const DialogLook &dialog_look,
                           const FinalGlideBarLook &look)
 {
-  const UPixelScalar line_height = rc.bottom - rc.top;
+  const unsigned line_height = rc.bottom - rc.top;
 
   bool elevation_available =
       !RasterBuffer::IsSpecial((short)item.elevation);
@@ -173,15 +173,14 @@ MapItemListRenderer::Draw(Canvas &canvas, const PixelRect rc,
 
   // Draw final glide arrow icon
 
-  RasterPoint pt = { (PixelScalar)(rc.left + line_height / 2),
-                     (PixelScalar)(rc.top + line_height / 2) };
+  const RasterPoint pt(rc.left + line_height / 2, rc.top + line_height / 2);
 
   RasterPoint arrow[] = {
       { -7, -3 }, { 0, 4 }, { 7, -3 }
   };
 
   Angle arrow_angle = reachable ? Angle::HalfCircle() : Angle::Zero();
-  PolygonRotateShift(arrow, ARRAY_SIZE(arrow), pt.x, pt.y, arrow_angle, 100);
+  PolygonRotateShift(arrow, ARRAY_SIZE(arrow), pt, arrow_angle);
 
   if (reachable) {
     canvas.Select(look.brush_above);
@@ -289,8 +288,8 @@ MapItemListRenderer::Draw(Canvas &canvas, const PixelRect rc,
                          rc.top + name_font.GetHeight() + 2 * text_padding,
                          rc, buffer);
 
-  RasterPoint pt = { (PixelScalar)(rc.left + line_height / 2),
-                     (PixelScalar)(rc.top + line_height / 2) };
+  const RasterPoint pt(rc.left + line_height / 2, rc.top + line_height / 2);
+
   AircraftRenderer::Draw(canvas, settings, look, item.bearing, pt);
 }
 
@@ -437,7 +436,7 @@ MapItemListRenderer::Draw(Canvas &canvas, const PixelRect rc,
   canvas.Select(small_font);
 
   // Draw details line
-  UPixelScalar left = rc.left + line_height + text_padding;
+  const int left = rc.left + line_height + text_padding;
   OrderedTaskPointRadiusLabel(*item.oz, buffer);
   if (!StringIsEmpty(buffer))
     canvas.DrawClippedText(left, top2, rc.right - left, buffer);
@@ -451,9 +450,8 @@ MapItemListRenderer::Draw(Canvas &canvas, const PixelRect rc,
 
   const RasterPoint pt(rc.left + line_height / 2,
                        rc.top + line_height / 2);
-  PixelScalar radius = std::min(PixelScalar(line_height / 2
-                                            - 2 * text_padding),
-                                Layout::FastScale(10));
+  const unsigned radius = std::min(line_height / 2 - 2 * text_padding,
+                                   Layout::FastScale(10u));
   OZPreviewRenderer::Draw(canvas, oz, pt, radius, look,
                           airspace_settings, airspace_look);
 
@@ -522,8 +520,7 @@ MapItemListRenderer::Draw(Canvas &canvas, const PixelRect rc,
                          rc.top + name_font.GetHeight() + 2 * text_padding,
                          rc, info_string);
 
-  RasterPoint pt = { (PixelScalar)(rc.left + line_height / 2),
-                     (PixelScalar)(rc.top + line_height / 2) };
+  const RasterPoint pt(rc.left + line_height / 2, rc.top + line_height / 2);
 
   // Render the representation of the traffic icon
   if (traffic != NULL)

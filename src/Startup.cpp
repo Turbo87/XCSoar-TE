@@ -30,7 +30,7 @@ Copyright_License {
 #include "Simulator.hpp"
 #include "InfoBoxes/InfoBoxManager.hpp"
 #include "Terrain/RasterTerrain.hpp"
-#include "Terrain/RasterWeather.hpp"
+#include "Terrain/RasterWeatherStore.hpp"
 #include "Input/InputEvents.hpp"
 #include "Input/InputQueue.hpp"
 #include "Dialogs/Dialogs.h"
@@ -118,8 +118,8 @@ LoadProfile()
   Profile::Load();
   Profile::Use();
 
-  Units::SetConfig(CommonInterface::GetUISettings().units);
-  SetUserCoordinateFormat(CommonInterface::GetUISettings().coordinate_format);
+  Units::SetConfig(CommonInterface::GetUISettings().format.units);
+  SetUserCoordinateFormat(CommonInterface::GetUISettings().format.coordinate_format);
 
 #ifdef HAVE_MODEL_TYPE
   global_model_type = CommonInterface::GetSystemSettings().model_type;
@@ -364,7 +364,8 @@ Startup()
 
   // Scan for weather forecast
   LogFormat("RASP load");
-  RASP.ScanAll(CommonInterface::Basic().location, operation);
+  rasp = new RasterWeatherStore();
+  rasp->ScanAll(CommonInterface::Basic().location, operation);
 
   // Reads the airspace files
   ReadAirspace(airspace_database, terrain, computer_settings.pressure,
@@ -409,7 +410,7 @@ Startup()
 
     map_window->SetTopography(topography);
     map_window->SetTerrain(terrain);
-    map_window->SetWeather(&RASP);
+    map_window->SetWeather(rasp);
     map_window->SetMarks(protected_marks);
     map_window->SetLogger(logger);
 
@@ -581,7 +582,7 @@ Shutdown()
   operation.SetText(_("Shutdown, please wait..."));
 
   // Clear weather database
-  RASP.Close();
+  delete rasp;
 
   // Clear terrain database
 

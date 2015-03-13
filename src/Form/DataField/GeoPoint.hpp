@@ -34,13 +34,17 @@ Copyright_License {
 class GeoPointDataField final : public DataField {
   GeoPoint value;
 
-  CoordinateFormat format;
+  const CoordinateFormat format;
 
 public:
   GeoPointDataField(GeoPoint _value, CoordinateFormat _format,
                     DataFieldListener *listener=nullptr)
     :DataField(Type::GEOPOINT, false, listener),
      value(_value), format(_format) {}
+
+  CoordinateFormat GetFormat() const {
+    return format;
+  }
 
   GeoPoint GetValue() const {
     return value;

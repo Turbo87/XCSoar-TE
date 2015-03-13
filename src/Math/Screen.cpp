@@ -30,8 +30,6 @@ Copyright_License {
 
 #include <algorithm>
 
-// note these use static vars! not thread-safe
-
 void
 ScreenClosestPoint(const RasterPoint &p1, const RasterPoint &p2,
                    const RasterPoint &p3, RasterPoint *p4, int offset)
@@ -79,37 +77,14 @@ roundshift(int x)
   return x >> 10;
 }
 
-gcc_const
-static int
-FastScale(int x)
-{
-  if (!Layout::ScaleSupported())
-    return x;
-
-  return x * Layout::scale;
-}
-
 void
 PolygonRotateShift(RasterPoint *poly, const int n,
-                   const PixelScalar xs, const PixelScalar ys,
+                   const RasterPoint shift,
                    Angle angle, const int scale)
 {
-  static Angle lastangle = Angle::Native(fixed(-1));
-  static int cost = 1024, sint = 0;
-  static int last_scale = 0;
-  angle = angle.AsBearing();
-
-  if ((angle != lastangle) || (last_scale != scale)) {
-    lastangle = angle;
-    last_scale = scale;
-    if (scale == 100) {
-      cost = FastScale(angle.ifastcosine());
-      sint = FastScale(angle.ifastsine());
-    } else {
-      cost = FastScale(angle.ifastcosine() * scale) / 100;
-      sint = FastScale(angle.ifastsine() * scale) / 100;
-    }
-  }
+  const int xs = shift.x, ys = shift.y;
+  const int cost = Layout::FastScale(angle.ifastcosine() * scale) / 100;
+  const int sint = Layout::FastScale(angle.ifastsine() * scale) / 100;
 
   RasterPoint *p = poly;
   const RasterPoint *pe = poly + n;
@@ -122,4 +97,3 @@ PolygonRotateShift(RasterPoint *poly, const int n,
     p++;
   }
 }
-

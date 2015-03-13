@@ -28,12 +28,12 @@ Copyright_License {
 #include "Screen/Point.hpp"
 #include "Asset.hpp"
 
-JNIEnv *TextUtil::env(NULL);
+JNIEnv *TextUtil::env;
 static Java::TrivialClass cls;
-jmethodID TextUtil::midTextUtil(NULL);
-jmethodID TextUtil::midGetFontMetrics(NULL);
-jmethodID TextUtil::midGetTextBounds(NULL);
-jmethodID TextUtil::midGetTextTextureGL(NULL);
+jmethodID TextUtil::midTextUtil;
+jmethodID TextUtil::midGetFontMetrics;
+jmethodID TextUtil::midGetTextBounds;
+jmethodID TextUtil::midGetTextTextureGL;
 
 void
 TextUtil::Initialise(JNIEnv *_env)
@@ -100,7 +100,7 @@ TextUtil::create(const char *facename, int height, bool bold, bool italic)
                                paramStyle, paramTextSize,
                                paint_flags);
   if (!localObject)
-    return NULL;
+    return nullptr;
 
   TextUtil *tu = new TextUtil(localObject);
 

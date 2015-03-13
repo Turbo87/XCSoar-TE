@@ -59,6 +59,7 @@ public class BluetoothGattClientPort
      calling BluetoothGatt.disconnect() in close() */
   private static final int DISCONNECT_TIMEOUT = 500;
 
+  private PortListener portListener;
   private volatile InputListener listener;
 
   private BluetoothDevice device;
@@ -72,8 +73,9 @@ public class BluetoothGattClientPort
   private int nextWriteChunkIdx;
   private boolean lastChunkWriteError;
 
-  private final Object portStateSync = new Object();
-  private int portState = STATE_LIMBO;
+  private volatile int portState = STATE_LIMBO;
+
+  private final Object gattStateSync = new Object();
   private int gattState = BluetoothGatt.STATE_DISCONNECTED;
 
   public BluetoothGattClientPort(BluetoothDevice _device) {
@@ -166,34 +168,33 @@ public class BluetoothGattClientPort
       pendingWriteChunks = null;
       writeChunksSync.notifyAll();
     }
-    synchronized (portStateSync) {
-      portState = newPortState;
+    portState = newPortState;
+    stateChanged();
+    synchronized (gattStateSync) {
       gattState = newState;
-      portStateSync.notifyAll();
+      gattStateSync.notifyAll();
     }
   }
 
   @Override
   public void onServicesDiscovered(BluetoothGatt gatt,
-      int status) {
-    synchronized (portStateSync) {
-      if (BluetoothGatt.GATT_SUCCESS == status) {
-        if (findCharacteristics()) {
-          if (gatt.setCharacteristicNotification(dataCharacteristic, true)) {
-            portState = STATE_READY;
-          } else {
-            Log.e(TAG, "Could not enable GATT characteristic notification");
-            portState = STATE_FAILED;
-          }
+                                   int status) {
+    if (BluetoothGatt.GATT_SUCCESS == status) {
+      if (findCharacteristics()) {
+        if (gatt.setCharacteristicNotification(dataCharacteristic, true)) {
+          portState = STATE_READY;
         } else {
+          Log.e(TAG, "Could not enable GATT characteristic notification");
           portState = STATE_FAILED;
         }
       } else {
-        Log.e(TAG, "Discovering GATT services failed");
         portState = STATE_FAILED;
       }
-      portStateSync.notifyAll();
+    } else {
+      Log.e(TAG, "Discovering GATT services failed");
+      portState = STATE_FAILED;
     }
+    stateChanged();
   }
 
   @Override
@@ -237,8 +238,12 @@ public class BluetoothGattClientPort
     }
   }
 
+  @Override public void setListener(PortListener _listener) {
+    portListener = _listener;
+  }
+
   @Override
-  public void setListener(InputListener _listener) {
+  public void setInputListener(InputListener _listener) {
     listener = _listener;
   }
 
@@ -250,7 +255,7 @@ public class BluetoothGattClientPort
       writeChunksSync.notifyAll();
     }
     gatt.disconnect();
-    synchronized (portStateSync) {
+    synchronized (gattStateSync) {
       long waitUntil = System.currentTimeMillis() + DISCONNECT_TIMEOUT;
       while (gattState != BluetoothGatt.STATE_DISCONNECTED) {
         long timeToWait = waitUntil - System.currentTimeMillis();
@@ -258,7 +263,7 @@ public class BluetoothGattClientPort
           break;
         }
         try {
-          portStateSync.wait(timeToWait);
+          gattStateSync.wait(timeToWait);
         } catch (InterruptedException e) {
           break;
         }
@@ -269,9 +274,7 @@ public class BluetoothGattClientPort
 
   @Override
   public int getState() {
-    synchronized (portStateSync) {
-      return portState;
-    }
+    return portState;
   }
 
   @Override
@@ -339,5 +342,11 @@ public class BluetoothGattClientPort
 
       return lastChunkWriteError ? 0 : length;
     }
+  }
+
+  protected final void stateChanged() {
+    PortListener portListener = this.portListener;
+    if (portListener != null)
+      portListener.portStateChanged();
   }
 }

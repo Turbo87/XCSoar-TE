@@ -22,6 +22,7 @@ Copyright_License {
 */
 
 #include "Port.hpp"
+#include "Listener.hpp"
 #include "Time/TimeoutClock.hpp"
 #include "Operation/Operation.hpp"
 
@@ -29,8 +30,8 @@ Copyright_License {
 #include <assert.h>
 #include <string.h>
 
-Port::Port(DataHandler &_handler)
-  :handler(_handler) {}
+Port::Port(PortListener *_listener, DataHandler &_handler)
+  :listener(_listener), handler(_handler) {}
 
 Port::~Port() {}
 
@@ -211,7 +212,10 @@ bool
 Port::ExpectString(const char *token, OperationEnvironment &env,
                    unsigned timeout_ms)
 {
-  assert(token != NULL);
+#if !CLANG_CHECK_VERSION(3,6)
+  /* disabled on clang due to -Wtautological-pointer-compare */
+  assert(token != nullptr);
+#endif
 
   const char *const token_end = token + strlen(token);
 
@@ -260,4 +264,12 @@ Port::WaitForChar(const char token, OperationEnvironment &env,
   }
 
   return WaitResult::READY;
+}
+
+void
+Port::StateChanged()
+{
+  PortListener *l = listener;
+  if (l != nullptr)
+    l->PortStateChanged();
 }

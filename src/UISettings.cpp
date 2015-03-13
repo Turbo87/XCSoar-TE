@@ -40,9 +40,7 @@ UISettings::SetDefaults()
 
   haptic_feedback = HapticFeedback::DEFAULT;
 
-  coordinate_format = CoordinateFormat::DDMMSS;
-
-  units.SetDefaults();
+  format.SetDefaults();
   map.SetDefaults();
   info_boxes.SetDefaults();
   vario.SetDefaults();

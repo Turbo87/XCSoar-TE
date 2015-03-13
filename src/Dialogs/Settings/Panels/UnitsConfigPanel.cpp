@@ -117,9 +117,9 @@ UnitsConfigPanel::OnModified(DataField &df)
 void
 UnitsConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
-  const UnitSetting &config = CommonInterface::GetUISettings().units;
+  const UnitSetting &config = CommonInterface::GetUISettings().format.units;
   const CoordinateFormat coordinate_format =
-      CommonInterface::GetUISettings().coordinate_format;
+      CommonInterface::GetUISettings().format.coordinate_format;
 
   RowFormWidget::Prepare(parent, rc);
 
@@ -221,9 +221,9 @@ UnitsConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 
   static constexpr StaticEnumChoice units_lat_lon_list[] = {
     { (unsigned)CoordinateFormat::DDMMSS, _T("DDMMSS") },
-    { (unsigned)CoordinateFormat::DDMMSS_SS, _T("DDMMSS.ss") },
+    { (unsigned)CoordinateFormat::DDMMSS_S, _T("DDMMSS.s") },
     { (unsigned)CoordinateFormat::DDMM_MMM, _T("DDMM.mmm") },
-    { (unsigned)CoordinateFormat::DD_DDDD, _T("DD.dddd") },
+    { (unsigned)CoordinateFormat::DD_DDDDD, _T("DD.ddddd") },
     { (unsigned)CoordinateFormat::UTM, _T("UTM") },
     { 0 }
   };
@@ -238,9 +238,9 @@ UnitsConfigPanel::Save(bool &_changed)
 {
   bool changed = false;
 
-  UnitSetting &config = CommonInterface::SetUISettings().units;
+  UnitSetting &config = CommonInterface::SetUISettings().format.units;
   CoordinateFormat &coordinate_format =
-      CommonInterface::SetUISettings().coordinate_format;
+      CommonInterface::SetUISettings().format.coordinate_format;
 
   /* the Units settings affect how other form values are read and translated
    * so changes to Units settings should be processed after all other form settings

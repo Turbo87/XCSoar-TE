@@ -29,13 +29,13 @@ Copyright_License {
 namespace Layout
 {
   bool landscape = false;
-  int scale = 1;
+  unsigned scale = 1;
   unsigned scale_1024 = 1024;
   unsigned small_scale = 1024;
   unsigned pen_width_scale = 1024;
-  UPixelScalar text_padding = 2;
-  UPixelScalar minimum_control_height = 20, maximum_control_height = 44;
-  UPixelScalar hit_radius = 10;
+  unsigned text_padding = 2;
+  unsigned minimum_control_height = 20, maximum_control_height = 44;
+  unsigned hit_radius = 10;
 }
 
 void

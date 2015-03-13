@@ -30,7 +30,8 @@ Copyright_License {
 #include "Task/ProtectedTaskManager.hpp"
 #include "Engine/Task/Ordered/OrderedTask.hpp"
 #include "Renderer/TextInBox.hpp"
-#include "Terrain/RasterWeather.hpp"
+#include "Terrain/RasterWeatherCache.hpp"
+#include "Terrain/RasterWeatherStore.hpp"
 #include "Formatter/UserUnits.hpp"
 #include "Formatter/UserGeoPointFormatter.hpp"
 #include "UIState.hpp"
@@ -344,10 +345,11 @@ GlueMapWindow::DrawMapScale(Canvas &canvas, const PixelRect &rc,
         _T("BALLAST %d LITERS "),
         (int)GetComputerSettings().polar.glide_polar_task.GetBallastLitres());
 
-  if (weather != nullptr && weather->GetParameter() > 0) {
-    const TCHAR *label = weather->ItemLabel(weather->GetParameter());
+  if (weather != nullptr && !weather->IsTerrain()) {
+    const RasterWeatherStore &ws = weather->GetStore();
+    const TCHAR *label = ws.GetItemInfo(weather->GetParameter()).label;
     if (label != nullptr)
-      buffer += label;
+      buffer += gettext(label);
   }
 
   if (!buffer.empty()) {

@@ -26,23 +26,24 @@ Copyright_License {
 #ifndef XCSOAR_MATH_SCREEN_HPP
 #define XCSOAR_MATH_SCREEN_HPP
 
-#include "Screen/Point.hpp"
-
+struct RasterPoint;
 class Angle;
 
-void ScreenClosestPoint(const RasterPoint &p1, const RasterPoint &p2,
-                        const RasterPoint &p3, RasterPoint *p4, int offset);
+void
+ScreenClosestPoint(const RasterPoint &p1, const RasterPoint &p2,
+                   const RasterPoint &p3, RasterPoint *p4, int offset);
 
 /**
  * Shifts and rotates the given polygon and also sizes it via FastScale()
+ *
  * @param poly Points specifying the polygon
  * @param n Number of points of the polygon
- * @param xs Pixels to shift in the x-direction
- * @param ys Pixels to shift in the y-direction
+ * @param shift pixels to shift
  * @param angle Angle of rotation
  * @param scale Additional scaling in percent (100 = 100%, 150 = 150%, ...)
  */
-void PolygonRotateShift(RasterPoint *poly, int n, PixelScalar x, PixelScalar y,
-                        Angle angle, const int scale = 100);
+void
+PolygonRotateShift(RasterPoint *poly, int n, RasterPoint shift,
+                   Angle angle, const int scale = 100);
 
 #endif

@@ -37,9 +37,9 @@ class InputThread extends Thread {
 
   final String name;
 
-  InputListener listener;
+  volatile InputListener listener;
 
-  InputStream is;
+  volatile InputStream is;
 
   InputThread(String _name, InputListener _listener, InputStream _is) {
     super("InputThread " + _name);
@@ -51,7 +51,7 @@ class InputThread extends Thread {
     start();
   }
 
-  synchronized void setListener(final InputListener _listener) {
+  void setListener(final InputListener _listener) {
     listener = _listener;
   }
 
@@ -64,6 +64,7 @@ class InputThread extends Thread {
       return;
 
     is = null;
+    listener = null;
 
     try {
       is2.close();
@@ -108,8 +109,9 @@ class InputThread extends Thread {
         // close() was called
         break;
 
-      if (listener != null)
-        listener.dataReceived(buffer, n);
+      InputListener listener2 = listener;
+      if (listener2 != null)
+        listener2.dataReceived(buffer, n);
     }
   }
 }
