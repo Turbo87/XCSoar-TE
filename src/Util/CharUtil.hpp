@@ -31,7 +31,7 @@
 #define CHAR_UTIL_HPP
 
 #ifdef _UNICODE
-#include "TCharUtil.hpp"
+#include "WCharUtil.hpp"
 #endif
 
 constexpr
@@ -48,16 +48,31 @@ IsASCII(const char ch)
   return IsASCII((unsigned char)ch);
 }
 
+constexpr
 static inline bool
 IsWhitespaceOrNull(const char ch)
 {
   return (unsigned char)ch <= 0x20;
 }
 
+constexpr
 static inline bool
 IsWhitespaceNotNull(const char ch)
 {
   return ch > 0 && ch <= 0x20;
+}
+
+/**
+ * Is the given character whitespace?  This calls the faster one of
+ * IsWhitespaceOrNull() or IsWhitespaceNotNull().  Use this if you
+ * want the fastest implementation, and you don't care if a null byte
+ * matches.
+ */
+constexpr
+static inline bool
+IsWhitespaceFast(const char ch)
+{
+  return IsWhitespaceOrNull(ch);
 }
 
 constexpr
@@ -112,6 +127,19 @@ ToUpperASCII(char ch)
 {
   return ch >= 'a' && ch <= 'z'
     ? (ch - ('a' - 'A'))
+    : ch;
+}
+
+/**
+ * Convert the specified ASCII character (0x00..0x7f) to lower case.
+ * Unlike tolower(), it ignores the system locale.
+ */
+constexpr
+static inline char
+ToLowerASCII(char ch)
+{
+  return ch >= 'A' && ch <= 'Z'
+    ? (ch + ('a' - 'A'))
     : ch;
 }
 

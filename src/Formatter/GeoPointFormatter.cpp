@@ -38,9 +38,11 @@ Copyright_License {
 #include "GeoPointFormatter.hpp"
 #include "Units/Units.hpp"
 #include "Math/Angle.hpp"
-#include "Util/StringUtil.hpp"
 #include "Geo/GeoPoint.hpp"
 #include "Geo/UTM.hpp"
+#include "Util/StringUtil.hpp"
+#include "Util/StringFormat.hpp"
+#include "Util/StringAPI.hpp"
 
 bool
 FormatLongitude(Angle longitude, TCHAR *buffer, size_t size,
@@ -200,16 +202,16 @@ FormatGeoPoint(const GeoPoint &location, TCHAR *buffer, size_t size,
     return FormatUTM(location, buffer, size, seperator);
 
   if (!FormatLatitude(location.latitude, buffer, size, format))
-    return NULL;
+    return nullptr;
 
-  TCHAR *end = buffer + size, *p = buffer + _tcslen(buffer);
+  TCHAR *end = buffer + size, *p = buffer + StringLength(buffer);
   if (p >= end)
-    return NULL;
+    return nullptr;
 
   *p++ = seperator;
 
   if (!FormatLongitude(location.longitude, p, end - p, format))
-    return NULL;
+    return nullptr;
 
   return buffer;
 }

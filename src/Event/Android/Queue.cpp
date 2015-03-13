@@ -26,13 +26,13 @@ Copyright_License {
 
 EventQueue::EventQueue()
  :now_us(MonotonicClockUS()),
-  running(true) {}
+  quit(false) {}
 
 void
 EventQueue::Push(const Event &event)
 {
   ScopeLock protect(mutex);
-  if (!running)
+  if (quit)
     return;
 
   events.push(event);
@@ -43,15 +43,11 @@ bool
 EventQueue::Pop(Event &event)
 {
   ScopeLock protect(mutex);
-  if (!running || events.empty())
+  if (quit || events.empty())
     return false;
 
   event = events.front();
   events.pop();
-
-  if (event.type == Event::QUIT)
-    Quit();
-
   return true;
 }
 
@@ -72,7 +68,7 @@ bool
 EventQueue::Wait(Event &event)
 {
   ScopeLock protect(mutex);
-  if (!running)
+  if (quit)
     return false;
 
   if (events.empty())
@@ -93,10 +89,6 @@ EventQueue::Wait(Event &event)
 
   event = events.front();
   events.pop();
-
-  if (event.type == Event::QUIT)
-    Quit();
-
   return true;
 }
 

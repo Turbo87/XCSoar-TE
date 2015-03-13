@@ -48,6 +48,8 @@ namespace ButtonLabel {
   Expanded Expand(const TCHAR *text, TCHAR *buffer, size_t size);
 
   void SetLabelText(unsigned i, const TCHAR *text, unsigned event);
+
+  gcc_pure
   bool IsEnabled(unsigned i);
 
   bool ExpandMacros(const TCHAR *In, TCHAR *OutBuffer, size_t Size);
@@ -60,7 +62,7 @@ namespace ButtonLabel {
    * @param full do a full update; if false, then only dynamic buttons
    * are updated (to reduce flickering)
    */
-  void Set(const Menu &menu, const Menu *overlay=NULL, bool full=true);
+  void Set(const Menu &menu, const Menu *overlay=nullptr, bool full=true);
 };
 
 #endif

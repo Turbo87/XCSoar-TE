@@ -76,7 +76,7 @@ class EventQueue final : private SignalListener {
   EventPipe event_pipe;
   DiscardFileEventHandler discard;
 
-  bool running;
+  bool quit;
 
 public:
   EventQueue();
@@ -85,6 +85,10 @@ public:
 #ifdef USE_X11
   _XDisplay *GetDisplay() const {
     return input_queue.GetDisplay();
+  }
+
+  bool WasCtrlClick() const {
+    return input_queue.WasCtrlClick();
   }
 #endif
 
@@ -145,8 +149,12 @@ public:
     return now_us;
   }
 
+  bool IsQuit() const {
+    return quit;
+  }
+
   void Quit() {
-    running = false;
+    quit = true;
   }
 
   void WakeUp() {

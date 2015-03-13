@@ -30,7 +30,9 @@
 #ifndef STATIC_STRING_HPP
 #define STATIC_STRING_HPP
 
+#include "StringAPI.hpp"
 #include "StringUtil.hpp"
+#include "StringFormat.hpp"
 #include "UTF8.hpp"
 
 #include <assert.h>

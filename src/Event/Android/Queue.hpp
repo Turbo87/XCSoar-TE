@@ -46,7 +46,7 @@ class EventQueue {
   Mutex mutex;
   Cond cond;
 
-  bool running;
+  bool quit;
 
 public:
   EventQueue();
@@ -62,8 +62,12 @@ public:
     return now_us;
   }
 
+  bool IsQuit() const {
+    return quit;
+  }
+
   void Quit() {
-    running = false;
+    quit = true;
   }
 
   void Push(const Event &event);

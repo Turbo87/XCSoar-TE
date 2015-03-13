@@ -34,6 +34,11 @@ Copyright_License {
 #include "Util/Clamp.hpp"
 #include "Event/Idle.hpp"
 
+#ifdef USE_X11
+#include "Event/Globals.hpp"
+#include "Event/Queue.hpp"
+#endif
+
 #ifdef ENABLE_SDL
 #include <SDL_keyboard.h>
 #endif
@@ -112,6 +117,8 @@ IsCtrlKeyPressed()
   return SDL_GetModState() & (KMOD_LCTRL|KMOD_RCTRL);
 #elif defined(USE_GDI)
   return GetKeyState(VK_CONTROL) & 0x8000;
+#elif defined(USE_X11)
+  return event_queue->WasCtrlClick();
 #else
   return false;
 #endif
@@ -131,7 +138,7 @@ GlueMapWindow::OnMouseDown(PixelScalar x, PixelScalar y)
     return true;
 
   if (is_simulator() && IsCtrlKeyPressed() && visible_projection.IsValid()) {
-    /* clicking with Alt key held moves the simulator to the click
+    /* clicking with Ctrl key held moves the simulator to the click
        location instantly */
     const GeoPoint location = visible_projection.ScreenToGeo(x, y);
     device_blackboard->SetSimulatorLocation(location);

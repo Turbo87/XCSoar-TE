@@ -35,10 +35,12 @@ Copyright_License {
 #include "IO/LineReader.hpp"
 #include "Util/StringUtil.hpp"
 
+#include <string.h>
+
 bool
 WaypointReader::Parse(Waypoints &way_points, OperationEnvironment &operation)
 {
-  if (reader == NULL)
+  if (reader == nullptr)
     return false;
 
   TLineReader *line_reader = OpenTextFile(path, Charset::AUTO);
@@ -53,7 +55,7 @@ WaypointReader::Parse(Waypoints &way_points, OperationEnvironment &operation)
 void
 WaypointReader::SetTerrain(const RasterTerrain* _terrain)
 {
-  if (reader != NULL)
+  if (reader != nullptr)
     reader->SetTerrain(_terrain);
 }
 
@@ -61,9 +63,9 @@ void
 WaypointReader::Open(const TCHAR* filename, int the_filenum)
 {
   delete reader;
-  reader = NULL;
+  reader = nullptr;
 
-  // If filename is empty -> clear and return NULL pointer
+  // If filename is empty -> clear and return
   if (StringIsEmpty(filename))
     return;
 
@@ -76,7 +78,7 @@ WaypointReader::Open(const TCHAR* filename, int the_filenum)
     // Test if file exists in zip archive
     ZipSource zip(filename);
     if (zip.error())
-      // If the file doesn't exist return NULL pointer
+      // If the file doesn't exist return
       return;
   }
 

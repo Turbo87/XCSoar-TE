@@ -35,6 +35,11 @@ Copyright_License {
 #include <stdint.h>
 #include <assert.h>
 
+#ifdef KOBO
+#define HAVE_SHOW_MENU_BUTTON
+#include "Menu/ShowMenuButton.hpp"
+#endif
+
 struct ComputerSettings;
 struct MapSettings;
 struct UIState;
@@ -86,6 +91,10 @@ class MainWindow : public SingleWindow {
 
   Look *look;
 
+#ifdef HAVE_SHOW_MENU_BUTTON
+  ShowMenuButton *show_menu_button;
+#endif
+
   GlueMapWindow *map;
 
   /**
@@ -96,7 +105,7 @@ class MainWindow : public SingleWindow {
   /**
    * A #Widget that is shown instead of the map.  The #GlueMapWindow
    * is hidden and the DrawThread is suspended while this attribute is
-   * non-NULL.
+   * non-nullptr.
    */
   Widget *widget;
 
@@ -150,7 +159,7 @@ protected:
   bool IsRunning() {
     /* it is safe enough to say that XCSoar initialization is complete
        after the MapWindow has been created */
-    return map != NULL;
+    return map != nullptr;
   }
 
   /**
@@ -286,13 +295,13 @@ public:
   void SetTopography(TopographyStore *topography);
 
   const Look &GetLook() const {
-    assert(look != NULL);
+    assert(look != nullptr);
 
     return *look;
   }
 
   Look &SetLook() {
-    assert(look != NULL);
+    assert(look != nullptr);
 
     return *look;
   }
@@ -302,7 +311,7 @@ public:
   void SetUIState(const UIState &ui_state);
 
   /**
-   * Returns the map even if it is not active.  May return NULL if
+   * Returns the map even if it is not active.  May return nullptr if
    * there is no map.
    */
   gcc_pure
@@ -314,18 +323,18 @@ public:
    * Is the map active, i.e. currently visible?
    */
   bool IsMapActive() const {
-    return widget == NULL;
+    return widget == nullptr;
   }
 
   /**
-   * Returns the map if it is active, or NULL if the map is not
+   * Returns the map if it is active, or nullptr if the map is not
    * active.
    */
   gcc_pure
   GlueMapWindow *GetMapIfActive();
 
   /**
-   * Activate the map and return a pointer to it.  May return NULL if
+   * Activate the map and return a pointer to it.  May return nullptr if
    * there is no map.
    */
   GlueMapWindow *ActivateMap();
