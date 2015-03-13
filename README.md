@@ -1,5 +1,7 @@
-XCSoar-TE README
-=============
+XCSoar-TE
+=========
+
+[![Build Status](https://img.shields.io/travis/Turbo87/XCSoar-TE/master.svg)](https://travis-ci.org/Turbo87/XCSoar-TE/branches)
 
 XCSoar-TE is a tactical glide computer for Android, Linux, Mac OS X,
 Windows and Windows CE/Mobile. It was forked from XCSoar.
