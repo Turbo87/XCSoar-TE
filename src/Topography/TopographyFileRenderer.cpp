@@ -94,9 +94,7 @@ TopographyFileRenderer::UpdateVisibleShapes(const WindowProjection &projection)
   visible_shapes.clear();
   visible_labels.clear();
 
-  for (auto it = file.begin(), end = file.end(); it != end; ++it) {
-    const XShape &shape = *it;
-
+  for (const XShape &shape : file) {
     if (!visible_bounds.Overlaps(shape.get_bounds()))
       continue;
 
@@ -123,9 +121,9 @@ TopographyFileRenderer::UpdateArrayBuffer()
   unsigned n = 0;
   for (auto &shape : file) {
     shape.SetOffset(n);
-    n = std::accumulate(shape.get_lines(),
-                        shape.get_lines() + shape.get_number_of_lines(),
-                        n);
+
+    const auto lines = shape.GetLines();
+    n = std::accumulate(lines.begin(), lines.end(), n);
   }
 
   ShapePoint *p = (ShapePoint *)
@@ -133,11 +131,9 @@ TopographyFileRenderer::UpdateArrayBuffer()
   assert (p != nullptr);
 
   for (const auto &shape : file) {
-    const auto *lines = shape.get_lines();
-    const unsigned n_lines = shape.get_number_of_lines();
+    const auto lines = shape.GetLines();
     const ShapePoint *src = shape.get_points();
-    for (unsigned i = 0; i < n_lines; ++i) {
-      const unsigned n_points = lines[i];
+    for (const auto n_points : lines) {
       p = std::copy_n(src, n_points, p);
       src += n_points;
     }
@@ -201,6 +197,8 @@ void
 TopographyFileRenderer::Paint(Canvas &canvas,
                               const WindowProjection &projection)
 {
+  const ScopeLock protect(file.mutex);
+
   if (file.IsEmpty())
     return;
 
@@ -270,15 +268,13 @@ TopographyFileRenderer::Paint(Canvas &canvas,
 #endif
 #endif
 
-  for (auto it = visible_shapes.begin(), end = visible_shapes.end();
-       it != end; ++it) {
-    const XShape &shape = **it;
+  for (const XShape *shape_p : visible_shapes) {
+    const XShape &shape = *shape_p;
 
+    const auto lines = shape.GetLines();
 #ifdef ENABLE_OPENGL
     const ShapePoint *points = buffer + shape.GetOffset();
 #else // !ENABLE_OPENGL
-    const unsigned short *lines = shape.get_lines();
-    const unsigned short *end_lines = lines + shape.get_number_of_lines();
     const GeoPoint *points = shape.get_points();
 #endif
 
@@ -302,7 +298,7 @@ TopographyFileRenderer::Paint(Canvas &canvas,
       glEnableVertexAttribArray(OpenGL::Attribute::POSITION);
 #endif
 #else // !ENABLE_OPENGL
-      PaintPoint(canvas, projection, lines, end_lines, points);
+      PaintPoint(canvas, projection, lines.begin(), lines.end(), points);
 #endif
       break;
 
@@ -314,18 +310,19 @@ TopographyFileRenderer::Paint(Canvas &canvas,
         const GLushort *indices, *count;
         if (level == 0 ||
             (indices = shape.get_indices(level, min_distance, count)) == nullptr) {
-          count = shape.get_lines();
-          const GLushort *end_count = count + shape.get_number_of_lines();
-          for (int offset = 0; count < end_count; offset += *count++)
-            glDrawArrays(GL_LINE_STRIP, offset, *count);
+          unsigned offset = 0;
+          for (unsigned n : lines) {
+            glDrawArrays(GL_LINE_STRIP, offset, n);
+            offset += n;
+          }
         } else {
-          const GLushort *end_count = count + shape.get_number_of_lines();
-          for (; count < end_count; indices += *count++)
-            glDrawElements(GL_LINE_STRIP, *count, GL_UNSIGNED_SHORT, indices);
+          for (unsigned n : ConstBuffer<GLushort>(count, lines.size)) {
+            glDrawElements(GL_LINE_STRIP, n, GL_UNSIGNED_SHORT, indices);
+            indices += n;
+          }
         }
 #else // !ENABLE_OPENGL
-      for (; lines < end_lines; ++lines) {
-        unsigned msize = *lines;
+        for (unsigned msize : lines) {
         shape_renderer.Begin(msize);
 
         const GeoPoint *end = points + msize - 1;
@@ -368,31 +365,35 @@ TopographyFileRenderer::Paint(Canvas &canvas,
                        triangles);
       }
 #else // !ENABLE_OPENGL
-      for (const GeoPoint *src = &points[0]; lines < end_lines;
-           src += *lines, ++lines) {
-        unsigned msize = *lines / iskip;
+      {
+        const GeoPoint *src = &points[0];
+        for (const unsigned n : lines) {
+          unsigned msize = n / iskip;
 
-        /* copy all polygon points into the geo_points array and clip
-           them, to avoid integer overflows (as RasterPoint may store
-           only 16 bit integers on some platforms) */
+          /* copy all polygon points into the geo_points array and
+             clip them, to avoid integer overflows (as RasterPoint may
+             store only 16 bit integers on some platforms) */
 
-        geo_points.GrowDiscard(msize * 3);
-        for (unsigned i = 0; i < msize; ++i)
-          geo_points[i] = src[i * iskip];
+          geo_points.GrowDiscard(msize * 3);
+          for (unsigned i = 0; i < msize; ++i)
+            geo_points[i] = src[i * iskip];
 
-        msize = clip.ClipPolygon(geo_points.begin(),
-                                 geo_points.begin(), msize);
-        if (msize < 3)
-          continue;
+          msize = clip.ClipPolygon(geo_points.begin(),
+                                   geo_points.begin(), msize);
+          if (msize < 3)
+            continue;
 
-        shape_renderer.Begin(msize);
+          shape_renderer.Begin(msize);
 
-        for (unsigned i = 0; i < msize; ++i) {
-          GeoPoint g = geo_points[i];
-          shape_renderer.AddPointIfDistant(projection.GeoToScreen(g));
+          for (unsigned i = 0; i < msize; ++i) {
+            GeoPoint g = geo_points[i];
+            shape_renderer.AddPointIfDistant(projection.GeoToScreen(g));
+          }
+
+          shape_renderer.FinishPolygon(canvas);
+
+          src += n;
         }
-
-        shape_renderer.FinishPolygon(canvas);
       }
 #endif
       break;
@@ -442,6 +443,8 @@ TopographyFileRenderer::PaintLabels(Canvas &canvas,
                                     const WindowProjection &projection,
                                     LabelBlock &label_block)
 {
+  const ScopeLock protect(file.mutex);
+
   if (file.IsEmpty())
     return;
 
@@ -467,30 +470,28 @@ TopographyFileRenderer::PaintLabels(Canvas &canvas,
   std::set<tstring> drawn_labels;
 
   // Iterate over all shapes in the file
-  for (auto it = visible_labels.begin(), end = visible_labels.end();
-       it != end; ++it) {
-    const XShape &shape = **it;
+  for (const XShape *shape_p : visible_labels) {
+    const XShape &shape = *shape_p;
 
     // Skip shapes without a label
     const TCHAR *label = shape.get_label();
     assert(label != nullptr);
 
-    const unsigned short *lines = shape.get_lines();
-    const unsigned short *end_lines = lines + shape.get_number_of_lines();
+    const auto lines = shape.GetLines();
 #ifdef ENABLE_OPENGL
     const ShapePoint *points = shape.get_points();
 #else
     const GeoPoint *points = shape.get_points();
 #endif
 
-    for (; lines < end_lines; ++lines) {
+    for (const unsigned n : lines) {
       int minx = canvas.GetWidth();
       int miny = canvas.GetHeight();
 
 #ifdef ENABLE_OPENGL
-      const ShapePoint *end = points + *lines;
+      const ShapePoint *end = points + n;
 #else
-      const GeoPoint *end = points + *lines;
+      const GeoPoint *end = points + n;
 #endif
       for (; points < end; points += iskip) {
 #ifdef ENABLE_OPENGL

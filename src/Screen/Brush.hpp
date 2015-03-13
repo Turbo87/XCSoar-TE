@@ -126,9 +126,15 @@ public:
   /**
    * Configures this brush in the OpenGL context.
    */
-  void Set() const {
-    color.Set();
+  void Bind() const {
+    color.Bind();
   }
+
+#ifdef USE_GLSL
+  void BindUniform(GLint location) const {
+    color.Uniform(location);
+  }
+#endif
 #endif /* OPENGL */
 };
 

@@ -30,7 +30,7 @@ Copyright_License {
 #include "UIGlobals.hpp"
 #include "Components.hpp"
 #include "Replay/Replay.hpp"
-#include "Form/DataField/FileReader.hpp"
+#include "Form/DataField/File.hpp"
 #include "Form/DataField/Float.hpp"
 #include "Language/Language.hpp"
 
@@ -79,12 +79,12 @@ void
 ReplayControlWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
   auto *file =
-    AddFileReader(_("File"),
-                  _("Name of file to replay.  Can be an IGC file (.igc), a raw NMEA log file (.nmea), or if blank, runs the demo."),
-                  nullptr,
-                  _T("*.nmea\0*.igc\0"),
-                  true);
-  ((DataFieldFileReader *)file->GetDataField())->Lookup(replay->GetFilename());
+    AddFile(_("File"),
+            _("Name of file to replay.  Can be an IGC file (.igc), a raw NMEA log file (.nmea), or if blank, runs the demo."),
+            nullptr,
+            _T("*.nmea\0*.igc\0"),
+            true);
+  ((FileDataField *)file->GetDataField())->Lookup(replay->GetFilename());
   file->RefreshDisplay();
 
   AddFloat(_("Rate"),
@@ -104,8 +104,7 @@ ReplayControlWidget::OnStopClicked()
 inline void
 ReplayControlWidget::OnStartClicked()
 {
-  const DataFieldFileReader &df = (const DataFieldFileReader &)
-    GetDataField(FILE);
+  const auto &df = (const FileDataField &)GetDataField(FILE);
   const TCHAR *path = df.GetPathFile();
   if (!replay->Start(path))
     ShowMessageBox(_("Could not open IGC file!"),

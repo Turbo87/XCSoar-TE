@@ -27,6 +27,7 @@ Copyright_License {
 #include "WindowWidget.hpp"
 #include "Form/Edit.hpp"
 #include "Form/DataField/Base.hpp"
+#include "Repository/FileType.hpp"
 #include "Util/StaticArray.hpp"
 #include "Util/EnumCast.hpp"
 #include "Units/Group.hpp"
@@ -419,9 +420,17 @@ public:
 
   void AddSpacer();
 
-  WndProperty *AddFileReader(const TCHAR *label, const TCHAR *help,
-                             const char *profile_key, const TCHAR *filters,
-                             bool nullable = true);
+  WndProperty *AddFile(const TCHAR *label, const TCHAR *help,
+                       const char *profile_key, const TCHAR *filters,
+                       FileType file_type,
+                       bool nullable = true);
+
+  WndProperty *AddFile(const TCHAR *label, const TCHAR *help,
+                       const char *profile_key, const TCHAR *filters,
+                       bool nullable = true) {
+    return AddFile(label, help, profile_key, filters, FileType::UNKNOWN,
+                   nullable);
+  }
 
   /**
    * Add a read-only multi-line control.  You can use
@@ -656,14 +665,13 @@ protected:
 
 public:
   /* virtual methods from Widget */
-  virtual PixelSize GetMinimumSize() const override;
-  virtual PixelSize GetMaximumSize() const override;
-  virtual void Initialise(ContainerWindow &parent,
-                          const PixelRect &rc) override;
-  virtual void Unprepare() override;
-  virtual void Show(const PixelRect &rc) override;
-  virtual void Move(const PixelRect &rc) override;
-  virtual bool SetFocus() override;
+  PixelSize GetMinimumSize() const override;
+  PixelSize GetMaximumSize() const override;
+  void Initialise(ContainerWindow &parent, const PixelRect &rc) override;
+  void Unprepare() override;
+  void Show(const PixelRect &rc) override;
+  void Move(const PixelRect &rc) override;
+  bool SetFocus() override;
 };
 
 #endif

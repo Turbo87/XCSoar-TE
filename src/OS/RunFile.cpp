@@ -21,10 +21,33 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_FORM_INTERNAL_HPP
-#define XCSOAR_FORM_INTERNAL_HPP
+#include "RunFile.hpp"
+
+#ifdef ANDROID
+
+#define NO_SCREEN
+#include "Android/NativeView.hpp"
+#include "Android/Main.hpp"
 
 bool
-KeyTimer(bool isdown, unsigned key_code);
+RunFile(const TCHAR *path)
+{
+  native_view->openFile(path);
+  return true;
+}
+
+#elif defined(HAVE_POSIX) && !defined(WIN32) && !defined(KOBO)
+
+#include "Process.hpp"
+
+bool
+RunFile(const TCHAR *path)
+{
+#if defined(__APPLE__)
+  return Start("/usr/bin/open", path);
+#else
+  return Start("/usr/bin/xdg-open", path);
+#endif
+}
 
 #endif

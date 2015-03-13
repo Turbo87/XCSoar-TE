@@ -21,10 +21,11 @@ Copyright_License {
 }
 */
 
-#include "FileReader.hpp"
+#include "File.hpp"
 #include "ComboList.hpp"
 #include "LocalPath.hpp"
 #include "Util/StringUtil.hpp"
+#include "Util/StringAPI.hpp"
 #include "OS/PathName.hpp"
 #include "OS/FileUtil.hpp"
 
@@ -58,7 +59,7 @@ IsInternalFile(const TCHAR* str)
   };
 
   for (unsigned i = 0; ifiles[i] != nullptr; i++)
-    if (!_tcscmp(str, ifiles[i]))
+    if (StringIsEqual(str, ifiles[i]))
       return true;
 
   return false;
@@ -67,10 +68,10 @@ IsInternalFile(const TCHAR* str)
 class FileVisitor: public File::Visitor
 {
 private:
-  DataFieldFileReader &datafield;
+  FileDataField &datafield;
 
 public:
-  FileVisitor(DataFieldFileReader &_datafield) : datafield(_datafield) {}
+  FileVisitor(FileDataField &_datafield) : datafield(_datafield) {}
 
   void
   Visit(const TCHAR* path, const TCHAR* filename)
@@ -80,12 +81,22 @@ public:
   }
 };
 
-DataFieldFileReader::Item::~Item()
+FileDataField::Item::~Item()
 {
   free(path);
 }
 
-DataFieldFileReader::DataFieldFileReader(DataFieldListener *listener)
+inline void
+FileDataField::Item::Set(const TCHAR *_path)
+{
+  free(path);
+  path = _tcsdup(_path);
+  filename = BaseName(path);
+  if (filename == nullptr)
+    filename = path;
+}
+
+FileDataField::FileDataField(DataFieldListener *listener)
   :DataField(Type::FILE, true, listener),
    // Set selection to zero
    current_index(0),
@@ -93,7 +104,7 @@ DataFieldFileReader::DataFieldFileReader(DataFieldListener *listener)
    postponed_value(_T("")) {}
 
 int
-DataFieldFileReader::GetAsInteger() const
+FileDataField::GetAsInteger() const
 {
   if (!postponed_value.empty())
     EnsureLoadedDeconst();
@@ -102,13 +113,13 @@ DataFieldFileReader::GetAsInteger() const
 }
 
 void
-DataFieldFileReader::SetAsInteger(int new_value)
+FileDataField::SetAsInteger(int new_value)
 {
   Set(new_value);
 }
 
 void
-DataFieldFileReader::ScanDirectoryTop(const TCHAR *filter)
+FileDataField::ScanDirectoryTop(const TCHAR *filter)
 {
   if (!loaded) {
     if (!postponed_patterns.full() &&
@@ -126,7 +137,7 @@ DataFieldFileReader::ScanDirectoryTop(const TCHAR *filter)
 }
 
 void
-DataFieldFileReader::ScanMultiplePatterns(const TCHAR *patterns)
+FileDataField::ScanMultiplePatterns(const TCHAR *patterns)
 {
   size_t length;
   while ((length = _tcslen(patterns)) > 0) {
@@ -135,8 +146,18 @@ DataFieldFileReader::ScanMultiplePatterns(const TCHAR *patterns)
   }
 }
 
+int
+FileDataField::Find(const TCHAR *text) const
+{
+  for (unsigned i = 0, n = files.size(); i < n; i++)
+    if (StringIsEqual(text, files[i].path))
+      return i;
+
+  return -1;
+}
+
 void
-DataFieldFileReader::Lookup(const TCHAR *text)
+FileDataField::Lookup(const TCHAR *text)
 {
   if (!loaded) {
     if (_tcslen(text) < postponed_value.MAX_SIZE) {
@@ -146,19 +167,32 @@ DataFieldFileReader::Lookup(const TCHAR *text)
       EnsureLoaded();
   }
 
-  current_index = 0;
-  // Iterate through the filelist
-  for (unsigned i = 1; i < files.size(); i++) {
-    // If text == pathfile
-    if (_tcscmp(text, files[i].path) == 0) {
-      // -> set selection to current element
-      current_index = i;
-    }
+  auto i = Find(text);
+  if (i >= 0)
+    current_index = i;
+}
+
+void
+FileDataField::ForceModify(const TCHAR *path)
+{
+  EnsureLoaded();
+
+  auto i = Find(path);
+  if (i >= 0) {
+    if (unsigned(i) == current_index)
+      return;
+  } else {
+    auto &item = files.full() ? files.back() : files.append();
+    item.Set(path);
+    i = files.size() - 1;
   }
+
+  current_index = i;
+  Modified();
 }
 
 unsigned
-DataFieldFileReader::GetNumFiles() const
+FileDataField::GetNumFiles() const
 {
   EnsureLoadedDeconst();
 
@@ -166,7 +200,7 @@ DataFieldFileReader::GetNumFiles() const
 }
 
 const TCHAR *
-DataFieldFileReader::GetPathFile() const
+FileDataField::GetPathFile() const
 {
   if (!loaded)
     return postponed_value;
@@ -180,7 +214,7 @@ DataFieldFileReader::GetPathFile() const
 }
 
 void
-DataFieldFileReader::AddFile(const TCHAR *filename, const TCHAR *path)
+FileDataField::AddFile(const TCHAR *filename, const TCHAR *path)
 {
   assert(loaded);
 
@@ -191,14 +225,11 @@ DataFieldFileReader::AddFile(const TCHAR *filename, const TCHAR *path)
     return;
 
   Item &item = files.append();
-  item.path = _tcsdup(path);
-  item.filename = BaseName(item.path);
-  if (item.filename == nullptr)
-    item.filename = item.path;
+  item.Set(path);
 }
 
 void
-DataFieldFileReader::AddNull()
+FileDataField::AddNull()
 {
   assert(!files.full());
 
@@ -208,7 +239,7 @@ DataFieldFileReader::AddNull()
 }
 
 const TCHAR *
-DataFieldFileReader::GetAsString() const
+FileDataField::GetAsString() const
 {
   if (!loaded)
     return postponed_value;
@@ -220,7 +251,7 @@ DataFieldFileReader::GetAsString() const
 }
 
 const TCHAR *
-DataFieldFileReader::GetAsDisplayString() const
+FileDataField::GetAsDisplayString() const
 {
   if (!loaded) {
     /* get basename from postponed_value */
@@ -238,7 +269,7 @@ DataFieldFileReader::GetAsDisplayString() const
 }
 
 void
-DataFieldFileReader::Set(unsigned new_value)
+FileDataField::Set(unsigned new_value)
 {
   if (new_value > 0)
     EnsureLoaded();
@@ -252,7 +283,7 @@ DataFieldFileReader::Set(unsigned new_value)
 }
 
 void
-DataFieldFileReader::Inc()
+FileDataField::Inc()
 {
   EnsureLoaded();
 
@@ -263,7 +294,7 @@ DataFieldFileReader::Inc()
 }
 
 void
-DataFieldFileReader::Dec()
+FileDataField::Dec()
 {
   if (current_index > 0) {
     current_index--;
@@ -272,7 +303,7 @@ DataFieldFileReader::Dec()
 }
 
 void
-DataFieldFileReader::Sort()
+FileDataField::Sort()
 {
   if (!loaded) {
     postponed_sort = true;
@@ -283,12 +314,12 @@ DataFieldFileReader::Sort()
   std::sort(files.begin(), files.end(), [](const Item &a,
                                            const Item &b) {
               // Compare by filename
-              return _tcscmp(a.filename, b.filename) < 0;
+              return StringCollate(a.filename, b.filename) < 0;
             });
 }
 
 ComboList
-DataFieldFileReader::CreateComboList(const TCHAR *reference) const
+FileDataField::CreateComboList(const TCHAR *reference) const
 {
   /* sorry for the const_cast .. this method keeps the promise of not
      modifying the object, given that one does not count filling the
@@ -308,7 +339,7 @@ DataFieldFileReader::CreateComboList(const TCHAR *reference) const
 
     bool found = false;
     for (unsigned j = 1; j < files.size(); j++) {
-      if (j != i && _tcscmp(path, files[j].filename) == 0) {
+      if (j != i && StringIsEqual(path, files[j].filename)) {
         found = true;
         break;
       }
@@ -333,7 +364,7 @@ DataFieldFileReader::CreateComboList(const TCHAR *reference) const
 }
 
 unsigned
-DataFieldFileReader::size() const
+FileDataField::size() const
 {
   EnsureLoadedDeconst();
 
@@ -341,7 +372,7 @@ DataFieldFileReader::size() const
 }
 
 const TCHAR *
-DataFieldFileReader::GetItem(unsigned index) const
+FileDataField::GetItem(unsigned index) const
 {
   EnsureLoadedDeconst();
 
@@ -349,7 +380,7 @@ DataFieldFileReader::GetItem(unsigned index) const
 }
 
 void
-DataFieldFileReader::EnsureLoaded()
+FileDataField::EnsureLoaded()
 {
   if (loaded)
     return;

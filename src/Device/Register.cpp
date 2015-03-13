@@ -55,7 +55,9 @@ Copyright_License {
 #include "Device/Driver/BlueFlyVario.hpp"
 #include "Device/Driver/OpenVario.hpp"
 #include "Device/Driver/Vaulter.hpp"
+#include "Device/Driver/KRT2.hpp"
 #include "Util/Macros.hpp"
+#include "Util/StringAPI.hpp"
 
 #include <assert.h>
 #include <string.h>
@@ -95,6 +97,7 @@ static const struct DeviceRegister *const driver_list[] = {
   &cai_lnav_driver,
   &open_vario_driver,
   &vaulter_driver,
+  &krt2_driver,
   nullptr
 };
 
@@ -111,7 +114,7 @@ FindDriverByName(const TCHAR *name)
 {
   for (auto i = driver_list; *i != nullptr; ++i) {
     const DeviceRegister &driver = **i;
-    if (_tcscmp(driver.name, name) == 0)
+    if (StringIsEqual(driver.name, name))
       return &driver;
   }
 
@@ -125,7 +128,7 @@ FindDriverDisplayName(const TCHAR *name)
 
   for (auto i = driver_list; *i != nullptr; ++i) {
     const DeviceRegister &driver = **i;
-    if (_tcscmp(driver.name, name) == 0)
+    if (StringIsEqual(driver.name, name))
       return driver.display_name;
   }
 

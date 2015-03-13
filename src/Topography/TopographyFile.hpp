@@ -32,10 +32,13 @@ Copyright_License {
 #include "Math/fixed.hpp"
 #include "Screen/Color.hpp"
 #include "ResourceId.hpp"
+#include "Thread/Mutex.hpp"
 
 #ifdef ENABLE_OPENGL
 #include "XShapePoint.hpp"
 #endif
+
+#include <forward_list>
 
 #include <assert.h>
 
@@ -104,6 +107,12 @@ class TopographyFile {
   GeoBounds cache_bounds;
 
 public:
+  /**
+   * Protects #serial, #shapes, #first.
+   * The caller is responsible for locking it.
+   */
+  mutable Mutex mutex;
+
   class const_iterator {
     friend class TopographyFile;
 
@@ -173,6 +182,8 @@ public:
   ~TopographyFile();
 
   const Serial &GetSerial() const {
+    assert(mutex.IsLockedByCurrent());
+
     return serial;
   }
 
@@ -190,6 +201,28 @@ public:
 
   bool IsLabelVisible(fixed map_scale) const {
     return map_scale <= label_threshold;
+  }
+
+  /**
+   * Returns the map scale threshold that will be reached next by
+   * zooming in.  This is used to decide when to rescan shapes that
+   * must be loaded.  A negative value is returned when all thresholds
+   * have been reached already.
+   */
+  gcc_pure
+  fixed GetNextScaleThreshold(fixed map_scale) const {
+    return map_scale <= scale_threshold
+      ? (map_scale <= label_threshold
+         /* both thresholds reached: not relevant */
+         ? fixed(-1)
+         /* only label_threshold not yet reached */
+         : label_threshold)
+      /* scale_threshold not yet reached */
+      : (map_scale <= label_threshold
+         /* only scale_threshold not yet reached */
+         ? scale_threshold
+         /* choose the bigger threshold, that will trigger next */
+         : std::max(scale_threshold, label_threshold));
   }
 
   bool IsLabelImportant(fixed map_scale) const {
@@ -213,10 +246,14 @@ public:
   }
 
   const_iterator begin() const {
+    assert(mutex.IsLockedByCurrent());
+
     return const_iterator(first);
   }
 
   const_iterator end() const {
+    assert(mutex.IsLockedByCurrent());
+
     return const_iterator(nullptr);
   }
 

@@ -24,10 +24,9 @@ Copyright_License {
 #include "Enum.hpp"
 #include "ComboList.hpp"
 #include "Language/Language.hpp"
+#include "Util/StringAPI.hpp"
 
 #include <algorithm>
-
-#include <string.h>
 
 DataFieldEnum::Entry::~Entry()
 {
@@ -257,7 +256,8 @@ DataFieldEnum::Sort(unsigned startindex)
 {
   std::sort(entries.begin() + startindex, entries.end(),
             [](const DataFieldEnum::Entry &a, const DataFieldEnum::Entry &b) {
-              return _tcscmp(a.GetDisplayString(), b.GetDisplayString()) < 0;
+              return StringCollate(a.GetDisplayString(),
+                                   b.GetDisplayString()) < 0;
             });
 }
 
@@ -280,7 +280,7 @@ DataFieldEnum::Find(const TCHAR *text) const
   assert(text != nullptr);
 
   for (unsigned int i = 0; i < entries.size(); i++)
-    if (_tcscmp(text, entries[i].GetString()) == 0)
+    if (StringIsEqual(text, entries[i].GetString()))
       return i;
 
   return -1;

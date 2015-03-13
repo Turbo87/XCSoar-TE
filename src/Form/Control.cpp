@@ -22,7 +22,6 @@ Copyright_License {
 */
 
 #include "Form/Control.hpp"
-#include "Form/Internal.hpp"
 #include "Screen/Key.h"
 #include "Dialogs/HelpDialog.hpp"
 
@@ -68,24 +67,4 @@ WindowControl::OnHelp()
   }
 
   return false;
-}
-
-bool
-WindowControl::OnKeyDown(unsigned key_code)
-{
-  KeyTimer(true, key_code);
-
-  return PaintWindow::OnKeyDown(key_code);
-}
-
-bool
-WindowControl::OnKeyUp(unsigned key_code)
-{
-  // JMW: detect long enter release
-  // VENTA4: PNAs don't have Enter, so it should be better to find an alternate solution
-  // activate tool tips if hit return for long time
-  if (KeyTimer(false, key_code) && key_code == KEY_RETURN && OnHelp())
-    return true;
-
-  return PaintWindow::OnKeyUp(key_code);
 }

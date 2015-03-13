@@ -316,6 +316,7 @@ FillTCPPorts(DataFieldEnum &dfe)
   dfe.addEnumText(_T("4353"), 4353);
   dfe.addEnumText(_T("10110"), 10110);
   dfe.addEnumText(_T("4352"), 4352);
+  dfe.addEnumText(_T("2000"), 2000);
 }
 
 static void
@@ -681,7 +682,7 @@ FinishPortField(DeviceConfig &config, const DataFieldEnum &df)
   case DeviceConfig::PortType::PTY:
     /* Serial Port */
     if (new_type == config.port_type &&
-        _tcscmp(config.path, df.GetAsString()) == 0)
+        StringIsEqual(config.path, df.GetAsString()))
       return false;
 
     config.port_type = new_type;
@@ -691,7 +692,7 @@ FinishPortField(DeviceConfig &config, const DataFieldEnum &df)
   case DeviceConfig::PortType::RFCOMM:
     /* Bluetooth */
     if (new_type == config.port_type &&
-        _tcscmp(config.bluetooth_mac, df.GetAsString()) == 0)
+        StringIsEqual(config.bluetooth_mac, df.GetAsString()))
       return false;
 
     config.port_type = new_type;

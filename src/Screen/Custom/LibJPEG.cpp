@@ -42,6 +42,7 @@ struct JPEGErrorManager {
   jmp_buf setjmp_buffer;
 
   JPEGErrorManager() {
+    jpeg_std_error(&base);
     base.error_exit = ErrorExit;
   }
 
@@ -52,11 +53,7 @@ struct JPEGErrorManager {
 
   gcc_noreturn
   static void ErrorExit(j_common_ptr _cinfo) {
-    /* cast to void first to suppress bogus -Wcast-align warning
-       ("cast increases required alignment of target type") - the
-       parameter type of this callback is wrong */
-    void *cinfo = (void *)_cinfo;
-    JPEGErrorManager *err = reinterpret_cast<JPEGErrorManager *>(cinfo);
+    JPEGErrorManager *err = reinterpret_cast<JPEGErrorManager *>(_cinfo->err);
     err->ErrorExit();
   }
 };
@@ -71,7 +68,7 @@ LoadJPEGFile(const TCHAR *path)
   struct jpeg_decompress_struct cinfo;
 
   JPEGErrorManager err;
-  cinfo.err = jpeg_std_error(&err.base);
+  cinfo.err = &err.base;
   if (setjmp(err.setjmp_buffer)) {
     jpeg_destroy_decompress(&cinfo);
     fclose(file);

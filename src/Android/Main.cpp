@@ -96,6 +96,17 @@ extern "C" {
 }
 
 gcc_visibility_default
+JNIEXPORT jint JNICALL
+Java_org_xcsoar_NativeView_getEglContextClientVersion(JNIEnv *env, jobject obj)
+{
+#ifdef HAVE_GLES2
+  return 2;
+#else
+  return 1;
+#endif
+}
+
+gcc_visibility_default
 JNIEXPORT jboolean JNICALL
 Java_org_xcsoar_NativeView_initializeNative(JNIEnv *env, jobject obj,
                                             jobject _context,
@@ -142,7 +153,7 @@ Java_org_xcsoar_NativeView_initializeNative(JNIEnv *env, jobject obj,
   native_view = new NativeView(env, obj, width, height, xdpi, ydpi,
                                sdk_version, product);
 #ifdef __arm__
-  is_nook = strcmp(native_view->GetProduct(), "NOOK") == 0;
+  is_nook = StringIsEqual(native_view->GetProduct(), "NOOK");
 #endif
 
   event_queue = new EventQueue();
@@ -192,6 +203,8 @@ gcc_visibility_default
 JNIEXPORT void JNICALL
 Java_org_xcsoar_NativeView_deinitializeNative(JNIEnv *env, jobject obj)
 {
+  Shutdown();
+
   if (IsNookSimpleTouch()) {
     Nook::ExitFastMode();
   }

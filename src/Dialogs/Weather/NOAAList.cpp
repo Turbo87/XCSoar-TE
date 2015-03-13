@@ -41,6 +41,7 @@ Copyright_License {
 #include "Weather/NOAAUpdater.hpp"
 #include "Weather/METAR.hpp"
 #include "Util/TrivialArray.hpp"
+#include "Util/StringAPI.hpp"
 #include "Compiler.h"
 #include "Renderer/NOAAListRenderer.hpp"
 
@@ -49,8 +50,9 @@ struct NOAAListItem
   StaticString<5> code;
   NOAAStore::iterator iterator;
 
+  gcc_pure
   bool operator<(const NOAAListItem &i2) const {
-    return _tcscmp(code, i2.code) == -1;
+    return StringCollate(code, i2.code) < 0;
   }
 };
 

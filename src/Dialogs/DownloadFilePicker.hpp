@@ -21,38 +21,13 @@ Copyright_License {
 }
 */
 
-#define ENABLE_XML_DIALOG
-#define ENABLE_MAIN_WINDOW
-#define ENABLE_CMDLINE
-#define USAGE "XMLFILE"
+#ifndef XCSOAR_DOWNLOAD_FILE_PICKER_HPP
+#define XCSOAR_DOWNLOAD_FILE_PICKER_HPP
 
-#include "Main.hpp"
-#include "Form/Form.hpp"
-#include "LocalPath.hpp"
-#include "OS/FileUtil.hpp"
+#include "Repository/FileType.hpp"
+#include "Util/tstring.hpp"
 
-#include <tchar.h>
-#include <stdio.h>
+tstring
+DownloadFilePicker(FileType file_type);
 
-void VisitDataFiles(const TCHAR* filter, File::Visitor &visitor) {}
-
-static tstring xmlfile;
-
-static void
-ParseCommandLine(Args &args)
-{
-  xmlfile = args.ExpectNextT();
-}
-
-static void
-Main()
-{
-  WndForm *form = LoadDialog(NULL, main_window, xmlfile.c_str());
-  if (form == NULL) {
-    _ftprintf(stderr, _T("Failed to load resource '%s'\n"), xmlfile.c_str());
-    return;
-  }
-
-  form->ShowModal();
-  delete form;
-}
+#endif

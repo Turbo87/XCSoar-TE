@@ -33,24 +33,65 @@
 #include "Compiler.h"
 
 #include <string.h>
-#include <assert.h>
 
 #ifdef _UNICODE
 #include "WStringAPI.hpp"
 #endif
 
-gcc_pure
+gcc_pure gcc_nonnull_all
 static inline size_t
 StringLength(const char *p)
 {
   return strlen(p);
 }
 
-gcc_pure
+gcc_pure gcc_nonnull_all
 static inline const char *
 StringFind(const char *haystack, const char *needle)
 {
   return strstr(haystack, needle);
+}
+
+gcc_pure gcc_nonnull_all
+static inline char *
+StringFind(char *haystack, char needle, size_t size)
+{
+  return (char *)memchr(haystack, needle, size);
+}
+
+gcc_pure gcc_nonnull_all
+static inline const char *
+StringFind(const char *haystack, char needle, size_t size)
+{
+  return (const char *)memchr(haystack, needle, size);
+}
+
+gcc_pure gcc_nonnull_all
+static inline const char *
+StringFind(const char *haystack, char needle)
+{
+  return strchr(haystack, needle);
+}
+
+gcc_pure gcc_nonnull_all
+static inline char *
+StringFind(char *haystack, char needle)
+{
+  return strchr(haystack, needle);
+}
+
+gcc_pure gcc_nonnull_all
+static inline const char *
+StringFindLast(const char *haystack, char needle)
+{
+  return strrchr(haystack, needle);
+}
+
+gcc_pure gcc_nonnull_all
+static inline char *
+StringFindLast(char *haystack, char needle)
+{
+  return strrchr(haystack, needle);
 }
 
 static inline char *
@@ -59,6 +100,7 @@ StringToken(char *str, const char *delim)
   return strtok(str, delim);
 }
 
+gcc_nonnull_all
 static inline void
 UnsafeCopyString(char *dest, const char *src)
 {
@@ -68,50 +110,54 @@ UnsafeCopyString(char *dest, const char *src)
 /**
  * Checks whether #a and #b are equal.
  */
+gcc_pure gcc_nonnull_all
 static inline bool
 StringIsEqual(const char *a, const char *b)
 {
-  assert(a != nullptr);
-  assert(a != nullptr);
-
   return strcmp(a, b) == 0;
 }
 
 /**
  * Checks whether #a and #b are equal.
  */
+gcc_pure gcc_nonnull_all
 static inline bool
 StringIsEqual(const char *a, const char *b, size_t length)
 {
-  assert(a != nullptr);
-  assert(a != nullptr);
-
   return strncmp(a, b, length) == 0;
 }
 
+gcc_pure gcc_nonnull_all
 static inline bool
 StringIsEqualIgnoreCase(const char *a, const char *b)
 {
-  assert(a != nullptr);
-  assert(b != nullptr);
-
   return strcasecmp(a, b) == 0;
 }
 
+gcc_pure gcc_nonnull_all
 static inline bool
 StringIsEqualIgnoreCase(const char *a, const char *b, size_t size)
 {
-  assert(a != nullptr);
-  assert(b != nullptr);
-
   return strncasecmp(a, b, size) == 0;
+}
+
+gcc_pure gcc_nonnull_all
+static inline int
+StringCollate(const char *a, const char *b)
+{
+#ifdef _WIN32_WCE
+  /* WinCE doesn't have strcoll() */
+  return strcmp(a, b);
+#else
+  return strcoll(a, b);
+#endif
 }
 
 /**
  * Copy the string to a new allocation.  The return value must be
  * freed with free().
  */
-gcc_malloc
+gcc_malloc gcc_nonnull_all
 static inline char *
 DuplicateString(const char *p)
 {

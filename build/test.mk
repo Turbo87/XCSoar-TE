@@ -731,7 +731,7 @@ DEBUG_PROGRAM_NAMES = \
 	RunTask \
 	LoadImage ViewImage \
 	RunCanvas RunMapWindow \
-	RunDialog RunListControl \
+	RunListControl \
 	RunTextEntry RunNumberEntry RunTimeEntry RunAngleEntry \
 	RunGeoPointEntry \
 	RunTerminal \
@@ -1070,7 +1070,7 @@ ifeq ($(OPENGL),y)
 LOAD_TOPOGRAPHY_SOURCES += \
 	$(SCREEN_SRC_DIR)/OpenGL/Triangulate.cpp
 endif
-LOAD_TOPOGRAPHY_DEPENDS = RESOURCE GEO MATH IO UTIL SHAPELIB ZZIP
+LOAD_TOPOGRAPHY_DEPENDS = RESOURCE GEO MATH THREAD IO UTIL SHAPELIB ZZIP
 LOAD_TOPOGRAPHY_CPPFLAGS = $(SCREEN_CPPFLAGS)
 $(eval $(call link-program,LoadTopography,LOAD_TOPOGRAPHY))
 
@@ -1807,6 +1807,7 @@ RUN_MAP_WINDOW_SOURCES = \
 	$(SRC)/Task/RoutePlannerGlue.cpp \
 	$(SRC)/Topography/TopographyFile.cpp \
 	$(SRC)/Topography/TopographyStore.cpp \
+	$(SRC)/Topography/Thread.cpp \
 	$(SRC)/Topography/TopographyFileRenderer.cpp \
 	$(SRC)/Topography/TopographyRenderer.cpp \
 	$(SRC)/Topography/TopographyGlue.cpp \
@@ -1870,33 +1871,6 @@ endif
 
 RUN_MAP_WINDOW_DEPENDS = PROFILE TERRAIN SCREEN EVENT RESOURCE SHAPELIB IO ASYNC OS THREAD TASK ROUTE GLIDE WAYPOINT AIRSPACE JASPER ZZIP UTIL GEO MATH TIME
 $(eval $(call link-program,RunMapWindow,RUN_MAP_WINDOW))
-
-RUN_DIALOG_SOURCES = \
-	$(SRC)/Look/DialogLook.cpp \
-	$(SRC)/Look/ButtonLook.cpp \
-	$(SRC)/XML/Node.cpp \
-	$(SRC)/XML/Parser.cpp \
-	$(SRC)/Dialogs/XML.cpp \
-	$(SRC)/Dialogs/Inflate.cpp \
-	$(SRC)/Dialogs/DialogSettings.cpp \
-	$(SRC)/Formatter/HexColor.cpp \
-	$(SRC)/Formatter/TimeFormatter.cpp \
-	$(MORE_SCREEN_SOURCES) \
-	$(SRC)/Dialogs/HelpDialog.cpp \
-	$(SRC)/Dialogs/WidgetDialog.cpp \
-	$(SRC)/Formatter/GeoPointFormatter.cpp \
-	$(TEST_SRC_DIR)/FakeAsset.cpp \
-	$(TEST_SRC_DIR)/FakeDialogs.cpp \
-	$(TEST_SRC_DIR)/FakeListPicker.cpp \
-	$(TEST_SRC_DIR)/FakeLanguage.cpp \
-	$(TEST_SRC_DIR)/FakeLogFile.cpp \
-	$(TEST_SRC_DIR)/Fonts.cpp \
-	$(TEST_SRC_DIR)/RunDialog.cpp \
-	$(SRC)/Compatibility/fmode.c
-RUN_DIALOG_LDADD = \
-	$(FAKE_LIBS)
-RUN_DIALOG_DEPENDS = GEO IO FORM WIDGET DATA_FIELD SCREEN EVENT RESOURCE ASYNC OS THREAD MATH ZZIP UTIL TIME
-$(eval $(call link-program,RunDialog,RUN_DIALOG))
 
 RUN_LIST_CONTROL_SOURCES = \
 	$(MORE_SCREEN_SOURCES) \
@@ -2147,6 +2121,7 @@ RUN_JOB_DIALOG_SOURCES = \
 	$(SRC)/Look/DialogLook.cpp \
 	$(SRC)/Look/ButtonLook.cpp \
 	$(SRC)/Gauge/LogoView.cpp \
+	$(SRC)/Dialogs/ProgressDialog.cpp \
 	$(SRC)/Dialogs/JobDialog.cpp \
 	$(SRC)/Dialogs/DialogSettings.cpp \
 	$(TEST_SRC_DIR)/FakeAsset.cpp \
@@ -2243,8 +2218,7 @@ RUN_ANALYSIS_SOURCES = \
 	$(SRC)/XML/Writer.cpp \
 	$(SRC)/XML/DataNode.cpp \
 	$(SRC)/XML/DataNodeXML.cpp \
-	$(SRC)/Dialogs/XML.cpp \
-	$(SRC)/Dialogs/Inflate.cpp \
+	$(SRC)/Dialogs/WidgetDialog.cpp \
 	$(SRC)/Dialogs/dlgAnalysis.cpp \
 	$(SRC)/Dialogs/DialogSettings.cpp \
 	$(SRC)/Look/DialogLook.cpp \
@@ -2394,7 +2368,6 @@ $(eval $(call link-program,DumpVario,DUMP_VARIO))
 RUN_TASK_EDITOR_DIALOG_SOURCES = \
 	$(SRC)/XML/Node.cpp \
 	$(SRC)/Airspace/ProtectedAirspaceWarningManager.cpp \
-	$(SRC)/Dialogs/XML.cpp \
 	$(SRC)/Dialogs/Inflate.cpp \
 	$(SRC)/Dialogs/ComboPicker.cpp \
 	$(SRC)/Dialogs/HelpDialog.cpp \

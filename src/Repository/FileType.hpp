@@ -21,36 +21,17 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_XML_WIDGET_HPP
-#define XCSOAR_XML_WIDGET_HPP
+#ifndef XCSOAR_FILE_TYPE_HPP
+#define XCSOAR_FILE_TYPE_HPP
 
-#include "WindowWidget.hpp"
-#include "Form/SubForm.hpp"
+#include <stdint.h>
 
-#include <tchar.h>
-
-struct CallBackTableEntry;
-
-/**
- * A WindowWidget that is loaded from a XML resource.
- */
-class XMLWidget : public WindowWidget {
-protected:
-  SubForm form;
-
-  void LoadWindow(const CallBackTableEntry *callbacks,
-                  ContainerWindow &parent, const PixelRect &rc,
-                  const TCHAR *resource);
-
-  /**
-   * Clears and deletes the windows created by LoadWindow
-   * during Prepare() associated with the WindowWidget
-   */
-  virtual void Unprepare() override {
-    form.Clear();
-  }
-
-  virtual bool SetFocus() override;
+enum class FileType : uint8_t {
+  UNKNOWN,
+  AIRSPACE,
+  WAYPOINT,
+  MAP,
+  FLARMNET,
 };
 
 #endif

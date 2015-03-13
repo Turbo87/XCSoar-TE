@@ -21,10 +21,11 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_DATA_FIELD_FILE_READER_HPP
-#define XCSOAR_DATA_FIELD_FILE_READER_HPP
+#ifndef XCSOAR_FILE_DATA_FIELD_HPP
+#define XCSOAR_FILE_DATA_FIELD_HPP
 
 #include "Base.hpp"
+#include "Repository/FileType.hpp"
 #include "Util/StaticArray.hpp"
 #include "Util/StaticString.hpp"
 
@@ -35,7 +36,7 @@ Copyright_License {
  * files matching a suffix.  First entry is always blank for null entry.
  * 
  */
-class DataFieldFileReader final : public DataField {
+class FileDataField final : public DataField {
   typedef StaticArray<StaticString<32>, 8> PatternList;
 
 public:
@@ -57,17 +58,12 @@ public:
     ~Item();
 
     Item &operator=(Item &&src) {
-      filename = src.filename;
-      path = src.path;
-      src.filename = src.path = nullptr;
+      std::swap(filename, src.filename);
+      std::swap(path, src.path);
       return *this;
     }
 
-    friend void swap(Item &a, Item &b) {
-      using std::swap;
-      swap(a.filename, b.filename);
-      swap(a.path, b.path);
-    }
+    void Set(const TCHAR *_path);
   };
 
 private:
@@ -81,6 +77,8 @@ private:
   unsigned int current_index;
   /** FileList item array */
   StaticArray<Item, MAX_FILES> files;
+
+  FileType file_type;
 
   /**
    * Has the file list already been loaded?  This class tries to
@@ -107,10 +105,18 @@ private:
 
 public:
   /**
-   * Constructor of the DataFieldFileReader class
+   * Constructor of the FileDataField class
    * @param OnDataAccess
    */
-  DataFieldFileReader(DataFieldListener *listener=nullptr);
+  FileDataField(DataFieldListener *listener=nullptr);
+
+  FileType GetFileType() const {
+    return file_type;
+  }
+
+  void SetFileType(FileType _file_type) {
+    file_type = _file_type;
+  }
 
   /**
    * Adds a filename/filepath couple to the filelist
@@ -131,6 +137,9 @@ public:
   gcc_pure
   unsigned GetNumFiles() const;
 
+  gcc_pure
+  int Find(const TCHAR *text) const;
+
   /**
    * Iterates through the file list and tries to find an item where the path
    * is equal to the given text, if found the selection is changed to
@@ -138,6 +147,13 @@ public:
    * @param text PathFile to search for
    */
   void Lookup(const TCHAR *text);
+
+  /**
+   * Force the value to the given path.  If the path is not in the
+   * file list, add it.  This method does not check whether the file
+   * really exists.
+   */
+  void ForceModify(const TCHAR *path);
 
   /**
    * Returns the PathFile of the currently selected item
@@ -185,7 +201,7 @@ protected:
    * Hack for our "const" methods, to allow them to load on demand.
    */
   void EnsureLoadedDeconst() const {
-    const_cast<DataFieldFileReader *>(this)->EnsureLoaded();
+    const_cast<FileDataField *>(this)->EnsureLoaded();
   }
 };
 

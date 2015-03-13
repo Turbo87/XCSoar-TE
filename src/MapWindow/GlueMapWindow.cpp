@@ -29,16 +29,18 @@ Copyright_License {
 #include "Interface.hpp"
 #include "Time/PeriodClock.hpp"
 #include "Event/Idle.hpp"
+#include "Topography/Thread.hpp"
 
 GlueMapWindow::GlueMapWindow(const Look &look)
   :MapWindow(look.map, look.traffic),
+   topography_thread(nullptr),
    logger(nullptr),
-   idle_robin(-1),
 #ifdef ENABLE_OPENGL
    data_timer(*this),
 #endif
    drag_mode(DRAG_NONE),
    ignore_single_click(false),
+   skip_idle(true),
 #ifdef ENABLE_OPENGL
    kinetic_x(700),
    kinetic_y(700),
@@ -57,6 +59,25 @@ GlueMapWindow::GlueMapWindow(const Look &look)
 GlueMapWindow::~GlueMapWindow()
 {
   Destroy();
+}
+
+void
+GlueMapWindow::SetTopography(TopographyStore *_topography)
+{
+  if (topography_thread != nullptr) {
+    topography_thread->LockStop();
+    delete topography_thread;
+    topography_thread = nullptr;
+  }
+
+  MapWindow::SetTopography(_topography);
+
+  if (_topography != nullptr)
+    topography_thread =
+      new TopographyThread(*_topography,
+                           [this](){
+                             SendUser(unsigned(Command::INVALIDATE));
+                           });
 }
 
 void
@@ -192,10 +213,10 @@ GlueMapWindow::Idle()
   if (!render_projection.IsValid())
     return false;
 
-  if (idle_robin == unsigned(-1)) {
+  if (skip_idle) {
     /* draw the first frame as quickly as possible, so the user can
        start interacting with XCSoar immediately */
-    idle_robin = 2;
+    skip_idle = false;
     return true;
   }
 
@@ -213,27 +234,9 @@ GlueMapWindow::Idle()
   clock.Update();
 
   bool still_dirty;
-  bool topography_dirty = true; /* scan topography in every Idle() call */
-  bool terrain_dirty = true;
-  bool weather_dirty = true;
 
   do {
-    idle_robin = (idle_robin + 1) % 3;
-    switch (idle_robin) {
-    case 0:
-      topography_dirty = UpdateTopography(1) > 0;
-      break;
-
-    case 1:
-      terrain_dirty = UpdateTerrain();
-      break;
-
-    case 2:
-      weather_dirty = UpdateWeather();
-      break;
-    }
-
-    still_dirty = terrain_dirty || topography_dirty || weather_dirty;
+    still_dirty = UpdateWeather() || UpdateTerrain();
   } while (!clock.Check(700) && /* stop after 700ms */
 #ifndef ENABLE_OPENGL
            !draw_thread->IsTriggered() &&
@@ -242,4 +245,21 @@ GlueMapWindow::Idle()
            still_dirty);
 
   return still_dirty;
+}
+
+bool
+GlueMapWindow::OnUser(unsigned id)
+{
+  switch (Command(id)) {
+  case Command::INVALIDATE:
+#ifdef ENABLE_OPENGL
+    Invalidate();
+#else
+    draw_thread->TriggerRedraw();
+#endif
+    return true;
+
+  default:
+    return MapWindow::OnUser(id);
+  }
 }

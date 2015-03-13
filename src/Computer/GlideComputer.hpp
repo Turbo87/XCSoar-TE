@@ -125,6 +125,10 @@ public:
     return task_computer.GetTraceComputer();
   }
 
+  const ProtectedTaskManager &GetProtectedTaskManager() const {
+    return task_computer.GetProtectedTaskManager();
+  }
+
   const ProtectedRoutePlanner &GetProtectedRoutePlanner() const {
     return task_computer.GetProtectedRoutePlanner();
   }
@@ -137,7 +141,7 @@ public:
     return stats_computer.GetFlightStats();
   }
 
-  const Retrospective &GetRetrospective() {
+  const Retrospective &GetRetrospective() const {
     return retrospective;
   }
 

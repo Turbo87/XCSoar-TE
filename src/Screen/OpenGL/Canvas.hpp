@@ -68,10 +68,6 @@ protected:
   RasterPoint offset;
   PixelSize size;
 
-#ifdef USE_GLSL
-  glm::mat4 projection_matrix;
-#endif
-
   Pen pen;
   Brush brush;
   const Font *font;
@@ -234,7 +230,7 @@ public:
 
   void DrawOutlineRectangle(int left, int top, int right, int bottom,
                             Color color) {
-    color.Set();
+    color.Bind();
 #if defined(HAVE_GLES) && !defined(HAVE_GLES2)
     glLineWidthx(1 << 16);
 #else

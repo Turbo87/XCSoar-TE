@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2015 The XCSoar Project
+  Copyright (C) 2000-2014 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -21,20 +21,41 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_DIALOGS_CALL_BACK_TABLE_HPP
-#define XCSOAR_DIALOGS_CALL_BACK_TABLE_HPP
+#ifndef XCSOAR_TOPOGRAPHY_THREAD_HPP
+#define XCSOAR_TOPOGRAPHY_THREAD_HPP
 
-#include <tchar.h>
+#include "Thread/StandbyThread.hpp"
+#include "Projection/WindowProjection.hpp"
+#include "Geo/GeoBounds.hpp"
+
+#include <functional>
+
+class TopographyStore;
 
 /**
- * Class to hold callback entries for dialogs
+ * A thread that loads topography files asynchronously.
  */
-struct CallBackTableEntry
-{
-  const TCHAR *name;
-  void *callback;
-};
+class TopographyThread final : private StandbyThread {
+  TopographyStore &store;
 
-#define DeclareCallBackEntry(x) { _T(#x), (void *)x }
+  const std::function<void()> callback;
+
+  WindowProjection next_projection;
+
+  GeoBounds last_bounds;
+  fixed scale_threshold;
+
+public:
+  TopographyThread(TopographyStore &_store, std::function<void()> &&_callback);
+  ~TopographyThread();
+
+  using StandbyThread::LockStop;
+
+  void Trigger(const WindowProjection &_projection);
+
+private:
+  /* virtual methods from class StandbyThread*/
+  void Tick() override;
+};
 
 #endif

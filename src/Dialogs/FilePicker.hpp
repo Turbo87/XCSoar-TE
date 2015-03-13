@@ -26,6 +26,12 @@ Copyright_License {
 
 #include <tchar.h>
 
+class FileDataField;
+
+bool
+FilePicker(const TCHAR *caption, FileDataField &df,
+           const TCHAR *help_text = nullptr);
+
 /**
  * Ask the user to pick a file from the data directory.
  *

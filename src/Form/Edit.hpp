@@ -65,8 +65,15 @@ public:
               const PixelRect &rc, int CaptionWidth,
               const WindowStyle style);
 
+  WndProperty(const DialogLook &_look);
+
   /** Destructor */
   ~WndProperty();
+
+  void Create(ContainerWindow &parent, const PixelRect &rc,
+              const TCHAR *_caption,
+              unsigned _caption_width,
+              const WindowStyle style);
 
 protected:
   int CallSpecial();
@@ -97,7 +104,7 @@ public:
    * available, then the ComboPicker  will be launched, otherwise, the
    * focus and cursor is set to the control.
    *
-   * @return false on failure
+   * @return true if the value has been modified
    */
   bool BeginEditing();
 

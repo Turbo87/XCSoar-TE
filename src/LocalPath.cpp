@@ -152,7 +152,7 @@ static void
 NormalizeBackslashes(TCHAR *p)
 {
 #if !defined(_WIN32) || defined(__WINE__)
-  while ((p = _tcschr(p, '\\')) != nullptr)
+  while ((p = StringFind(p, '\\')) != nullptr)
     *p++ = '/';
 #endif
 }
@@ -519,7 +519,7 @@ VisitDataFiles(const TCHAR* filter, File::Visitor &visitor)
   {
     TCHAR buffer[MAX_PATH];
     const TCHAR *home_path = GetHomeDataPath(buffer);
-    if (home_path != nullptr && _tcscmp(data_path, home_path) != 0)
+    if (home_path != nullptr && !StringIsEqual(data_path, home_path))
       Directory::VisitSpecificFiles(home_path, filter, visitor, true);
   }
 
@@ -530,7 +530,7 @@ VisitDataFiles(const TCHAR* filter, File::Visitor &visitor)
   while ((flash_name = enumerator.Next()) != nullptr) {
     StringFormatUnsafe(flash_path, _T(DIR_SEPARATOR_S "%s" DIR_SEPARATOR_S XCSDATADIR),
                        flash_name);
-    if (_tcscmp(data_path, flash_path) == 0)
+    if (StringIsEqual(data_path, flash_path))
       /* don't scan primary data path twice */
       continue;
 

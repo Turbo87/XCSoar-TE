@@ -66,6 +66,7 @@ Version 6.8 - not yet released
   - remove option "Ignore checksum"
   - LX: implement LXNAV Nano3 task declaration (#3295)
   - Volkslogger: support DAeC keyhole declaration
+  - added TCP port 2000 to portlist (part of #3326)
 * calculations
   - wave assistant
   - use maximum speed configured in plane setup as limit for calculations
@@ -78,6 +79,7 @@ Version 6.8 - not yet released
   - added one-click task reversal (#1730)
   - show name of loaded/saved tasks in dialog title (#1924)
 * user interface
+  - download data files from site configuration
   - checklist remembers last opened list (#3110)
   - use configured coordinate format in waypoint editor
   - display rotation for Raspberry Pi and Cubieboard (#3238)

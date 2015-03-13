@@ -21,30 +21,21 @@ Copyright_License {
 }
 */
 
-#include "Form/Internal.hpp"
-#include "Time/PeriodClock.hpp"
-#include "Screen/Canvas.hpp"
-#include "Screen/Layout.hpp"
-#include "Look/DialogLook.hpp"
+#ifndef XCSOAR_OS_RUN_FILE_HPP
+#define XCSOAR_OS_RUN_FILE_HPP
 
-// returns true if it is a long press,
-// otherwise returns false
+#include <tchar.h>
+
+#if defined(ANDROID) || \
+  (defined(HAVE_POSIX) && !defined(WIN32) && !defined(KOBO))
+#define HAVE_RUN_FILE
+
+/**
+ * Opens a file in the user's preferred application.
+ */
 bool
-KeyTimer(bool isdown, unsigned thekey)
-{
-  static PeriodClock fps_time_down;
-  static unsigned savedKey = 0;
+RunFile(const TCHAR *path);
 
-  if (thekey != savedKey) {
-    savedKey = thekey;
-    fps_time_down.Update();
-    return false;
-  }
+#endif
 
-  if (!isdown && fps_time_down.CheckUpdate(2000)) {
-    savedKey = 0;
-    return true;
-  }
-
-  return false;
-}
+#endif

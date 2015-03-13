@@ -1,6 +1,3 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
-
 $script = <<SCRIPT
 
 cat >> ~/.profile << EOF
@@ -17,9 +14,9 @@ deb mirror://mirrors.ubuntu.com/mirrors.txt precise-security main restricted uni
 EOF
 
 # set ANDROID variables
-export ANDROID_API_LEVEL=17
+export ANDROID_API_LEVEL=19
 export ANDROID_SDK_VERSION=24.0.2
-export ANDROID_NDK_VERSION=9
+export ANDROID_NDK_VERSION=10d
 export ANDROID_BUILD_TOOLS_VERSION=20.0.0
 
 # update Apt repository
@@ -29,7 +26,7 @@ sudo apt-get update
 sudo apt-get install -y make g++ libsdl-image1.2-dev libboost-dev zlib1g-dev \
     libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev \
     libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc \
-    imagemagick gettext ttf-dejavu ccache zip git upx-ucl
+    imagemagick gettext ttf-dejavu ccache zip p7zip-full git upx-ucl
 
 mkdir -p ~/opt
 
@@ -42,10 +39,10 @@ sudo apt-get install -y openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools
 sudo apt-get install -y libncurses5:i386 libstdc++6:i386 zlib1g:i386
 
 wget -N -nv http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -P /vagrant/tmp
-wget -N -nv http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -P /vagrant/tmp
+wget -N -nv http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin -P /vagrant/tmp
 
 tar -xf /vagrant/tmp/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt
-tar -xf /vagrant/tmp/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2 -C ~/opt
+7z x -o$HOME/opt /vagrant/tmp/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin
 
 echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools
 echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL

@@ -25,6 +25,7 @@ Copyright_License {
 #include "Units/Units.hpp"
 #include "Formatter/UserUnits.hpp"
 #include "Language/Language.hpp"
+#include "Util/StringAPI.hpp"
 #include "Util/Macros.hpp"
 
 class LineSplitter
@@ -46,7 +47,7 @@ public:
     const TCHAR *line_start = start;
 
     // Search for next line break
-    const TCHAR *line_break = _tcschr(line_start, _T('\n'));
+    const auto *line_break = StringFind(line_start, _T('\n'));
     if (!line_break) {
       // if no line break was found
       start = NULL;
@@ -70,7 +71,7 @@ CheckTitle(const TCHAR *title, unsigned title_length, const TCHAR *check)
 
 static bool
 FormatDecodedMETARLine(const TCHAR *line, unsigned length,
-                       ParsedMETAR &parsed, tstring &output)
+                       const ParsedMETAR &parsed, tstring &output)
 {
   const TCHAR *end = line + length;
 
@@ -226,7 +227,8 @@ FormatDecodedMETARLine(const TCHAR *line, unsigned length,
 }
 
 static void
-FormatDecodedMETAR(METAR &metar, ParsedMETAR &parsed, tstring &output)
+FormatDecodedMETAR(const METAR &metar, const ParsedMETAR &parsed,
+                   tstring &output)
 {
   /*
   00 ## Hamburg-Fuhlsbuettel, Germany (EDDH) 53-38N 010-00E 15M ##
@@ -269,7 +271,7 @@ FormatDecodedMETAR(METAR &metar, ParsedMETAR &parsed, tstring &output)
 }
 
 void
-NOAAFormatter::Format(NOAAStore::Item &station, tstring &output)
+NOAAFormatter::Format(const NOAAStore::Item &station, tstring &output)
 {
   output.reserve(2048);
 

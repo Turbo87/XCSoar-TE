@@ -21,26 +21,19 @@ Copyright_License {
 }
 */
 
-#include "XMLWidget.hpp"
-#include "Dialogs/XML.hpp"
-#include "Screen/ContainerWindow.hpp"
+#include "Glue.hpp"
+#include "Net/HTTP/DownloadManager.hpp"
+
+#define REPOSITORY_URI "http://download.xcsoar.org/repository"
+
+static bool repository_downloaded = false;
 
 void
-XMLWidget::LoadWindow(const CallBackTableEntry *callbacks,
-                      ContainerWindow &parent, const PixelRect &rc,
-                      const TCHAR *resource)
+EnqueueRepositoryDownload(bool force)
 {
-  WindowStyle style;
-  style.Hide();
+  if (repository_downloaded && !force)
+    return;
 
-  Window *window = ::LoadWindow(callbacks, &form, parent, rc, resource, style);
-  assert(window != nullptr);
-  SetWindow(window);
-}
-
-bool
-XMLWidget::SetFocus()
-{
-  ContainerWindow &window = (ContainerWindow &)GetWindow();
-  return window.FocusFirstControl();
+  repository_downloaded = true;
+  Net::DownloadManager::Enqueue(REPOSITORY_URI, _T("repository"));
 }

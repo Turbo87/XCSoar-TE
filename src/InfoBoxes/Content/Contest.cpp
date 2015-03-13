@@ -39,9 +39,8 @@ ShowAnalysis8()
   dlgAnalysisShowModal(UIGlobals::GetMainWindow(),
                        UIGlobals::GetLook(),
                        CommonInterface::Full(), *glide_computer,
-                       protected_task_manager,
                        &airspace_database,
-                       terrain, 8);
+                       terrain, AnalysisPage::OLC);
 }
 
 static Widget *

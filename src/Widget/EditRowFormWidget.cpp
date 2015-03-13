@@ -31,12 +31,12 @@ Copyright_License {
 #include "Form/DataField/Enum.hpp"
 #include "Form/DataField/String.hpp"
 #include "Form/DataField/Password.hpp"
-#include "Form/DataField/FileReader.hpp"
 #include "Form/DataField/Time.hpp"
 #include "Form/DataField/RoughTime.hpp"
 #include "Time/RoughTime.hpp"
 #include "Language/Language.hpp"
 #include "Math/Angle.hpp"
+#include "Util/StringAPI.hpp"
 
 #include <assert.h>
 
@@ -464,7 +464,7 @@ RowFormWidget::SaveValue(unsigned i, TCHAR *string, size_t max_size) const
   const TCHAR *new_value = GetDataField(i).GetAsString();
   assert(new_value != nullptr);
 
-  if (_tcscmp(string, new_value) == 0)
+  if (StringIsEqual(string, new_value))
     return false;
 
   CopyString(string, new_value, max_size);

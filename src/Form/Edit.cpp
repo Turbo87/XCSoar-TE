@@ -22,7 +22,6 @@ Copyright_License {
 */
 
 #include "Form/Edit.hpp"
-#include "Form/Internal.hpp"
 #include "Look/DialogLook.hpp"
 #include "DataField/Base.hpp"
 #include "Screen/Canvas.hpp"
@@ -33,22 +32,12 @@ Copyright_License {
 
 #include <assert.h>
 
-static bool
-CanEditInPlace()
-{
-  /* disabled for now, because we don't handle this yet properly:
-     return HasKeyboard(); */
-  return false;
-}
-
 bool
 WndProperty::OnKeyCheck(unsigned key_code) const
 {
   switch (key_code) {
   case KEY_RETURN:
-    return IsReadOnly() ||
-      (mDataField != NULL && mDataField->supports_combolist) ||
-      !CanEditInPlace() || HasHelp();
+    return true;
 
   case KEY_LEFT:
   case KEY_RIGHT:
@@ -63,8 +52,10 @@ bool
 WndProperty::OnKeyDown(unsigned key_code)
 {
   // If return key pressed (Compaq uses VKF23)
-  if (key_code == KEY_RETURN && BeginEditing())
+  if (key_code == KEY_RETURN) {
+    BeginEditing();
     return true;
+  }
 
   switch (key_code) {
   case KEY_RIGHT:
@@ -81,20 +72,13 @@ WndProperty::OnKeyDown(unsigned key_code)
     return true;
   }
 
-  KeyTimer(true, key_code);
   return WindowControl::OnKeyDown(key_code);
 }
 
 bool
 WndProperty::OnKeyUp(unsigned key_code)
 {
-  if (KeyTimer(false, key_code)) {
-    // activate tool tips if hit return for long time
-    if (key_code == KEY_RETURN) {
-      if (OnHelp())
-        return true;
-    }
-  } else if (key_code == KEY_RETURN) {
+  if (key_code == KEY_RETURN) {
     if (CallSpecial())
       return true;
   }
@@ -107,8 +91,6 @@ WndProperty::OnSetFocus()
 {
   WindowControl::OnSetFocus();
 
-  KeyTimer(true, 0);
-
   Invalidate();
 }
 
@@ -116,8 +98,6 @@ void
 WndProperty::OnKillFocus()
 {
   WindowControl::OnKillFocus();
-
-  KeyTimer(true, 0);
 
   Invalidate();
 }
@@ -128,18 +108,35 @@ WndProperty::WndProperty(ContainerWindow &parent, const DialogLook &_look,
                          int CaptionWidth,
                          const WindowStyle style)
   :look(_look),
-   caption_width(CaptionWidth),
    mDataField(NULL),
    read_only(false),
    dragging(false), pressed(false)
 {
-  caption = Caption;
-
-  Create(parent, rc, style);
+  Create(parent, rc, Caption, CaptionWidth, style);
 
 #if defined(USE_GDI) && !defined(NDEBUG)
   ::SetWindowText(hWnd, Caption);
 #endif
+}
+
+WndProperty::WndProperty(const DialogLook &_look)
+  :look(_look),
+   mDataField(nullptr),
+   read_only(false),
+   dragging(false), pressed(false)
+{
+}
+
+void
+WndProperty::Create(ContainerWindow &parent, const PixelRect &rc,
+                    const TCHAR *_caption,
+                    unsigned _caption_width,
+                    const WindowStyle style=WindowStyle())
+{
+  caption = _caption;
+  caption_width = _caption_width;
+
+  WindowControl::Create(parent, rc, style);
 }
 
 WndProperty::~WndProperty()
@@ -166,21 +163,18 @@ WndProperty::SetCaptionWidth(PixelScalar _caption_width)
 bool
 WndProperty::BeginEditing()
 {
-  if (IsReadOnly()) {
+  if (IsReadOnly() || mDataField == nullptr) {
     /* this would display xml file help on a read-only wndproperty if
        it exists */
-    return OnHelp();
-  } else if (mDataField != NULL) {
+    OnHelp();
+    return false;
+  } else {
     if (!EditDataFieldDialog(GetCaption(), *mDataField, GetHelpText()))
       return false;
 
     RefreshDisplay();
     return true;
-  } else if (CanEditInPlace()) {
-    // TODO: implement
-    return true;
-  } else
-    return false;
+  }
 }
 
 void
@@ -408,9 +402,7 @@ WndProperty::RefreshDisplay()
   if (!mDataField)
     return;
 
-  SetText(HasFocus() && CanEditInPlace()
-          ? mDataField->GetAsString()
-          : mDataField->GetAsDisplayString());
+  SetText(mDataField->GetAsDisplayString());
 }
 
 void
