@@ -16,7 +16,7 @@ Getting the source
 The XCSoar-TE source code is managed with git (<http://git-scm.com/>).  It
 can be downloaded with the following command:
 
-    git clone git://github.com/XCSoar/XCSoar-TE/
+    git clone git://github.com/Turbo87/XCSoar-TE/
 
 To update your repository, type:
 
