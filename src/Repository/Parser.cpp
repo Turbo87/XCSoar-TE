@@ -25,28 +25,24 @@ Copyright_License {
 #include "FileRepository.hpp"
 #include "IO/LineReader.hpp"
 #include "Util/StringUtil.hpp"
-#include "Util/CharUtil.hpp"
 
 static const char *
 ParseLine(char *line)
 {
   char *separator = strchr(line, '=');
-  if (separator == NULL)
+  if (separator == nullptr)
     /* malformed line */
-    return NULL;
+    return nullptr;
 
-  char *p = separator;
-  while (p > separator && IsWhitespaceOrNull(p[-1]))
-    --p;
-
+  char *p = StripRight(line, separator);
   if (p == line)
     /* empty name */
-    return NULL;
+    return nullptr;
 
   *p = 0;
 
-  char *value = const_cast<char *>(TrimLeft(separator + 1));
-  TrimRight(value);
+  char *value = const_cast<char *>(StripLeft(separator + 1));
+  StripRight(value);
   return value;
 }
 
@@ -71,13 +67,13 @@ ParseFileRepository(FileRepository &repository, NLineReader &reader)
   file.Clear();
 
   char *line;
-  while ((line = reader.ReadLine()) != NULL) {
-    line = const_cast<char *>(TrimLeft(line));
+  while ((line = reader.ReadLine()) != nullptr) {
+    line = const_cast<char *>(StripLeft(line));
     if (*line == 0 || *line == '#')
       continue;
 
     const char *name = line, *value = ParseLine(line);
-    if (value == NULL)
+    if (value == nullptr)
       return false;
 
     if (StringIsEqual(name, "name")) {

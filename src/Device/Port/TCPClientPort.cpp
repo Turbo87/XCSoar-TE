@@ -23,7 +23,7 @@ Copyright_License {
 
 #include "TCPClientPort.hpp"
 #include "Util/StaticString.hpp"
-#include "OS/SocketAddress.hpp"
+#include "Net/StaticSocketAddress.hpp"
 
 #ifdef HAVE_POSIX
 #include "IO/Async/GlobalIOThread.hpp"
@@ -32,8 +32,10 @@ Copyright_License {
 
 TCPClientPort::~TCPClientPort()
 {
-  if (connecting.IsDefined())
-    io_thread->LockRemove(connecting.Get());
+  if (connecting.IsDefined()) {
+    io_thread->LockRemove(connecting.ToFileDescriptor());
+    connecting.Close();
+  }
 }
 
 #endif
@@ -44,7 +46,7 @@ TCPClientPort::Connect(const char *host, unsigned port)
   NarrowString<32> service;
   service.UnsafeFormat("%u", port);
 
-  SocketAddress address;
+  StaticSocketAddress address;
   if (!address.Lookup(host, service, AF_INET))
     return false;
 
@@ -57,9 +59,6 @@ TCPClientPort::Connect(const char *host, unsigned port)
 #endif
 
   if (s.Connect(address)) {
-#ifdef HAVE_POSIX
-    s.SetBlocking();
-#endif
     Set(std::move(s));
     return true;
   }
@@ -67,7 +66,7 @@ TCPClientPort::Connect(const char *host, unsigned port)
 #ifdef HAVE_POSIX
   if (errno == EINPROGRESS) {
     connecting = std::move(s);
-    io_thread->LockAdd(connecting.Get(), Poll::WRITE, *this);
+    io_thread->LockAdd(connecting.ToFileDescriptor(), Poll::WRITE, *this);
     StateChanged();
     return true;
   }
@@ -87,18 +86,18 @@ TCPClientPort::GetState() const
 }
 
 bool
-TCPClientPort::OnFileEvent(int fd, unsigned mask)
+TCPClientPort::OnSocketEvent(SocketDescriptor _socket, unsigned mask)
 {
   if (gcc_likely(!connecting.IsDefined()))
     /* connection already established: let SocketPort handle reading
        from the connection */
-    return SocketPort::OnFileEvent(fd, mask);
+    return SocketPort::OnSocketEvent(_socket, mask);
 
   /* connection ready: check connect error */
 
-  assert(fd == connecting.Get());
+  assert(_socket == connecting);
 
-  io_thread->Remove(connecting.Get());
+  io_thread->Remove(connecting.ToFileDescriptor());
 
   int s_err = 0;
   socklen_t s_err_size = sizeof(s_err);
@@ -109,7 +108,7 @@ TCPClientPort::OnFileEvent(int fd, unsigned mask)
   if (s_err == 0) {
     /* connection has been established successfully */
     Set(std::move(connecting));
-    assert(!connecting.IsDefined());
+    connecting.SetUndefined();
   } else {
     /* there was a problem */
     connecting.Close();

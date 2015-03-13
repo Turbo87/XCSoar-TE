@@ -24,6 +24,7 @@ Copyright_License {
 #ifndef XCSOAR_DEVICE_DESCRIPTOR_HPP
 #define XCSOAR_DEVICE_DESCRIPTOR_HPP
 
+#include "Features.hpp"
 #include "Config.hpp"
 #include "IO/DataHandler.hpp"
 #include "Device/Util/LineSplitter.hpp"
@@ -60,6 +61,7 @@ class RecordedFlightList;
 struct RecordedFlightInfo;
 class OperationEnvironment;
 class OpenDeviceJob;
+class PortListener;
 
 class DeviceDescriptor final : private Notify, private PortLineSplitter {
   /**
@@ -71,6 +73,8 @@ class DeviceDescriptor final : private Notify, private PortLineSplitter {
 
   /** the index of this device in the global list */
   const unsigned index;
+
+  PortListener *const port_listener;
 
   /**
    * This device's configuration.  It may differ from the instance in
@@ -125,21 +129,19 @@ class DeviceDescriptor final : private Notify, private PortLineSplitter {
    */
   Device *device;
 
-#ifdef ANDROID
+#ifdef HAVE_INTERNAL_GPS
   /**
    * A pointer to the Java object managing all Android sensors (GPS,
    * baro sensor and others).
    */
   InternalSensors *internal_sensors;
+#endif
 
+#ifdef ANDROID
   BMP085Device *droidsoar_v2;
   I2CbaroDevice *i2cbaro[3]; // static, pitot, tek; in any order
   NunchuckDevice *nunchuck;
   VoltageDevice *voltage;
-#endif
-
-#ifdef __APPLE__
-  InternalSensors *internal_sensors;
 #endif
 
   /**
@@ -202,7 +204,7 @@ class DeviceDescriptor final : private Notify, private PortLineSplitter {
   bool borrowed;
 
 public:
-  DeviceDescriptor(unsigned index);
+  DeviceDescriptor(unsigned index, PortListener *port_listener);
   ~DeviceDescriptor() {
     assert(!IsOccupied());
   }

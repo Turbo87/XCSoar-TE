@@ -50,6 +50,7 @@ Copyright_License {
 #include "Markers/Markers.hpp"
 #include "Markers/ProtectedMarkers.hpp"
 #include "Device/device.hpp"
+#include "Device/MultipleDevices.hpp"
 #include "Topography/TopographyStore.hpp"
 #include "Topography/TopographyGlue.hpp"
 #include "Audio/VarioGlue.hpp"
@@ -66,7 +67,7 @@ Copyright_License {
 #include "Replay/Replay.hpp"
 #include "LocalPath.hpp"
 #include "IO/FileCache.hpp"
-#include "Net/DownloadManager.hpp"
+#include "Net/HTTP/DownloadManager.hpp"
 #include "Hardware/AltairControl.hpp"
 #include "Hardware/DisplayDPI.hpp"
 #include "Hardware/DisplayGlue.hpp"
@@ -158,7 +159,10 @@ AfterStartup()
 
   task_manager->Resume();
 
+#ifdef USE_GDI
   CommonInterface::main_window->Fullscreen();
+#endif
+
   InfoBoxManager::SetDirty();
 
   ForceCalculation();
@@ -285,8 +289,8 @@ Startup()
 
   // Initialize DeviceBlackboard
   device_blackboard = new DeviceBlackboard();
-
-  DeviceListInitialise();
+  devices = new MultipleDevices();
+  device_blackboard->SetDevices(*devices);
 
   // Initialize Markers
   marks = new Markers();
@@ -599,8 +603,8 @@ Shutdown()
 
   delete replay;
 
-  DeviceListDeinitialise();
-
+  delete devices;
+  devices = nullptr;
   delete device_blackboard;
   device_blackboard = NULL;
 

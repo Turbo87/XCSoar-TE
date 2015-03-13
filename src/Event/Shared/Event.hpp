@@ -33,7 +33,7 @@ struct Event {
     NOP,
     QUIT,
 
-#ifdef USE_CONSOLE
+#ifdef USE_POLL_EVENT
     CLOSE,
 #endif
 
@@ -75,6 +75,18 @@ struct Event {
      * can be created again.
      */
     RESUME,
+#endif
+
+#ifdef USE_X11
+    /**
+     * The X11 window was resized.
+     */
+    RESIZE,
+
+    /**
+     * Redraw the screen.
+     */
+    EXPOSE,
 #endif
   };
 

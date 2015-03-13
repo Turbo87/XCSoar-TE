@@ -69,6 +69,8 @@ GetRenderableType()
     : EGL_OPENGL_BIT;
 }
 
+#if !defined(USE_X11) && !defined(USE_WAYLAND)
+
 void
 TopCanvas::Create(PixelSize new_size,
                   bool full_screen, bool resizable)
@@ -77,38 +79,7 @@ TopCanvas::Create(PixelSize new_size,
   InitialiseTTY();
 #endif
 
-#ifdef USE_X11
-  X11Display *const x_display = XOpenDisplay(nullptr);
-  if (x_display == nullptr) {
-    fprintf(stderr, "XOpenDisplay() failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  const X11Window x_root = DefaultRootWindow(x_display);
-  if (x_root == 0) {
-    fprintf(stderr, "DefaultRootWindow() failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  XSetWindowAttributes swa;
-  swa.event_mask = ExposureMask | PointerMotionMask | KeyPressMask;
-
-  x_window = XCreateWindow(x_display, x_root,
-                           0, 0, 640, 480, 0,
-                           CopyFromParent, InputOutput,
-                           CopyFromParent, CWEventMask,
-                           &swa);
-  if (x_window == 0) {
-    fprintf(stderr, "XCreateWindow() failed\n");
-    exit(EXIT_FAILURE);
-  }
-
-  XMapWindow(x_display, x_window);
-  XStoreName(x_display, x_window, "XCSoar");
-
-  const EGLNativeDisplayType native_display = x_display;
-  const EGLNativeWindowType native_window = x_window;
-#elif defined(USE_VIDEOCORE)
+#ifdef USE_VIDEOCORE
   vc_display = vc_dispmanx_display_open(0);
   vc_update = vc_dispmanx_update_start(0);
 
@@ -224,6 +195,15 @@ TopCanvas::Create(PixelSize new_size,
   }
 #endif
 
+  CreateEGL(native_display, native_window);
+}
+
+#endif
+
+void
+TopCanvas::CreateEGL(EGLNativeDisplayType native_display,
+                     EGLNativeWindowType native_window)
+{
   display = eglGetDisplay(native_display);
   if (display == EGL_NO_DISPLAY) {
     fprintf(stderr, "eglGetDisplay(EGL_DEFAULT_DISPLAY) failed\n");
@@ -289,7 +269,10 @@ TopCanvas::Create(PixelSize new_size,
   context = eglCreateContext(display, chosen_config,
                              EGL_NO_CONTEXT, context_attributes);
 
-  eglMakeCurrent(display, surface, surface, context);
+  if (!eglMakeCurrent(display, surface, surface, context)) {
+    fprintf(stderr, "eglMakeCurrent() failed\n");
+    exit(EXIT_FAILURE);
+  }
 
   OpenGL::SetupContext();
   OpenGL::SetupViewport(Point2D<unsigned>(effective_size.cx,
@@ -346,7 +329,10 @@ TopCanvas::SetDisplayOrientation(DisplayOrientation orientation)
 void
 TopCanvas::Flip()
 {
-  eglSwapBuffers(display, surface);
+  if (!eglSwapBuffers(display, surface)) {
+    fprintf(stderr, "eglSwapBuffers() failed\n");
+    exit(EXIT_FAILURE);
+  }
 
 #ifdef MESA_KMS
   gbm_bo *new_bo = gbm_surface_lock_front_buffer(native_window);

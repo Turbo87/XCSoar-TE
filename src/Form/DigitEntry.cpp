@@ -489,19 +489,38 @@ DigitEntry::GetTimeValue() const
 }
 
 void
-DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
+DigitEntry::SetDigits(fixed degrees, CoordinateFormat format, bool isLatitude)
 {
-  // Latitude in floating point degrees
-  value = value.AsDelta();
-  const fixed degrees = fabs(value.Degrees());
+  // Calculate half the last digit so that we round to the nearest
+  fixed roundingAdjustment = fixed(0);
+  switch (format) {
+  case CoordinateFormat::DD_DDDDD:
+    roundingAdjustment = fixed(0.5 * (1.0 / 100000));
+    break;
 
-  // The first three columns are common to all formats
-  // N99...
-  assert(columns[0].type == Column::Type::NORTH_SOUTH);
-  assert(columns[1].type == Column::Type::DIGIT);
-  assert(columns[2].type == Column::Type::DIGIT);
-  columns[0].value = negative(value.Native());
-  const unsigned i_degrees = std::min(unsigned(degrees), 90u);
+  case CoordinateFormat::DDMM_MMM:
+    roundingAdjustment = fixed(0.5 * ( (1.0/60) / 1000));
+    break;
+
+  case CoordinateFormat::DDMMSS_S:
+    roundingAdjustment = fixed(0.5 * ( (1.0/3600) / 10));
+    break;
+
+  case CoordinateFormat::DDMMSS:
+    roundingAdjustment = fixed(0.5 * ( (1.0/3600) / 1));
+    break;
+
+  default:
+  case CoordinateFormat::UTM:
+    /// \todo support UTM format
+    break;
+  }
+
+  // Apply adjustment so we show rounding rather than truncation
+  degrees += roundingAdjustment;
+
+  // Handle whole degrees
+  const unsigned i_degrees = std::min(unsigned(degrees), isLatitude ? 90u : 180u);
   columns[1].value = i_degrees / 10;
   columns[2].value = i_degrees % 10;
 
@@ -510,7 +529,7 @@ DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
   /// \todo support UTM format
   switch (format) {
   case CoordinateFormat::DD_DDDDD: {
-    // Check format is N99.99999°
+    // Check format is xxx.99999°
     assert(length == 10);
     assert(columns[4].type == Column::Type::DIGIT);
     assert(columns[5].type == Column::Type::DIGIT);
@@ -524,13 +543,11 @@ DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
     columns[6].value = remainder / 1000u;    remainder %= 1000u;
     columns[7].value = remainder / 100u;     remainder %= 100u;
     columns[8].value = remainder / 10u;
-    if (remainder % 10u >= 5)
-      columns[8].value++;
     break;
   }
 
   case CoordinateFormat::DDMM_MMM: {
-    // Check format is N99°59.999"
+    // Check format is xxx°59.999"
     assert(length == 11);
     assert(columns[4].type == Column::Type::DIGIT6);
     assert(columns[5].type == Column::Type::DIGIT);
@@ -544,13 +561,11 @@ DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
     columns[7].value = remainder / 1000u;   remainder %= 1000u;
     columns[8].value = remainder / 100u;    remainder %= 100u;
     columns[9].value = remainder / 10u;
-    if (remainder % 10u >= 5)
-      columns[9].value++;
     break;
   }
 
   case CoordinateFormat::DDMMSS_S: {
-    // Check format is N99°59'59.9"
+    // Check format is xxx°59'59.9"
     assert(length == 12);
     assert(columns[4].type == Column::Type::DIGIT6);
     assert(columns[5].type == Column::Type::DIGIT);
@@ -566,14 +581,12 @@ DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
     columns[7].value = remainder / 1000;  remainder %= 1000;
     columns[8].value = remainder / 100;   remainder %= 100;
     columns[10].value = remainder / 10;   remainder %= 10;
-    if (remainder >= 5)
-      columns[10].value++;
     break;
   }
 
   case CoordinateFormat::UTM: /// \todo support UTM format
   case CoordinateFormat::DDMMSS: {
-    // Check format is N99°59'59"
+    // Check format is xxx°59'59"
     assert(length == 10);
     assert(columns[4].type == Column::Type::DIGIT6);
     assert(columns[5].type == Column::Type::DIGIT);
@@ -587,15 +600,29 @@ DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
     unsigned remainder = full_hunseconds % 6000u;
     columns[7].value = remainder / 1000;  remainder %= 1000;
     columns[8].value = remainder / 100;   remainder %= 100;
-    if (remainder >= 50)
-      columns[8].value++;
     break;
   }
   }
+}
+
+void
+DigitEntry::SetLatitude(Angle value, CoordinateFormat format)
+{
+  // Latitude in floating point degrees
+  value = value.AsDelta();
+  const fixed degrees = fabs(value.Degrees());
+
+  // Check the first three columns
+  assert(columns[0].type == Column::Type::NORTH_SOUTH);
+  assert(columns[1].type == Column::Type::DIGIT);
+  assert(columns[2].type == Column::Type::DIGIT);
+  columns[0].value = negative(value.Native());
+
+  // Set up and check the remaining digits
+  SetDigits(degrees, format, true);
 
   Invalidate();
 }
-
 
 void
 DigitEntry::SetLongitude(Angle value, CoordinateFormat format)
@@ -604,104 +631,14 @@ DigitEntry::SetLongitude(Angle value, CoordinateFormat format)
   value = value.AsDelta();
   const fixed degrees = fabs(value.Degrees());
 
-  // The first three columns are common to all formats
-  // E*9...
+  // Check the first three columns here
   assert(columns[0].type == Column::Type::EAST_WEST);
   assert(columns[1].type == Column::Type::DIGIT19);
   assert(columns[2].type == Column::Type::DIGIT);
   columns[0].value = negative(value.Native());
-  const unsigned i_degrees = std::min(unsigned(degrees), 180u);
-  columns[1].value = i_degrees / 10;
-  columns[2].value = i_degrees % 10;
 
-  // Set columns according to specified format
-  // Work out to an more decimal places than required for rounding
-  /// \todo support UTM format
-  /// \todo refactor this code as very similar to SetLatitude (see GetLatitude)
-  switch (format) {
-  case CoordinateFormat::DD_DDDDD: {
-    // Check format is E*9.99999°
-    assert(length == 10);
-    assert(columns[4].type == Column::Type::DIGIT);
-    assert(columns[5].type == Column::Type::DIGIT);
-    assert(columns[6].type == Column::Type::DIGIT);
-    assert(columns[7].type == Column::Type::DIGIT);
-    assert(columns[8].type == Column::Type::DIGIT);
-    // Set fractional degree columns
-    unsigned remainder = unsigned(degrees * 1000000u) % 1000000u;
-    columns[4].value = remainder / 100000u;  remainder %= 100000u;
-    columns[5].value = remainder / 10000u;   remainder %= 10000u;
-    columns[6].value = remainder / 1000u;    remainder %= 1000u;
-    columns[7].value = remainder / 100u;     remainder %= 100u;
-    columns[8].value = remainder / 10u;
-    if ((remainder % 10u) >= 5)
-      columns[8].value++;
-    break;
-  }
-
- case CoordinateFormat::DDMM_MMM: {
-   // Check format is E*9°59.999"
-   assert(length == 11);
-   assert(columns[4].type == Column::Type::DIGIT6);
-   assert(columns[5].type == Column::Type::DIGIT);
-   assert(columns[7].type == Column::Type::DIGIT);
-   assert(columns[8].type == Column::Type::DIGIT);
-   assert(columns[9].type == Column::Type::DIGIT);
-   // Set minute columns
-   unsigned remainder = unsigned(degrees * 600000u) % 600000u;
-   columns[4].value = remainder / 100000u; remainder %= 100000u;
-   columns[5].value = remainder / 10000u;  remainder %= 10000u;
-   columns[7].value = remainder / 1000u;   remainder %= 1000u;
-   columns[8].value = remainder / 100u;    remainder %= 100u;
-   columns[9].value = remainder / 10u;
-   if ((remainder % 10u) >= 5)
-     columns[9].value++;
-   break;
- }
-
-  case CoordinateFormat::DDMMSS_S: {
-    // Check format is E*9°59'59.9"
-    assert(length == 12);
-    assert(columns[4].type == Column::Type::DIGIT6);
-    assert(columns[5].type == Column::Type::DIGIT);
-    assert(columns[7].type == Column::Type::DIGIT6);
-    assert(columns[8].type == Column::Type::DIGIT);
-    assert(columns[10].type == Column::Type::DIGIT);
-    // Set minute and second columns
-    const unsigned full_hunseconds = unsigned(degrees * 360000u) % 360000u;
-    const unsigned minutes = std::min(full_hunseconds / 6000u, 59u);
-    columns[4].value = minutes / 10;
-    columns[5].value = minutes % 10;
-    unsigned remainder = full_hunseconds % 6000u;
-    columns[7].value = remainder / 1000;  remainder %= 1000;
-    columns[8].value = remainder / 100;   remainder %= 100;
-    columns[10].value = remainder / 10;   remainder %= 10;
-    if (remainder >= 5)
-      columns[10].value++;
-    break;
-  }
-
-  case CoordinateFormat::UTM: /// \todo support UTM format
-  case CoordinateFormat::DDMMSS: {
-    // Check format is E*9°59'59"
-    assert(length == 10);
-    assert(columns[4].type == Column::Type::DIGIT6);
-    assert(columns[5].type == Column::Type::DIGIT);
-    assert(columns[7].type == Column::Type::DIGIT6);
-    assert(columns[8].type == Column::Type::DIGIT);
-    // Set minute and second columns
-    const unsigned full_hunseconds = unsigned(degrees * 360000u) % 360000u;
-    const unsigned minutes = std::min(full_hunseconds / 6000u, 59u);
-    columns[4].value = minutes / 10;
-    columns[5].value = minutes % 10;
-    unsigned remainder = full_hunseconds % 6000u;
-    columns[7].value = remainder / 1000;  remainder %= 1000;
-    columns[8].value = remainder / 100;   remainder %= 100;
-    if (remainder >= 50)
-      columns[8].value++;
-    break;
-  }
-  }
+  // Set up and check the remaining digits
+  SetDigits(degrees, format, false);
 
   Invalidate();
 }

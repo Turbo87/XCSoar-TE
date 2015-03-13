@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   const char *path = args.ExpectNext();
   args.ExpectEnd();
 
-  FileLineReader reader(path, ConvertLineReader::AUTO);
+  FileLineReader reader(path, Charset::AUTO);
   if (reader.error()) {
     fprintf(stderr, "Failed to open input file\n");
     return 1;

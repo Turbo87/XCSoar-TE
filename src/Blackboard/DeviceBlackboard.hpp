@@ -27,12 +27,13 @@ Copyright_License {
 #include "Blackboard/BaseBlackboard.hpp"
 #include "Blackboard/ComputerSettingsBlackboard.hpp"
 #include "Device/Simulator.hpp"
-#include "Device/List.hpp"
+#include "Device/Features.hpp"
 #include "Thread/Mutex.hpp"
 #include "Time/WrapClock.hpp"
 
 #include <cassert>
 
+class MultipleDevices;
 class AtmosphericPressure;
 class OperationEnvironment;
 
@@ -43,13 +44,14 @@ class OperationEnvironment;
  * The DeviceBlackboard is used as the global ground truth-state
  * since it is accessed quickly with only one mutex
  */
-class DeviceBlackboard:
-  public BaseBlackboard,
-  public ComputerSettingsBlackboard
+class DeviceBlackboard
+  : public BaseBlackboard, public ComputerSettingsBlackboard
 {
   friend class MergeThread;
 
   Simulator simulator;
+
+  MultipleDevices *devices;
 
   /**
    * Data from each physical device.
@@ -81,6 +83,13 @@ public:
 
 public:
   DeviceBlackboard();
+
+  void SetDevices(MultipleDevices &_devices) {
+    assert(devices == nullptr);
+
+    devices = &_devices;
+  }
+
   void ReadBlackboard(const DerivedInfo &derived_info);
   void ReadComputerSettings(const ComputerSettings &settings);
 

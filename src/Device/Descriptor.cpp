@@ -21,13 +21,13 @@ Copyright_License {
 }
 */
 
-#include "Device/Descriptor.hpp"
-#include "Device/Driver.hpp"
-#include "Device/Parser.hpp"
+#include "Descriptor.hpp"
+#include "Driver.hpp"
+#include "Parser.hpp"
+#include "Util/NMEAWriter.hpp"
+#include "Register.hpp"
 #include "Driver/FLARM/Device.hpp"
 #include "Driver/LX/Internal.hpp"
-#include "Device/Util/NMEAWriter.hpp"
-#include "Device/Register.hpp"
 #include "Blackboard/DeviceBlackboard.hpp"
 #include "Components.hpp"
 #include "Port/ConfiguredPort.hpp"
@@ -96,12 +96,14 @@ public:
   };
 };
 
-DeviceDescriptor::DeviceDescriptor(unsigned _index)
+DeviceDescriptor::DeviceDescriptor(unsigned _index,
+                                   PortListener *_port_listener)
   :index(_index),
+   port_listener(_port_listener),
    open_job(nullptr),
    port(nullptr), monitor(nullptr), dispatcher(nullptr),
    driver(nullptr), device(nullptr),
-#if defined(ANDROID) || defined(__APPLE__)
+#ifdef HAVE_INTERNAL_GPS
    internal_sensors(nullptr),
 #endif
 #ifdef ANDROID
@@ -149,7 +151,7 @@ DeviceDescriptor::GetState() const
   if (port != nullptr)
     return port->GetState();
 
-#if defined(ANDROID) || defined(__APPLE__)
+#ifdef HAVE_INTERNAL_GPS
   if (internal_sensors != nullptr)
     return PortState::READY;
 #endif
@@ -269,7 +271,7 @@ DeviceDescriptor::OpenOnPort(DumpPort *_port, OperationEnvironment &env)
 bool
 DeviceDescriptor::OpenInternalSensors()
 {
-#if defined(ANDROID) || defined(__APPLE__)
+#ifdef HAVE_INTERNAL_GPS
   if (is_simulator())
     return true;
 
@@ -412,7 +414,7 @@ DeviceDescriptor::DoOpen(OperationEnvironment &env)
 
   reopen_clock.Update();
 
-  Port *port = OpenPort(config, nullptr, *this);
+  Port *port = OpenPort(config, port_listener, *this);
   if (port == nullptr) {
     TCHAR name_buffer[64];
     const TCHAR *name = config.GetPortName(name_buffer, 64);
@@ -470,7 +472,7 @@ DeviceDescriptor::Close()
 
   CancelAsync();
 
-#if defined(ANDROID) || defined(__APPLE__)
+#ifdef HAVE_INTERNAL_GPS
   delete internal_sensors;
   internal_sensors = nullptr;
 #endif

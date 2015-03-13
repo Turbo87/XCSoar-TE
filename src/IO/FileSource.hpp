@@ -28,11 +28,11 @@ Copyright_License {
 
 #ifdef HAVE_POSIX
 
-#include "OS/FileDescriptor.hpp"
+#include "OS/UniqueFileDescriptor.hpp"
 
 class PosixFileSource : public BufferedSource<char, 4096u> {
 private:
-  FileDescriptor fd;
+  UniqueFileDescriptor fd;
 
 public:
   PosixFileSource(const char *path);
@@ -84,7 +84,7 @@ public:
    * Rewind the file to the beginning.
    */
   bool Rewind() {
-    return ::SetFilePointer(handle, 0, NULL, FILE_BEGIN) == 0;
+    return ::SetFilePointer(handle, 0, nullptr, FILE_BEGIN) == 0;
   }
 
 public:

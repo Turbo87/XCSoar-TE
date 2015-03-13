@@ -169,7 +169,18 @@ template<typename... Args>
 static inline void
 StringFormatUnsafe(TCHAR *buffer, const TCHAR *fmt, Args&&... args)
 {
+#if defined(WIN32) && !defined(_WIN32_WCE) && GCC_CHECK_VERSION(4,8) && defined(__GLIBCXX__)
+  /* work around a problem in mingw-w64/libstdc++: libstdc++ defines
+     __USE_MINGW_ANSI_STDIO=1 and forces mingw to expose the
+     POSIX-compatible stdio functions instead of the
+     Microsoft-compatible ones, but those have a major problem for us:
+     "%s" denotes a "narrow" string, not a "wide" string, and we'd
+     need to use "%ls"; this workaround explicitly selects the
+     Microsoft-compatible implementation */
+  _swprintf(buffer, fmt, args...);
+#else
   _stprintf(buffer, fmt, args...);
+#endif
 }
 #endif
 
@@ -323,12 +334,65 @@ CopyASCIIUpper(char *dest, const TCHAR *src);
  */
 gcc_pure gcc_nonnull_all
 const char *
-TrimLeft(const char *p);
+StripLeft(const char *p);
 
 #ifdef _UNICODE
 gcc_pure gcc_nonnull_all
 const TCHAR *
-TrimLeft(const TCHAR *p);
+StripLeft(const TCHAR *p);
+#endif
+
+/**
+ * Determine the string's end as if it was stripped on the right side.
+ */
+gcc_pure
+const char *
+StripRight(const char *p, const char *end);
+
+/**
+ * Determine the string's end as if it was stripped on the right side.
+ */
+gcc_pure
+static inline char *
+StripRight(char *p, char *end)
+{
+  return const_cast<char *>(StripRight((const char *)p,
+                                       (const char *)end));
+}
+
+/**
+ * Determine the string's length as if it was stripped on the right
+ * side.
+ */
+gcc_pure
+size_t
+StripRight(const char *p, size_t length);
+
+#ifdef _UNICODE
+
+gcc_pure
+const TCHAR *
+StripRight(const TCHAR *p, const TCHAR *end);
+
+/**
+ * Determine the string's end as if it was stripped on the right side.
+ */
+gcc_pure
+static inline TCHAR *
+StripRight(TCHAR *p, TCHAR *end)
+{
+  return const_cast<TCHAR *>(StripRight((const TCHAR *)p,
+                                        (const TCHAR *)end));
+}
+
+/**
+ * Determine the string's length as if it was stripped on the right
+ * side.
+ */
+gcc_pure
+size_t
+StripRight(const TCHAR *p, size_t length);
+
 #endif
 
 /**
@@ -336,12 +400,12 @@ TrimLeft(const TCHAR *p);
  */
 gcc_nonnull_all
 void
-TrimRight(char *p);
+StripRight(char *p);
 
 #ifdef _UNICODE
 gcc_nonnull_all
 void
-TrimRight(TCHAR *p);
+StripRight(TCHAR *p);
 #endif
 
 /**

@@ -38,30 +38,30 @@ void
 SkyLinesTracking::Client::SetIOThread(IOThread *_io_thread)
 {
   if (socket.IsDefined() && io_thread != nullptr && handler != nullptr)
-    io_thread->LockRemove(socket.Get());
+    io_thread->LockRemove(socket.ToFileDescriptor());
 
   io_thread = _io_thread;
 
   if (socket.IsDefined() && io_thread != nullptr && handler != nullptr)
-    io_thread->LockAdd(socket.Get(), IOThread::READ, *this);
+    io_thread->LockAdd(socket.ToFileDescriptor(), IOThread::READ, *this);
 }
 
 void
 SkyLinesTracking::Client::SetHandler(Handler *_handler)
 {
   if (socket.IsDefined() && io_thread != nullptr && handler != nullptr)
-    io_thread->LockRemove(socket.Get());
+    io_thread->LockRemove(socket.ToFileDescriptor());
 
   handler = _handler;
 
   if (socket.IsDefined() && io_thread != nullptr && handler != nullptr)
-    io_thread->LockAdd(socket.Get(), IOThread::READ, *this);
+    io_thread->LockAdd(socket.ToFileDescriptor(), IOThread::READ, *this);
 }
 
 #endif
 
 bool
-SkyLinesTracking::Client::Open(const SocketAddress &_address)
+SkyLinesTracking::Client::Open(SocketAddress _address)
 {
   assert(_address.IsDefined());
 
@@ -73,7 +73,7 @@ SkyLinesTracking::Client::Open(const SocketAddress &_address)
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   if (io_thread != nullptr && handler != nullptr)
-    io_thread->LockAdd(socket.Get(), IOThread::READ, *this);
+    io_thread->LockAdd(socket.ToFileDescriptor(), IOThread::READ, *this);
 #endif
 
   return true;
@@ -87,7 +87,7 @@ SkyLinesTracking::Client::Close()
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   if (io_thread != nullptr && handler != nullptr)
-    io_thread->LockRemove(socket.Get());
+    io_thread->LockRemove(socket.ToFileDescriptor());
 #endif
 
   socket.Close();
@@ -309,14 +309,14 @@ SkyLinesTracking::Client::OnDatagramReceived(void *data, size_t length)
 }
 
 bool
-SkyLinesTracking::Client::OnFileEvent(int fd, unsigned mask)
+SkyLinesTracking::Client::OnSocketEvent(SocketDescriptor s, unsigned mask)
 {
   if (!socket.IsDefined())
     return false;
 
   uint8_t buffer[4096];
   ssize_t nbytes;
-  SocketAddress source_address;
+  StaticSocketAddress source_address;
 
   while ((nbytes = socket.Read(buffer, sizeof(buffer), source_address)) > 0)
     if (source_address == address)

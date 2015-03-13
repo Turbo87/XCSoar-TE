@@ -294,7 +294,7 @@ CopyASCIIUpper(char *dest, const TCHAR *src)
 #endif
 
 const char *
-TrimLeft(const char *p)
+StripLeft(const char *p)
 {
   while (IsWhitespaceNotNull(*p))
     ++p;
@@ -303,7 +303,7 @@ TrimLeft(const char *p)
 
 #ifdef _UNICODE
 const TCHAR *
-TrimLeft(const TCHAR *p)
+StripLeft(const TCHAR *p)
 {
   while (IsWhitespaceNotNull(*p))
     ++p;
@@ -311,28 +311,60 @@ TrimLeft(const TCHAR *p)
 }
 #endif
 
-void
-TrimRight(char *p)
+const char *
+StripRight(const char *p, const char *end)
 {
-  size_t length = strlen(p);
+  while (end > p && IsWhitespaceOrNull(end[-1]))
+    --end;
 
+  return end;
+}
+
+size_t
+StripRight(const char *p, size_t length)
+{
   while (length > 0 && IsWhitespaceOrNull(p[length - 1]))
     --length;
 
-  p[length] = 0;
+  return length;
+}
+
+void
+StripRight(char *p)
+{
+  size_t old_length = strlen(p);
+  size_t new_length = StripRight(p, old_length);
+  p[new_length] = 0;
 }
 
 #ifdef _UNICODE
-void
-TrimRight(TCHAR *p)
-{
-  size_t length = _tcslen(p);
 
+const TCHAR *
+StripRight(const TCHAR *p, const TCHAR *end)
+{
+  while (end > p && IsWhitespaceOrNull(end[-1]))
+    --end;
+
+  return end;
+}
+
+size_t
+StripRight(const TCHAR *p, size_t length)
+{
   while (length > 0 && IsWhitespaceOrNull(p[length - 1]))
     --length;
 
-  p[length] = 0;
+  return length;
 }
+
+void
+StripRight(TCHAR *p)
+{
+  size_t old_length = _tcslen(p);
+  size_t new_length = StripRight(p, old_length);
+  p[new_length] = 0;
+}
+
 #endif
 
 char *

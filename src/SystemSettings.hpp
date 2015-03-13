@@ -25,7 +25,7 @@ Copyright_License {
 #define XCSOAR_SYSTEM_SETTINGS_HPP
 
 #include "Device/Config.hpp"
-#include "Device/List.hpp"
+#include "Device/Features.hpp"
 #include "Hardware/ModelType.hpp"
 
 #include <type_traits>

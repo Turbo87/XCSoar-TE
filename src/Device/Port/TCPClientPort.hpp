@@ -42,7 +42,11 @@ class TCPClientPort final
 
 public:
   TCPClientPort(PortListener *_listener, DataHandler &_handler)
-    :SocketPort(_listener, _handler) {}
+    :SocketPort(_listener, _handler)
+#ifdef HAVE_POSIX
+    , connecting(SocketDescriptor::Undefined())
+#endif
+  {}
 
 #ifdef HAVE_POSIX
   virtual ~TCPClientPort();
@@ -55,8 +59,8 @@ public:
   virtual PortState GetState() const override;
 
 protected:
-  /* virtual methods from class FileEventHandler */
-  virtual bool OnFileEvent(int fd, unsigned mask) override;
+  /* virtual methods from class SocketEventHandler */
+  bool OnSocketEvent(SocketDescriptor s, unsigned mask) override;
 #endif
 };
 

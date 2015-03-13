@@ -24,7 +24,7 @@ Copyright_License {
 #include "Screen/TopWindow.hpp"
 #include "Screen/Custom/TopCanvas.hpp"
 #include "Event/Shared/Event.hpp"
-#include "Event/Console/Loop.hpp"
+#include "Event/Poll/Loop.hpp"
 #include "Event/Queue.hpp"
 #include "Event/Globals.hpp"
 
@@ -79,7 +79,7 @@ TopWindow::OnDestroy()
 void
 TopWindow::OnResize(PixelSize new_size)
 {
-#ifndef NON_INTERACTIVE
+#if !defined(NON_INTERACTIVE) && !defined(USE_X11) && !defined(USE_WAYLAND)
   event_queue->SetScreenSize(new_size.cx, new_size.cy);
 #endif
 
@@ -162,6 +162,21 @@ TopWindow::OnEvent(const Event &event)
 
   case Event::MOUSE_WHEEL:
     return OnMouseWheel(event.point.x, event.point.y, (int)event.param);
+
+#ifdef USE_X11
+  case Event::RESIZE:
+    if (unsigned(event.point.x) == GetWidth() &&
+        unsigned(event.point.y) == GetHeight())
+      /* no-op */
+      return true;
+
+    Resize(event.point.x, event.point.y);
+    return true;
+
+  case Event::EXPOSE:
+    Invalidate();
+    return true;
+#endif
   }
 
   return false;

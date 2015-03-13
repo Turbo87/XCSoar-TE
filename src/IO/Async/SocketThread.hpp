@@ -25,19 +25,19 @@ Copyright_License {
 #define XCSOAR_SOCKET_THREAD_HPP
 
 #include "Thread/StoppableThread.hpp"
+#include "Net/SocketDescriptor.hpp"
 
-class SocketDescriptor;
-class FileEventHandler;
+class SocketEventHandler;
 
 /**
- * An adapter between a #SocketDescriptor and a #FileEventHandler.
+ * An adapter between a #SocketDescriptor and a #SocketEventHandler.
  */
 class SocketThread : public StoppableThread {
-  SocketDescriptor &socket;
-  FileEventHandler &handler;
+  SocketDescriptor socket;
+  SocketEventHandler &handler;
 
 public:
-  SocketThread(SocketDescriptor &_socket, FileEventHandler &_handler)
+  SocketThread(SocketDescriptor _socket, SocketEventHandler &_handler)
     :StoppableThread("SocketThread"), socket(_socket), handler(_handler) {}
 
 protected:

@@ -28,6 +28,7 @@ Copyright_License {
 
 #ifdef USE_MEMORY_CANVAS
 #include "Screen/Memory/PixelTraits.hpp"
+#include "Screen/Memory/ActivePixelTraits.hpp"
 #include "Screen/Memory/Buffer.hpp"
 #else
 #include "Screen/Canvas.hpp"
@@ -81,8 +82,7 @@ class TopCanvas
 #endif
 {
 #ifdef USE_EGL
-#ifdef USE_X11
-  X11Window x_window;
+#if defined(USE_X11) || defined(USE_WAYLAND)
 #elif defined(USE_VIDEOCORE)
   /* for Raspberry Pi */
   DISPMANX_DISPLAY_HANDLE_T vc_display;
@@ -128,13 +128,19 @@ class TopCanvas
 #endif
 #endif
 
-#if defined(USE_MEMORY_CANVAS) && defined(GREYSCALE)
+#ifdef USE_MEMORY_CANVAS
+
+#ifdef GREYSCALE
   WritableImageBuffer<GreyscalePixelTraits> buffer;
 
 #ifdef DITHER
   Dither dither;
 #endif
-#endif
+
+#else /* !GREYSCALE */
+  WritableImageBuffer<ActivePixelTraits> buffer;
+#endif /* !GREYSCALE */
+#endif /* USE_MEMORY_CANVAS */
 
 #ifdef USE_TTY
   /**
@@ -208,6 +214,11 @@ public:
 #if defined(ENABLE_SDL) && (SDL_MAJOR_VERSION >= 2)
   void Create(const char *text, PixelSize new_size,
               bool full_screen, bool resizable);
+#elif defined(USE_X11) || defined(USE_WAYLAND)
+  void Create(EGLNativeDisplayType native_display,
+              EGLNativeWindowType native_window) {
+    CreateEGL(native_display, native_window);
+  }
 #else
   void Create(PixelSize new_size,
               bool full_screen, bool resizable);
@@ -241,12 +252,6 @@ public:
 
   void OnResize(PixelSize new_size);
 
-#if defined(ANDROID) || defined(USE_EGL)
-  void Fullscreen() {}
-#else
-  void Fullscreen();
-#endif
-
 #ifdef USE_MEMORY_CANVAS
   Canvas Lock();
   void Unlock();
@@ -270,6 +275,11 @@ public:
 #endif
 
 private:
+#ifdef USE_EGL
+  void CreateEGL(EGLNativeDisplayType native_display,
+                 EGLNativeWindowType native_window);
+#endif
+
   void InitialiseTTY();
   void DeinitialiseTTY();
 };

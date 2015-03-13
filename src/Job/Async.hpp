@@ -41,7 +41,7 @@ class Notify;
  * calling Start().  The object can be reused after Wait() has been
  * called for the previous #Job.
  */
-class AsyncJobRunner : private Thread {
+class AsyncJobRunner final : private Thread {
   Job *job;
   ThreadedOperationEnvironment *env;
   Notify *notify;
@@ -106,7 +106,7 @@ public:
 
 private:
   /* virtual methods from class Thread */
-  virtual void Run();
+  void Run() override;
 };
 
 #endif

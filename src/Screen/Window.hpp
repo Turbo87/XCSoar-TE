@@ -702,6 +702,18 @@ public:
   void SetCapture();
   void ReleaseCapture();
   virtual void ClearCapture();
+
+protected:
+#if defined(USE_X11) || defined(USE_WAYLAND)
+  virtual void EnableCapture() {}
+  virtual void DisableCapture() {}
+#else
+  void EnableCapture() {}
+  void DisableCapture() {}
+#endif
+
+public:
+
 #else /* USE_GDI */
 
   void SetCapture() {

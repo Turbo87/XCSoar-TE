@@ -24,18 +24,22 @@ Copyright_License {
 #ifndef XCSOAR_IO_TEXT_FILE_HPP
 #define XCSOAR_IO_TEXT_FILE_HPP
 
-#include "ConvertLineReader.hpp"
+#include "Charset.hpp"
+
+#include <tchar.h>
+
+class TLineReader;
 
 /**
  * Opens the specified file and returns a LineReader.
  *
  * @param path the file path, either real or inside a zip file
  * @param cs the character set of the input file
- * @return a TLineReader which must be deleted by the caller; NULL if
+ * @return a TLineReader which must be deleted by the caller; nullptr if
  * an error occurred opening the file
  */
 TLineReader *
 OpenTextFile(const TCHAR *path,
-             ConvertLineReader::charset cs = ConvertLineReader::UTF8);
+             Charset cs = Charset::UTF8);
 
 #endif

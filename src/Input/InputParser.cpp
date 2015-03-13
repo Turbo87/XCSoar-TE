@@ -183,7 +183,7 @@ ParseInputFile(InputConfig &config, TLineReader &reader)
   // Read from the file
   TCHAR *buffer;
   while ((buffer = reader.ReadLine()) != NULL) {
-    TrimRight(buffer);
+    StripRight(buffer);
     line++;
 
     const TCHAR *key, *value;
@@ -225,7 +225,7 @@ ParseInputFile(InputConfig &config, TLineReader &reader)
           } else {
           #endif
 
-          ef = _stscanf(value, _T("%[^ ] %[A-Za-z0-9 \\/().,]"), d_event,
+          ef = _stscanf(value, _T("%[^ ] %[A-Za-z0-9_ \\/().,]"), d_event,
               d_misc);
 
           #if defined(__BORLANDC__)

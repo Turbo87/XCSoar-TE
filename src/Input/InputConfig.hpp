@@ -47,7 +47,9 @@ struct InputConfig {
   static constexpr unsigned MAX_MODE_STRING = 24;
 #ifdef ENABLE_SDL
   static constexpr unsigned MAX_KEY = 400;
-#elif defined(USE_CONSOLE) || defined(NON_INTERACTIVE)
+#elif defined(USE_X11)
+  static constexpr unsigned MAX_KEY = 0x10000;
+#elif defined(USE_POLL_EVENT)
   static constexpr unsigned MAX_KEY = 0600;
 #else
   static constexpr unsigned MAX_KEY = 255;

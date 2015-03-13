@@ -24,13 +24,13 @@ Copyright_License {
 #ifndef XCSOAR_IO_BUFFERED_SOURCE_HPP
 #define XCSOAR_IO_BUFFERED_SOURCE_HPP
 
-#include "Util/FifoBuffer.hpp"
+#include "Util/StaticFifoBuffer.hpp"
 #include "Source.hpp"
 
 template<class T, unsigned size>
 class BufferedSource : public Source<T> {
 private:
-  FifoBuffer<T, size> buffer;
+  StaticFifoBuffer<T, size> buffer;
   long position;
 
 public:
@@ -41,6 +41,7 @@ protected:
 
 public:
   virtual typename Source<T>::Range Read() override {
+    buffer.Shift();
     auto r = buffer.Write();
     if (!r.IsEmpty()) {
       unsigned n = Read(r.data, r.size);
