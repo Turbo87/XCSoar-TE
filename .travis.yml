@@ -1,4 +1,57 @@
+sudo: false
+
 language: cpp
+
+addons:
+  apt:
+    packages:
+      # General
+      - make
+      - g++
+      - libsdl-image1.2-dev
+      - libboost-dev
+      - zlib1g-dev
+      - libsdl1.2-dev
+      - libfreetype6-dev
+      - libpng-dev
+      - libjpeg-dev
+      - libcurl4-openssl-dev
+      - libxml-parser-perl
+      - librsvg2-bin
+      - xsltproc
+      - imagemagick
+      - gettext
+      - ttf-dejavu
+
+      # PC
+      - binutils-mingw-w64-i686
+      - binutils-mingw-w64-x86-64
+      - gcc-mingw-w64-i686
+      - gcc-mingw-w64-x86-64
+      - g++-mingw-w64-i686
+      - g++-mingw-w64-x86-64
+
+      # Android
+      - openjdk-7-jre-headless
+      - openjdk-7-jdk
+      - ant
+      - vorbis-tools
+      - libncurses5:i386
+      - libstdc++6:i386
+      - zlib1g:i386
+
+      # Altair
+      - upx-ucl
+
+      # Manual
+      - texlive
+      - texlive-latex-extra
+      - latex-xcolor
+      - pgf
+      - liblocale-po-perl
+      - texlive-lang-ukenglish
+      - texlive-lang-german
+      - texlive-lang-french
 
 env:
   global:
@@ -24,8 +77,6 @@ env:
     - TARGET=MANUAL
 
 before_install:
-  - sudo apt-get update
-
   - openssl aes-256-cbc
     -K $encrypted_cd16ea2a7c97_key
     -iv $encrypted_cd16ea2a7c97_iv
@@ -33,21 +84,6 @@ before_install:
     -out xcsoar-release.keystore -d
 
 install:
-  # General
-
-  - sudo apt-get install make g++ libsdl-image1.2-dev libboost-dev
-      zlib1g-dev libsdl1.2-dev libfreetype6-dev libpng-dev libjpeg-dev
-      libcurl4-openssl-dev libxml-parser-perl librsvg2-bin xsltproc
-      imagemagick gettext ttf-dejavu
-
-  # PC
-
-  - if [ "$TARGET" = "PC" ]; then
-      sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686;
-    elif [ "$TARGET" = "WIN64" ]; then
-      sudo apt-get install binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64;
-    fi
-
   # Android
 
   - if [ "$TARGET" = "ANDROID" ]; then
@@ -61,12 +97,6 @@ install:
       tar -xf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
       rm android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
 
-      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools;
-
-      if [ `uname -m` = x86_64 ]; then
-        sudo apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386;
-      fi
-
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools;
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
     fi
@@ -78,20 +108,6 @@ install:
       tar -xJf mingw32ce-mk-2013-04-03-amd64.tar.xz -C ~/;
       export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH";
     fi
-
-  - if [ "$TARGET" = "ALTAIR" ]; then
-      sudo apt-get install upx-ucl;
-    fi
-
-  # Manual
-
-  - if [ "$TARGET" = "MANUAL" ]; then
-      sudo apt-get install --no-install-recommends
-        texlive texlive-latex-extra latex-xcolor pgf liblocale-po-perl
-        texlive-lang-ukenglish texlive-lang-german texlive-lang-french;
-    fi
-
-after_install: sudo apt-get clean
 
 before_script:
   - if [ "$TRAVIS_TAG" ]; then
