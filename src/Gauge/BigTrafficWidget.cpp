@@ -26,7 +26,9 @@
 #include "Math/Screen.hpp"
 #include "Screen/Canvas.hpp"
 #include "Screen/Layout.hpp"
-#include "Form/SymbolButton.hpp"
+#include "Screen/Key.h"
+#include "Form/Button.hpp"
+#include "Renderer/SymbolButtonRenderer.hpp"
 #include "UIState.hpp"
 #include "UIGlobals.hpp"
 #include "PageActions.hpp"
@@ -219,6 +221,21 @@ TrafficWidget::UpdateButtons()
 #endif
 }
 
+#ifndef GNAV
+
+static Button *
+NewSymbolButton(ContainerWindow &parent, const ButtonLook &look,
+                const TCHAR *caption,
+                const PixelRect &rc,
+                ActionListener &listener, int id)
+{
+  return new Button(parent, rc, WindowStyle(),
+                    new SymbolButtonRenderer(look, caption),
+                    listener, id);
+}
+
+#endif
+
 void
 TrafficWidget::Prepare(ContainerWindow &parent, const PixelRect &_rc)
 {
@@ -229,25 +246,20 @@ TrafficWidget::Prepare(ContainerWindow &parent, const PixelRect &_rc)
   const PixelRect rc = GetContainer().GetClientRect();
 
 #ifndef GNAV
-  zoom_in_button = new WndSymbolButton(GetContainer(), look.dialog.button,
-                                       _T("+"), rc, ButtonWindowStyle(),
-                                       *this, ZOOM_IN);
-  zoom_out_button = new WndSymbolButton(GetContainer(), look.dialog.button,
-                                        _T("-"), rc, ButtonWindowStyle(),
-                                        *this, ZOOM_OUT);
-  previous_item_button = new WndSymbolButton(GetContainer(),
-                                             look.dialog.button,
-                                             _T("<"), rc, ButtonWindowStyle(),
-                                             *this, PREVIOUS_ITEM);
-  next_item_button = new WndSymbolButton(GetContainer(), look.dialog.button,
-                                         _T(">"), rc, ButtonWindowStyle(),
-                                         *this, NEXT_ITEM);
-  details_button = new WndButton(GetContainer(), look.dialog.button,
-                                 _("Details"), rc, ButtonWindowStyle(),
-                                 *this, DETAILS);
-  close_button = new WndButton(GetContainer(), look.dialog.button,
-                               _("Close"), rc, ButtonWindowStyle(),
-                               *this, CLOSE);
+  zoom_in_button = NewSymbolButton(GetContainer(), look.dialog.button,
+                                   _T("+"), rc, *this, ZOOM_IN);
+  zoom_out_button = NewSymbolButton(GetContainer(), look.dialog.button,
+                                    _T("-"), rc, *this, ZOOM_OUT);
+  previous_item_button = NewSymbolButton(GetContainer(), look.dialog.button,
+                                         _T("<"), rc, *this, PREVIOUS_ITEM);
+  next_item_button = NewSymbolButton(GetContainer(), look.dialog.button,
+                                     _T(">"), rc, *this, NEXT_ITEM);
+  details_button = new Button(GetContainer(), look.dialog.button,
+                              _("Details"), rc, WindowStyle(),
+                              *this, DETAILS);
+  close_button = new Button(GetContainer(), look.dialog.button,
+                            _("Close"), rc, WindowStyle(),
+                            *this, CLOSE);
 #endif
 
   WindowStyle style;

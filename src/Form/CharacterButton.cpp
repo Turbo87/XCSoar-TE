@@ -35,15 +35,14 @@ void
 CharacterButton::Create(ContainerWindow &parent, const ButtonLook &look,
                         const TCHAR *text, PixelRect rc,
                         OnCharacterCallback _on_character, unsigned _character,
-                        const ButtonWindowStyle style)
+                        const WindowStyle style)
 {
   assert(_on_character);
 
   on_character = _on_character;
   character = _character;
 
-  ButtonWindow::Create(parent, text, rc, style);
-  SetFont(*look.font);
+  Button::Create(parent, look, text, rc, style);
 }
 
 unsigned
@@ -69,7 +68,7 @@ CharacterButton::SetCharacter(unsigned _character)
   char buffer[7];
   *UnicodeToUTF8(character, buffer) = '\0';
 #endif
-  SetText(buffer);
+  SetCaption(buffer);
 }
 
 bool

@@ -29,14 +29,26 @@ class OrderedTask;
 void
 dlgTaskManagerShowModal();
 
+/**
+ * Show a dialog that lets the user edit a task point (and lets him
+ * navigate to other task points).
+ *
+ * @return true if the task was modified
+ */
 bool
-dlgTaskPointShowModal(OrderedTask **task, const unsigned index);
+dlgTaskPointShowModal(OrderedTask &task, const unsigned index);
+
+/**
+ * Show a dialog that lets the user mutate one task point to another
+ * type.
+ *
+ * @return true if the task was modified
+ */
+bool
+dlgTaskPointType(OrderedTask &task, unsigned index);
 
 bool
-dlgTaskPointType(OrderedTask **task, unsigned index);
-
-bool
-dlgTaskOptionalStarts(OrderedTask **task);
+dlgTaskOptionalStarts(OrderedTask &task);
 
 /**
  * Shows map display zoomed to target point

@@ -26,6 +26,7 @@ Copyright_License {
 #include "Form/Form.hpp"
 #include "Form/Button.hpp"
 #include "Form/Edit.hpp"
+#include "Form/LambdaActionListener.hpp"
 #include "Widget/KeyboardWidget.hpp"
 #include "Screen/Layout.hpp"
 #include "Screen/Key.h"
@@ -198,22 +199,25 @@ TouchTextEntry(TCHAR *text, size_t width,
   _editor.SetReadOnly();
   editor = &_editor;
 
-  ButtonWindowStyle button_style;
+  WindowStyle button_style;
   button_style.TabStop();
 
-  WndButton ok_button(client_area, look.button, _("OK"),
-                      { ok_left, button_top, ok_right, button_bottom },
-                      button_style, form, mrOK);
+  Button ok_button(client_area, look.button, _("OK"),
+                   { ok_left, button_top, ok_right, button_bottom },
+                   button_style, form, mrOK);
 
-  WndButton cancel_button(client_area, look.button, _("Cancel"),
-                          { cancel_left, button_top,
-                              cancel_right, button_bottom },
-                          button_style, form, mrCancel);
+  Button cancel_button(client_area, look.button, _("Cancel"),
+                       { cancel_left, button_top,
+                           cancel_right, button_bottom },
+                       button_style, form, mrCancel);
 
-  WndButton clear_button(client_area, look.button, _("Clear"),
-                         { clear_left, button_top,
-                             clear_right, button_bottom },
-                         button_style, ClearText);
+  auto clear_listener = MakeLambdaActionListener([](unsigned id){
+      ClearText();
+    });
+  Button clear_button(client_area, look.button, _("Clear"),
+                      { clear_left, button_top,
+                          clear_right, button_bottom },
+                      button_style, clear_listener, 0);
 
   KeyboardWidget keyboard(look.button, FormCharacter, !accb,
                           default_shift_state);
@@ -229,10 +233,13 @@ TouchTextEntry(TCHAR *text, size_t width,
 
   kb = &keyboard;
 
-  WndButton backspace_button(client_area, look.button, _T("<-"),
-                             { backspace_left, padding, rc.right - padding,
-                                 editor_bottom },
-                             button_style, OnBackspace);
+  auto backspace_listener = MakeLambdaActionListener([](unsigned id){
+      OnBackspace();
+    });
+  Button backspace_button(client_area, look.button, _T("<-"),
+                          { backspace_left, padding, rc.right - padding,
+                              editor_bottom },
+                          button_style, backspace_listener, 0);
 
   AllowedCharactersCallback = accb;
 

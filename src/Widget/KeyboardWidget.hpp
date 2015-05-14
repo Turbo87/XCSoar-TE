@@ -27,6 +27,7 @@ Copyright_License {
 #include "Widget.hpp"
 #include "Form/CharacterButton.hpp"
 #include "Form/ActionListener.hpp"
+#include "Form/Button.hpp"
 
 #include <tchar.h>
 
@@ -48,13 +49,13 @@ protected:
 
   OnCharacterCallback_t on_character;
 
-  UPixelScalar button_width;
-  UPixelScalar button_height;
+  unsigned button_width;
+  unsigned button_height;
 
   unsigned num_buttons;
   CharacterButton buttons[MAX_BUTTONS];
 
-  WndSymbolButton *shift_button;
+  Button shift_button;
   bool shift_state;
 
   const bool show_shift_button;
@@ -74,18 +75,19 @@ public:
   void SetAllowedCharacters(const TCHAR *allowed);
 
 private:
+  void PrepareSize(const PixelRect &rc);
   void OnResize(const PixelRect &rc);
 
   gcc_pure
-  ButtonWindow *FindButton(unsigned ch);
+  Button *FindButton(unsigned ch);
 
-  void MoveButton(unsigned ch, PixelScalar left, PixelScalar top);
-  void ResizeButton(unsigned ch, UPixelScalar width, UPixelScalar height);
+  void MoveButton(unsigned ch, int left, int top);
+  void ResizeButton(unsigned ch, unsigned width, unsigned height);
   void ResizeButtons();
   void SetButtonsSize();
   void MoveButtonsToRow(const PixelRect &rc,
                         const TCHAR *buttons, unsigned row,
-                        PixelScalar offset_left = 0);
+                        int offset_left = 0);
   void MoveButtons(const PixelRect &rc);
 
   gcc_pure
@@ -101,7 +103,6 @@ private:
 public:
   /* virtual methods from class Widget */
   void Prepare(ContainerWindow &parent, const PixelRect &rc) override;
-  void Unprepare() override;
   void Show(const PixelRect &rc) override;
   void Hide() override;
   void Move(const PixelRect &rc) override;

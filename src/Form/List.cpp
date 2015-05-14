@@ -54,6 +54,7 @@ UsePixelPan()
 
 ListControl::ListControl(const DialogLook &_look)
   :look(_look),
+   scroll_bar(look.button),
    length(0),
    origin(0), pixel_pan(0),
    cursor(0),
@@ -69,6 +70,7 @@ ListControl::ListControl(ContainerWindow &parent, const DialogLook &_look,
                          PixelRect rc, const WindowStyle style,
                          UPixelScalar _item_height)
   :look(_look),
+   scroll_bar(look.button),
    length(0),
    origin(0), pixel_pan(0),
    cursor(0),
@@ -96,7 +98,7 @@ ListControl::CanActivateItem() const
   if (IsEmpty())
     return false;
 
-  return cursor_handler != NULL &&
+  return cursor_handler != nullptr &&
     cursor_handler->CanActivateItem(GetCursorIndex());
 }
 
@@ -107,7 +109,7 @@ ListControl::ActivateItem()
 
   unsigned index = GetCursorIndex();
   assert(index < GetLength());
-  if (cursor_handler != NULL)
+  if (cursor_handler != nullptr)
     cursor_handler->OnActivateItem(index);
 }
 

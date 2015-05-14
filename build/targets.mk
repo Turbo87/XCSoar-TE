@@ -7,7 +7,7 @@ TARGETS = PC WIN64 \
 	ANDROID ANDROID7 ANDROID7NEON ANDROID86 ANDROIDMIPS \
 	ANDROIDFAT \
 	WINE CYGWIN \
-	OSX32 OSX64 IOS
+	OSX32 OSX64 IOS32 IOS64
 
 ifeq ($(TARGET),)
   ifeq ($(HOST_IS_UNIX),y)
@@ -271,66 +271,85 @@ ifeq ($(TARGET),OSX32)
   override TARGET = UNIX
   TARGET_IS_DARWIN = y
   TARGET_IS_OSX = y
-  DARWIN_SDK_VERSION = 10.9
-  OSX_MIN_SUPPORTED_VERSION = 10.7
+  DARWIN_SDK_VERSION = 10.10
+  OSX_MIN_SUPPORTED_VERSION = 10.6
   ifeq ($(HOST_IS_DARWIN),y)
     DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${DARWIN_SDK_VERSION}.sdk
-    LLVM_TARGET = i386-apple-darwin9
+    LLVM_TARGET = i386-apple-darwin
   else
     DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
     DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/MacOSX$(DARWIN_SDK_VERSION).sdk
     DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/i386-MacOSX-$(OSX_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
-    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/i386-apple-darwin9-
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/i386-apple-darwin-
     LLVM_PREFIX = $(TCPREFIX)
   endif
   LIBCXX = y
   CLANG = y
   TARGET_ARCH += -march=i686 -msse2 -mmacosx-version-min=$(OSX_MIN_SUPPORTED_VERSION)
-  ASFLAGS += -arch i386
 endif
 
 ifeq ($(TARGET),OSX64)
   override TARGET = UNIX
   TARGET_IS_DARWIN = y
   TARGET_IS_OSX = y
-  DARWIN_SDK_VERSION = 10.9
-  OSX_MIN_SUPPORTED_VERSION = 10.7
+  DARWIN_SDK_VERSION = 10.10
+  OSX_MIN_SUPPORTED_VERSION = 10.6
   ifeq ($(HOST_IS_DARWIN),y)
     DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${DARWIN_SDK_VERSION}.sdk
-    LLVM_TARGET = x86_64-apple-darwin9
+    LLVM_TARGET = x86_64-apple-darwin
   else
     DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
     DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/MacOSX$(DARWIN_SDK_VERSION).sdk
     DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/x86_64-MacOSX-$(OSX_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
-    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/x86_64-apple-darwin9-
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/x86_64-apple-darwin-
     LLVM_PREFIX = $(TCPREFIX)
   endif
   LIBCXX = y
   CLANG = y
   TARGET_ARCH += -mmacosx-version-min=$(OSX_MIN_SUPPORTED_VERSION)
-  ASFLAGS += -arch x86_64
 endif
 
-ifeq ($(TARGET),IOS)
+ifeq ($(TARGET),IOS32)
   override TARGET = UNIX
   TARGET_IS_DARWIN = y
   TARGET_IS_IOS = y
-  DARWIN_SDK_VERSION = 7.1
+  DARWIN_SDK_VERSION = 8.2
   IOS_MIN_SUPPORTED_VERSION = 5.1
   ifeq ($(HOST_IS_DARWIN),y)
     DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${DARWIN_SDK_VERSION}.sdk
-    LLVM_TARGET = armv7-apple-darwin9
+    LLVM_TARGET = armv7-apple-darwin
   else
     DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
     DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/iPhoneOS$(DARWIN_SDK_VERSION).sdk
     DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/armv7-iOS-$(IOS_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
-    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/armv7-apple-darwin9-
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/armv7-apple-darwin-
     LLVM_PREFIX = $(TCPREFIX)
   endif
   LIBCXX = y
   CLANG = y
   TARGET_ARCH += -miphoneos-version-min=$(IOS_MIN_SUPPORTED_VERSION)
-  ASFLAGS += -arch armv7
+endif
+
+ifeq ($(TARGET),IOS64)
+  override TARGET = UNIX
+  TARGET_IS_DARWIN = y
+  TARGET_IS_IOS = y
+  DARWIN_SDK_VERSION = 8.2
+  IOS_MIN_SUPPORTED_VERSION = 7.0
+  ifeq ($(HOST_IS_DARWIN),y)
+    DARWIN_SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${DARWIN_SDK_VERSION}.sdk
+    LLVM_TARGET = aarch64-apple-darwin
+  else
+    DARWIN_TOOLCHAIN ?= $(HOME)/opt/darwin-toolchain
+    DARWIN_SDK ?= $(DARWIN_TOOLCHAIN)/lib/SDKs/iPhoneOS$(DARWIN_SDK_VERSION).sdk
+    DARWIN_LIBS ?= $(DARWIN_TOOLCHAIN)/lib/arm64-iOS-$(IOS_MIN_SUPPORTED_VERSION)-SDK$(DARWIN_SDK_VERSION).sdk
+    TCPREFIX = $(DARWIN_TOOLCHAIN)/bin/aarch64-apple-darwin-
+    LLVM_PREFIX = $(TCPREFIX)
+  endif
+  LIBCXX = y
+  CLANG = y
+  TARGET_ARCH += -miphoneos-version-min=$(IOS_MIN_SUPPORTED_VERSION) -arch arm64
+  ASFLAGS += -arch arm64
 endif
 
 ifeq ($(filter $(TARGET),UNIX WINE),$(TARGET))
@@ -434,7 +453,7 @@ ifeq ($(TARGET),ANDROID)
   CLANG ?= y
 
   ifeq ($(CLANG),y)
-    ANDROID_TOOLCHAIN_NAME = llvm-3.4
+    ANDROID_TOOLCHAIN_NAME = llvm-3.5
     LIBCXX = y
   else
     ANDROID_TOOLCHAIN_NAME = $(ANDROID_GCC_TOOLCHAIN_NAME)

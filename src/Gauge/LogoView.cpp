@@ -41,6 +41,14 @@ LogoView::LogoView()
   big_title.EnableInterpolation();
 }
 
+static int
+Center(unsigned canvas_size, unsigned element_size)
+{
+  /* cast to int to force signed integer division, just in case the
+     difference is negative */
+  return int(canvas_size - element_size) / 2;
+}
+
 void
 LogoView::draw(Canvas &canvas, const PixelRect &rc)
 {
@@ -57,19 +65,13 @@ LogoView::draw(Canvas &canvas, const PixelRect &rc)
   else
     orientation = PORTRAIT;
 
-  // Load logo
-  const Bitmap &bitmap_logo =
-      (orientation == LANDSCAPE && width >= 510 && height >= 170) ||
-      (orientation == PORTRAIT && width >= 330 && height >= 250) ||
-      (orientation == SQUARE && width >= 210 && height >= 210) ?
-      big_logo : logo;
-
-  // Adjust the title to larger screens
-  const Bitmap &bitmap_title =
-      (orientation == LANDSCAPE && width >= 510 && height >= 170) ||
-      (orientation == PORTRAIT && width >= 330 && height >= 250) ||
-      (orientation == SQUARE && width >= 210 && height >= 210) ?
-      big_title : title;
+  /* load bitmaps */
+  const bool use_big =
+    (orientation == LANDSCAPE && width >= 510 && height >= 170) ||
+    (orientation == PORTRAIT && width >= 330 && height >= 250) ||
+    (orientation == SQUARE && width >= 210 && height >= 210);
+  const Bitmap &bitmap_logo = use_big ? big_logo : logo;
+  const Bitmap &bitmap_title = use_big ? big_title : title;
 
   // Determine logo size
   PixelSize logo_size = bitmap_logo.GetSize();
@@ -77,36 +79,57 @@ LogoView::draw(Canvas &canvas, const PixelRect &rc)
   // Determine title image size
   PixelSize title_size = bitmap_title.GetSize();
 
-  const unsigned magnification =
-    std::max(1u,
-             std::min((width - 16u) / unsigned(logo_size.cx + title_size.cx),
-                      (height - 16u) / std::max(unsigned(logo_size.cy),
-                                                unsigned(title_size.cx))));
+  unsigned spacing = title_size.cy / 2;
 
-  logo_size.cx *= magnification;
-  logo_size.cy *= magnification;
-  title_size.cx *= magnification;
-  title_size.cy *= magnification;
+  unsigned estimated_width, estimated_height;
+  switch (orientation) {
+  case LANDSCAPE:
+    estimated_width = logo_size.cx + spacing + title_size.cx;
+    estimated_height = logo_size.cy;
+    break;
+
+  case PORTRAIT:
+    estimated_width = title_size.cx;
+    estimated_height = logo_size.cy + spacing + title_size.cy;
+    break;
+
+  case SQUARE:
+    estimated_width = logo_size.cx;
+    estimated_height = logo_size.cy;
+    break;
+  }
+
+  const unsigned magnification =
+    std::min((width - 16u) / estimated_width,
+             (height - 16u) / estimated_height);
+
+  if (magnification > 1) {
+    logo_size.cx *= magnification;
+    logo_size.cy *= magnification;
+    title_size.cx *= magnification;
+    title_size.cy *= magnification;
+    spacing *= magnification;
+  }
 
   int logox, logoy, titlex, titley;
 
   // Determine logo and title positions
   switch (orientation) {
   case LANDSCAPE:
-    logox = (width - (logo_size.cx + title_size.cy + title_size.cx)) / 2;
-    logoy = (height - logo_size.cy) / 2;
-    titlex = logox + logo_size.cx + title_size.cy;
-    titley = (height - title_size.cy) / 2;
+    logox = Center(width, logo_size.cx + spacing + title_size.cx);
+    logoy = Center(height, logo_size.cy);
+    titlex = logox + logo_size.cx + spacing;
+    titley = Center(height, title_size.cy);
     break;
   case PORTRAIT:
-    logox = (width - logo_size.cx) / 2;
-    logoy = (height - (logo_size.cy + title_size.cy * 2)) / 2;
-    titlex = (width - title_size.cx) / 2;
-    titley = logoy + logo_size.cy + title_size.cy;
+    logox = Center(width, logo_size.cx);
+    logoy = Center(height, logo_size.cy + spacing + title_size.cy);
+    titlex = Center(width, title_size.cx);
+    titley = logoy + logo_size.cy + spacing;
     break;
   case SQUARE:
-    logox = (width - logo_size.cx) / 2;
-    logoy = (height - logo_size.cy) / 2;
+    logox = Center(width, logo_size.cx);
+    logoy = Center(height, logo_size.cy);
     // not needed - silence compiler "may be used uninitialized"
     titlex = 0;
     titley = 0;

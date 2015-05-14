@@ -53,6 +53,7 @@ enum ControlIndex {
   LT24Enabled,
   TrackingInterval,
   TrackingVehicleType,
+  TrackingVehicleName,
   LT24Server,
   LT24Username,
   LT24Password
@@ -104,6 +105,7 @@ TrackingConfigPanel::SetEnabled(bool enabled)
 {
   SetRowEnabled(TrackingInterval, enabled);
   SetRowEnabled(TrackingVehicleType, enabled);
+  SetRowEnabled(TrackingVehicleName, enabled);
   SetRowEnabled(LT24Server, enabled);
   SetRowEnabled(LT24Username, enabled);
   SetRowEnabled(LT24Password, enabled);
@@ -184,8 +186,8 @@ TrackingConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
   RowFormWidget::Prepare(parent, rc);
 
 #ifdef HAVE_SKYLINES_TRACKING
-  AddBoolean(_T("SkyLines"), NULL, settings.skylines.enabled, this);
-  AddEnum(_("Tracking Interval"), NULL, tracking_intervals,
+  AddBoolean(_T("SkyLines"), nullptr, settings.skylines.enabled, this);
+  AddEnum(_("Tracking Interval"), nullptr, tracking_intervals,
           settings.skylines.interval);
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
@@ -199,7 +201,7 @@ TrackingConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
     buffer.UnsafeFormat(_T("%llX"), (unsigned long long)settings.skylines.key);
   else
     buffer.clear();
-  AddText(_T("Key"), NULL, buffer);
+  AddText(_T("Key"), nullptr, buffer);
 #endif
 
 #if defined(HAVE_SKYLINES_TRACKING) && defined(HAVE_LIVETRACK24)
@@ -213,6 +215,8 @@ TrackingConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 
   AddEnum(_("Vehicle Type"), _("Type of vehicle used."), vehicle_type_list,
           (unsigned) settings.vehicleType);
+  AddText(_("Vehicle Name"), _T("Name of vehicle used."),
+          settings.vehicle_name);
 
   WndProperty *edit = AddEnum(_("Server"), _T(""), server_list, 0);
   ((DataFieldEnum *)edit->GetDataField())->Set(settings.livetrack24.server);
@@ -237,7 +241,7 @@ SaveKey(const RowFormWidget &form, unsigned idx, const char *profile_key,
         uint64_t &value_r)
 {
   const TCHAR *const s = form.GetValueString(idx);
-  uint64_t value = ParseUint64(s, NULL, 16);
+  uint64_t value = ParseUint64(s, nullptr, 16);
   if (value == value_r)
     return false;
 
@@ -260,6 +264,9 @@ TrackingConfigPanel::Save(bool &_changed)
 
   changed |= SaveValueEnum(TrackingVehicleType, ProfileKeys::TrackingVehicleType,
                            settings.vehicleType);
+
+  changed |= SaveValue(TrackingVehicleName, ProfileKeys::TrackingVehicleName,
+                       settings.vehicle_name.buffer(), settings.vehicle_name.MAX_SIZE);
 #endif
 
 #ifdef HAVE_SKYLINES_TRACKING

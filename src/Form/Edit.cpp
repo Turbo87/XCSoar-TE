@@ -108,7 +108,8 @@ WndProperty::WndProperty(ContainerWindow &parent, const DialogLook &_look,
                          int CaptionWidth,
                          const WindowStyle style)
   :look(_look),
-   mDataField(NULL),
+   data_field(nullptr),
+   edit_callback(EditDataFieldDialog),
    read_only(false),
    dragging(false), pressed(false)
 {
@@ -121,7 +122,8 @@ WndProperty::WndProperty(ContainerWindow &parent, const DialogLook &_look,
 
 WndProperty::WndProperty(const DialogLook &_look)
   :look(_look),
-   mDataField(nullptr),
+   data_field(nullptr),
+   edit_callback(EditDataFieldDialog),
    read_only(false),
    dragging(false), pressed(false)
 {
@@ -141,17 +143,17 @@ WndProperty::Create(ContainerWindow &parent, const PixelRect &rc,
 
 WndProperty::~WndProperty()
 {
-  delete mDataField;
+  delete data_field;
 }
 
-UPixelScalar
+unsigned
 WndProperty::GetRecommendedCaptionWidth() const
 {
   return look.text_font->TextSize(caption).cx + Layout::GetTextPadding();
 }
 
 void
-WndProperty::SetCaptionWidth(PixelScalar _caption_width)
+WndProperty::SetCaptionWidth(int _caption_width)
 {
   if (caption_width == _caption_width)
     return;
@@ -163,13 +165,11 @@ WndProperty::SetCaptionWidth(PixelScalar _caption_width)
 bool
 WndProperty::BeginEditing()
 {
-  if (IsReadOnly() || mDataField == nullptr) {
-    /* this would display xml file help on a read-only wndproperty if
-       it exists */
+  if (IsReadOnly() || data_field == nullptr || edit_callback == nullptr) {
     OnHelp();
     return false;
   } else {
-    if (!EditDataFieldDialog(GetCaption(), *mDataField, GetHelpText()))
+    if (!edit_callback(GetCaption(), *data_field, GetHelpText()))
       return false;
 
     RefreshDisplay();
@@ -182,7 +182,7 @@ WndProperty::UpdateLayout()
 {
   edit_rc = GetClientRect();
 
-  const UPixelScalar DEFAULTBORDERPENWIDTH = Layout::FastScale(1);
+  const unsigned DEFAULTBORDERPENWIDTH = Layout::FastScale(1u);
 
   if (caption_width >= 0) {
     edit_rc.left += caption_width + (DEFAULTBORDERPENWIDTH + 1);
@@ -273,8 +273,8 @@ WndProperty::OnCancelMode()
 int
 WndProperty::CallSpecial()
 {
-  if (mDataField != NULL) {
-    mDataField->Special();
+  if (data_field != nullptr) {
+    data_field->Special();
     RefreshDisplay();
   }
   return 0;
@@ -283,8 +283,8 @@ WndProperty::CallSpecial()
 int
 WndProperty::IncValue()
 {
-  if (mDataField != NULL) {
-    mDataField->Inc();
+  if (data_field != nullptr) {
+    data_field->Inc();
     RefreshDisplay();
   }
   return 0;
@@ -293,8 +293,8 @@ WndProperty::IncValue()
 int
 WndProperty::DecValue()
 {
-  if (mDataField != NULL) {
-    mDataField->Dec();
+  if (data_field != nullptr) {
+    data_field->Dec();
     RefreshDisplay();
   }
   return 0;
@@ -317,9 +317,6 @@ WndProperty::OnPaint(Canvas &canvas)
       canvas.Clear(look.background_color);
   }
 
-  /* kludge: don't draw caption if width is too small (but not 0),
-     used by the polar configuration panel.  This concept needs to be
-     redesigned. */
   if (!caption.empty()) {
     canvas.SetTextColor(focused
                           ? look.focused.text_color
@@ -375,10 +372,10 @@ WndProperty::OnPaint(Canvas &canvas)
     canvas.SetBackgroundTransparent();
     canvas.Select(*look.text_font);
 
-    const PixelScalar x = edit_rc.left + Layout::GetTextPadding();
-    const PixelScalar canvas_height = edit_rc.bottom - edit_rc.top;
-    const PixelScalar text_height = canvas.GetFontHeight();
-    const PixelScalar y = edit_rc.top + (canvas_height - text_height) / 2;
+    const int x = edit_rc.left + Layout::GetTextPadding();
+    const int canvas_height = edit_rc.bottom - edit_rc.top;
+    const int text_height = canvas.GetFontHeight();
+    const int y = edit_rc.top + (canvas_height - text_height) / 2;
 
     canvas.TextAutoClipped(x, y, value.c_str());
   }
@@ -399,19 +396,19 @@ WndProperty::SetText(const TCHAR *_value)
 void
 WndProperty::RefreshDisplay()
 {
-  if (!mDataField)
+  if (!data_field)
     return;
 
-  SetText(mDataField->GetAsDisplayString());
+  SetText(data_field->GetAsDisplayString());
 }
 
 void
 WndProperty::SetDataField(DataField *Value)
 {
-  assert(mDataField == NULL || mDataField != Value);
+  assert(data_field == nullptr || data_field != Value);
 
-  delete mDataField;
-  mDataField = Value;
+  delete data_field;
+  data_field = Value;
 
   UpdateLayout();
 

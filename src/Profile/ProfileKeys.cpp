@@ -25,6 +25,7 @@ Copyright_License {
 
 namespace ProfileKeys {
 
+const char Password[] = "Password";
 const char AirspaceWarning[] = "AirspaceWarn";
 const char AirspaceBlackOutline[] = "AirspaceBlackOutline";
 const char AirspaceTransparency[] = "AirspaceTransparency";
@@ -242,6 +243,7 @@ const char FlarmLocation[] = "FlarmLocation";
 
 const char TrackingInterval[] = "TrackingInterval";
 const char TrackingVehicleType[] = "TrackingVehicleType";
+const char TrackingVehicleName[] = "TrackingVehicleName";
 const char SkyLinesTrackingEnabled[] = "SkyLinesTrackingEnabled";
 const char SkyLinesTrackingInterval[] = "SkyLinesTrackingInterval";
 const char SkyLinesTrafficEnabled[] = "SkyLinesTrafficEnabled";

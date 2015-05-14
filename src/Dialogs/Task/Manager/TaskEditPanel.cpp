@@ -33,7 +33,6 @@ Copyright_License {
 #include "Interface.hpp"
 #include "Screen/SingleWindow.hpp"
 #include "Form/Button.hpp"
-#include "Form/SymbolButton.hpp"
 #include "Form/List.hpp"
 #include "Widget/ListWidget.hpp"
 #include "Widget/TextWidget.hpp"
@@ -48,6 +47,7 @@ Copyright_License {
 #include "Engine/Task/Factory/AbstractTaskFactory.hpp"
 #include "Language/Language.hpp"
 #include "Renderer/OZPreviewRenderer.hpp"
+#include "Renderer/SymbolButtonRenderer.hpp"
 #include "Util/Macros.hpp"
 #include "UIGlobals.hpp"
 
@@ -71,9 +71,9 @@ enum Buttons {
 class TaskEditButtons final : public NullWidget {
   ActionListener *listener;
 
-  WndButton *edit_button, *mutate_button;
-  WndSymbolButton *down_button, *up_button;
-  WndButton *reverse_button, *clear_all_button;
+  Button edit_button, mutate_button;
+  Button down_button, up_button;
+  Button reverse_button, clear_all_button;
   bool visible;
 
   bool show_edit, show_mutate, show_down, show_up, show_reverse;
@@ -108,12 +108,12 @@ private:
   void UpdateVisibility() {
     assert(visible);
 
-    edit_button->SetVisible(show_edit);
-    mutate_button->SetVisible(show_mutate);
-    down_button->SetVisible(show_down);
-    up_button->SetVisible(show_up);
-    reverse_button->SetVisible(show_reverse);
-    clear_all_button->Show();
+    edit_button.SetVisible(show_edit);
+    mutate_button.SetVisible(show_mutate);
+    down_button.SetVisible(show_down);
+    up_button.SetVisible(show_up);
+    reverse_button.SetVisible(show_reverse);
+    clear_all_button.Show();
   }
 
   Layout CalculateLayout(const PixelRect &rc) const {
@@ -133,12 +133,12 @@ private:
 
     const Layout layout = CalculateLayout(rc);
 
-    edit_button->Move(layout.edit);
-    mutate_button->Move(layout.down);
-    down_button->Move(layout.down);
-    up_button->Move(layout.up);
-    reverse_button->Move(layout.reverse);
-    clear_all_button->Move(layout.clear_all);
+    edit_button.Move(layout.edit);
+    mutate_button.Move(layout.down);
+    down_button.Move(layout.down);
+    up_button.Move(layout.up);
+    reverse_button.Move(layout.reverse);
+    clear_all_button.Move(layout.clear_all);
   }
 
 public:
@@ -156,42 +156,31 @@ public:
   void Prepare(ContainerWindow &parent, const PixelRect &rc) override {
     assert(!visible);
 
-    ButtonWindowStyle style;
+    WindowStyle style;
     style.Hide();
     style.TabStop();
 
     const ButtonLook &look = UIGlobals::GetDialogLook().button;
 
     const Layout layout = CalculateLayout(rc);
-    edit_button = new WndButton(parent, look, _("Edit Point"),
-                                layout.edit, style,
-                                *listener, EDIT);
-    mutate_button = new WndButton(parent, look, _("Make Finish"),
-                                  layout.down, style,
-                                  *listener, MUTATE);
-    down_button = new WndSymbolButton(parent, look, _T("v"),
-                                      layout.down, style,
-                                      *listener, DOWN);
-    up_button = new WndSymbolButton(parent, look, _T("^"),
-                                    layout.down, style,
-                                    *listener, UP);
-    reverse_button = new WndButton(parent, look, _("Reverse"),
-                                   layout.reverse, style,
-                                   *listener, REVERSE);
-    clear_all_button = new WndButton(parent, look, _("Clear All"),
-                                     layout.clear_all, style,
-                                     *listener, CLEAR_ALL);
-  }
-
-  void Unprepare() override {
-    assert(!visible);
-
-    delete clear_all_button;
-    delete reverse_button;
-    delete down_button;
-    delete up_button;
-    delete mutate_button;
-    delete edit_button;
+    edit_button.Create(parent, look, _("Edit Point"),
+                       layout.edit, style,
+                       *listener, EDIT);
+    mutate_button.Create(parent, look, _("Make Finish"),
+                         layout.down, style,
+                         *listener, MUTATE);
+    down_button.Create(parent, layout.down, style,
+                       new SymbolButtonRenderer(look, _T("v")),
+                       *listener, DOWN);
+    up_button.Create(parent, layout.down, style,
+                     new SymbolButtonRenderer(look, _T("^")),
+                     *listener, UP);
+    reverse_button.Create(parent, look, _("Reverse"),
+                          layout.reverse, style,
+                          *listener, REVERSE);
+    clear_all_button.Create(parent, look, _("Clear All"),
+                            layout.clear_all, style,
+                            *listener, CLEAR_ALL);
   }
 
   void Show(const PixelRect &rc) override {
@@ -206,12 +195,12 @@ public:
     assert(visible);
     visible = false;
 
-    edit_button->Hide();
-    mutate_button->Hide();
-    down_button->Hide();
-    up_button->Hide();
-    reverse_button->Hide();
-    clear_all_button->Hide();
+    edit_button.Hide();
+    mutate_button.Hide();
+    down_button.Hide();
+    up_button.Hide();
+    reverse_button.Hide();
+    clear_all_button.Hide();
   }
 
   void Move(const PixelRect &rc) override {
@@ -502,7 +491,7 @@ void
 TaskEditPanel::EditTaskPoint(unsigned ItemIndex)
 {
   if (ItemIndex < ordered_task->TaskSize()) {
-    if (dlgTaskPointShowModal(&ordered_task, ItemIndex)) {
+    if (dlgTaskPointShowModal(*ordered_task, ItemIndex)) {
       *task_modified = true;
       ordered_task->ClearName();
       ordered_task->UpdateGeometry();

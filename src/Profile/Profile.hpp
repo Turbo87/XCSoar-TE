@@ -83,18 +83,6 @@ namespace Profile
   const TCHAR *GetPathBase(const char *key);
 
   /**
-   * Load a GeoPoint from the profile.
-   */
-  bool GetGeoPoint(const char *key, GeoPoint &value);
-
-  /**
-   * Save a GeoPoint to the profile.  It is stored as a string,
-   * longitude and latitude formatted in degrees separated by a space
-   * character.
-   */
-  void SetGeoPoint(const char *key, const GeoPoint &value);
-
-  /**
    * Load a Color from the profile.
    */
   bool GetColor(const char *key, RGB8Color &value);
@@ -104,11 +92,6 @@ namespace Profile
    * e.g. #123456
    */
   void SetColor(const char *key, const RGB8Color value);
-
-  /**
-   * Adjusts the application settings according to the profile settings
-   */
-  void Use();
 };
 
 #endif

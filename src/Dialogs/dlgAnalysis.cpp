@@ -139,7 +139,7 @@ class AnalysisWidget final : public NullWidget, ActionListener, Timer {
   WndForm &dialog;
 
   WndFrame info;
-  WndButton details_button, previous_button, next_button, close_button;
+  Button details_button, previous_button, next_button, close_button;
   ChartControl chart;
 
 public:
@@ -151,9 +151,6 @@ public:
     :blackboard(_blackboard), glide_computer(_glide_computer),
      dialog(_dialog),
      info(look.dialog),
-     details_button(look.dialog.button),
-     previous_button(look.dialog.button), next_button(look.dialog.button),
-     close_button(look.dialog.button),
      chart(*this, look.chart, look.map, look.cross_section,
            look.thermal_band, look.cross_section,
            look.map.airspace, airspaces, terrain,
@@ -294,18 +291,20 @@ AnalysisWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
   const Layout layout(rc);
 
-  ButtonWindowStyle button_style;
+  WindowStyle button_style;
   button_style.Hide();
   button_style.TabStop();
 
   info.Create(parent, layout.info);
-  details_button.Create(parent, _T("Calc"), layout.details_button,
+
+  const auto &button_look = dialog.GetLook().button;
+  details_button.Create(parent, button_look, _T("Calc"), layout.details_button,
                         button_style, *this, DETAILS);
-  previous_button.Create(parent, _T("<"), layout.previous_button,
+  previous_button.Create(parent, button_look, _T("<"), layout.previous_button,
                          button_style, *this, PREVIOUS);
-  next_button.Create(parent, _T(">"), layout.next_button,
+  next_button.Create(parent, button_look, _T(">"), layout.next_button,
                      button_style, *this, NEXT);
-  close_button.Create(parent, _("Close"), layout.close_button,
+  close_button.Create(parent, button_look, _("Close"), layout.close_button,
                       button_style, dialog, mrOK);
 
   WindowStyle style;

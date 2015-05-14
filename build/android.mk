@@ -44,6 +44,7 @@ CLASS_CLASS = $(patsubst %.java,%.class,$(CLASS_SOURCE))
 
 NATIVE_CLASSES = NativeView EventBridge InternalGPS NonGPSSensors NativeInputListener DownloadUtil BatteryReceiver
 NATIVE_CLASSES += NativePortListener
+NATIVE_CLASSES += NativeLeScanCallback
 NATIVE_CLASSES += NativeBMP085Listener
 NATIVE_CLASSES += NativeI2CbaroListener
 NATIVE_CLASSES += NativeNunchuckListener
@@ -149,6 +150,8 @@ $(ANDROID_BUILD)/build.xml: $(MANIFEST) $(PNG_FILES) | $(TARGET_BIN_DIR)/dirstam
 	$(Q)ln -s ../../../../../../android/ioio/software/IOIOLib/target/android/src/ioio/lib/spi $(ANDROID_BUILD)/src/ioio/lib/spi2
 	$(Q)ln -s ../../../../../android/ioio/software/IOIOLib/target/android/src/ioio/lib/util/android/ContextWrapperDependent.java $(ANDROID_BUILD)/src/ioio/
 	$(Q)ln -s ../../../../../../../android/ioio/software/IOIOLibAccessory/src/ioio/lib/android/accessory $(ANDROID_BUILD)/src/ioio/lib/android/accessory
+	$(Q)ln -s ../../../../../../../android/ioio/software/IOIOLibBT/src/ioio/lib/android/bluetooth $(ANDROID_BUILD)/src/ioio/lib/android/bluetooth
+	$(Q)ln -s ../../../../../../../android/ioio/software/IOIOLibAndroidDevice/src/ioio/lib/android/device $(ANDROID_BUILD)/src/ioio/lib/android/device
 	$(Q)ln -s ../../../../android/res/values $(@D)/res/values
 	$(Q)ln -s ../../../../android/res/xml $(@D)/res/xml
 ifeq ($(HOST_IS_WIN32),y)
@@ -204,6 +207,7 @@ $(call SRC_TO_OBJ,$(SRC)/Android/EventBridge.cpp): $(NATIVE_HEADERS)
 $(call SRC_TO_OBJ,$(SRC)/Android/InternalSensors.cpp): $(NATIVE_HEADERS)
 $(call SRC_TO_OBJ,$(SRC)/Android/Battery.cpp): $(NATIVE_HEADERS)
 $(call SRC_TO_OBJ,$(SRC)/Android/NativePortListener.cpp): $(NATIVE_HEADERS)
+$(call SRC_TO_OBJ,$(SRC)/Android/NativeLeScanCallback.cpp): $(NATIVE_HEADERS)
 $(call SRC_TO_OBJ,$(SRC)/Android/NativeInputListener.cpp): $(NATIVE_HEADERS)
 $(call SRC_TO_OBJ,$(SRC)/Android/DownloadManager.cpp): $(NATIVE_HEADERS)
 $(call SRC_TO_OBJ,$(SRC)/Android/NativeBMP085Listener.cpp): $(NATIVE_HEADERS)

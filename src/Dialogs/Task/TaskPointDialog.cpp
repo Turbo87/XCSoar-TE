@@ -89,7 +89,7 @@ class TaskPointWidget final
     explicit Layout(PixelRect rc, const DialogLook &look);
   };
 
-  OrderedTask *ordered_task;
+  OrderedTask &ordered_task;
   bool task_modified;
   unsigned active_index;
 
@@ -98,32 +98,30 @@ class TaskPointWidget final
 
   PanelControl waypoint_panel;
   WndFrame waypoint_name;
-  WndButton waypoint_details, waypoint_remove, waypoint_relocate;
+  Button waypoint_details, waypoint_remove, waypoint_relocate;
 
   PanelControl tp_panel;
   WndFrame type_label;
-  WndButton change_type;
+  Button change_type;
   WndOwnerDrawFrame map;
   DockWindow properties_dock;
   ObservationZoneEditWidget *properties_widget;
 
-  WndButton optional_starts;
+  Button optional_starts;
   CheckBoxControl score_exit;
 
-  WndButton *previous_button, *next_button;
+  Button *previous_button, *next_button;
 
 public:
   TaskPointWidget(WidgetDialog &_dialog,
-                  OrderedTask *_task, unsigned _index)
+                  OrderedTask &_task, unsigned _index)
     :ordered_task(_task), task_modified(false), active_index(_index),
      dialog(_dialog), look(dialog.GetLook()),
-     waypoint_name(look), waypoint_details(look.button),
-     waypoint_remove(look.button), waypoint_relocate(look.button),
-     type_label(look), change_type(look.button),
-     optional_starts(look.button) {}
+     waypoint_name(look),
+     type_label(look) {}
 
-  OrderedTask *GetTask() {
-    return ordered_task;
+  bool IsModified() const {
+    return task_modified;
   }
 
   void CreateButtons() {
@@ -264,42 +262,40 @@ TaskPointWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   panel_style.Border();
   panel_style.ControlParent();
 
-  ButtonWindowStyle button_style;
+  WindowStyle button_style;
   button_style.TabStop();
-
-  CheckBoxStyle check_box_style;
-  check_box_style.TabStop();
 
   WindowStyle dock_style;
   dock_style.ControlParent();
 
   waypoint_panel.Create(parent, look, layout.waypoint_panel, panel_style);
   waypoint_name.Create(waypoint_panel, layout.waypoint_name);
-  waypoint_details.Create(waypoint_panel, _("Details"),
+  waypoint_details.Create(waypoint_panel, look.button, _("Details"),
                           layout.waypoint_details,
                           button_style, *this, DETAILS);
-  waypoint_remove.Create(waypoint_panel, _("Remove"),
+  waypoint_remove.Create(waypoint_panel, look.button, _("Remove"),
                          layout.waypoint_remove,
                          button_style, *this, REMOVE);
-  waypoint_relocate.Create(waypoint_panel, _("Relocate"),
+  waypoint_relocate.Create(waypoint_panel, look.button, _("Relocate"),
                            layout.waypoint_relocate,
                            button_style, *this, RELOCATE);
 
   tp_panel.Create(parent, look, layout.tp_panel, panel_style);
 
   type_label.Create(tp_panel, layout.type_label);
-  change_type.Create(tp_panel, _("Change Type"), layout.change_type,
+  change_type.Create(tp_panel, look.button, _("Change Type"),
+                     layout.change_type,
                      button_style, *this, CHANGE_TYPE);
   map.Create(tp_panel, layout.map, WindowStyle(),
              [this](Canvas &canvas, const PixelRect &rc){
                PaintMap(canvas, rc);
              });
   properties_dock.Create(tp_panel, layout.properties, dock_style);
-  optional_starts.Create(tp_panel, _("Enable Alternate Starts"),
+  optional_starts.Create(tp_panel, look.button, _("Enable Alternate Starts"),
                          layout.optional_starts, button_style,
                          *this, OPTIONAL_STARTS);
   score_exit.Create(tp_panel, look, _("Score exit"),
-                    layout.score_exit, check_box_style,
+                    layout.score_exit, button_style,
                     *this, SCORE_EXIT);
 
   RefreshView();
@@ -374,31 +370,31 @@ TaskPointWidget::RefreshView()
 {
   map.Invalidate();
 
-  OrderedTaskPoint &tp = ordered_task->GetPoint(active_index);
+  OrderedTaskPoint &tp = ordered_task.GetPoint(active_index);
 
   properties_dock.SetWidget(new PanelWidget());
 
   ObservationZonePoint &oz = tp.GetObservationZone();
   const bool is_fai_general =
-    ordered_task->GetFactoryType() == TaskFactoryType::FAI_GENERAL;
+    ordered_task.GetFactoryType() == TaskFactoryType::FAI_GENERAL;
   properties_widget = CreateObservationZoneEditWidget(oz, is_fai_general);
   if (properties_widget != nullptr) {
     properties_widget->SetListener(this);
     properties_dock.SetWidget(properties_widget);
   }
 
-  type_label.SetCaption(OrderedTaskPointName(ordered_task->GetFactory().GetType(tp)));
+  type_label.SetCaption(OrderedTaskPointName(ordered_task.GetFactory().GetType(tp)));
 
   previous_button->SetEnabled(active_index > 0);
-  next_button->SetEnabled(active_index < (ordered_task->TaskSize() - 1));
+  next_button->SetEnabled(active_index < (ordered_task.TaskSize() - 1));
 
   optional_starts.SetVisible(active_index == 0);
-  if (!ordered_task->HasOptionalStarts())
+  if (!ordered_task.HasOptionalStarts())
     optional_starts.SetCaption(_("Enable Alternate Starts"));
   else {
     StaticString<50> tmp;
     tmp.Format(_T("%s (%d)"), _("Edit Alternates"),
-               ordered_task->GetOptionalStartPointCount());
+               ordered_task.GetOptionalStartPointCount());
     optional_starts.SetCaption(tmp);
   }
 
@@ -449,7 +445,7 @@ TaskPointWidget::RefreshView()
 bool
 TaskPointWidget::ReadValues()
 {
-  OrderedTaskPoint &tp = ordered_task->GetPoint(active_index);
+  OrderedTaskPoint &tp = ordered_task.GetPoint(active_index);
 
   if (tp.GetType() == TaskPointType::AST) {
     const bool new_score_exit = score_exit.GetState();
@@ -458,7 +454,7 @@ TaskPointWidget::ReadValues()
 
     if (new_score_exit != ast.GetScoreExit()) {
       ast.SetScoreExit(new_score_exit);
-      ordered_task->ClearName();
+      ordered_task.ClearName();
       task_modified = true;
     }
   }
@@ -470,7 +466,7 @@ TaskPointWidget::ReadValues()
 void
 TaskPointWidget::PaintMap(Canvas &canvas, const PixelRect &rc)
 {
-  const OrderedTaskPoint &tp = ordered_task->GetPoint(active_index);
+  const OrderedTaskPoint &tp = ordered_task.GetPoint(active_index);
 
 #ifdef ENABLE_OPENGL
   /* enable clipping */
@@ -479,7 +475,7 @@ TaskPointWidget::PaintMap(Canvas &canvas, const PixelRect &rc)
 
   const MapLook &look = UIGlobals::GetMapLook();
   const NMEAInfo &basic = CommonInterface::Basic();
-  PaintTaskPoint(canvas, rc, *ordered_task, tp,
+  PaintTaskPoint(canvas, rc, ordered_task, tp,
                  basic.location_available
                  ? basic.location : GeoPoint::Invalid(),
                  CommonInterface::GetMapSettings(),
@@ -494,10 +490,10 @@ TaskPointWidget::OnRemoveClicked()
                   MB_YESNO | MB_ICONQUESTION) != IDYES)
     return;
 
-  if (!ordered_task->GetFactory().Remove(active_index))
+  if (!ordered_task.GetFactory().Remove(active_index))
     return;
 
-  ordered_task->ClearName();
+  ordered_task.ClearName();
   task_modified = true;
   dialog.SetModalResult(mrCancel);
 }
@@ -505,7 +501,7 @@ TaskPointWidget::OnRemoveClicked()
 inline void
 TaskPointWidget::OnDetailsClicked()
 {
-  const OrderedTaskPoint &task_point = ordered_task->GetPoint(active_index);
+  const OrderedTaskPoint &task_point = ordered_task.GetPoint(active_index);
   dlgWaypointDetailsShowModal(task_point.GetWaypoint(), false);
 }
 
@@ -513,16 +509,16 @@ inline void
 TaskPointWidget::OnRelocateClicked()
 {
   const GeoPoint &gpBearing = active_index > 0
-    ? ordered_task->GetPoint(active_index - 1).GetLocation()
+    ? ordered_task.GetPoint(active_index - 1).GetLocation()
     : CommonInterface::Basic().location;
 
   const Waypoint *wp = ShowWaypointListDialog(gpBearing,
-                                         ordered_task, active_index);
+                                              &ordered_task, active_index);
   if (wp == nullptr)
     return;
 
-  ordered_task->GetFactory().Relocate(active_index, *wp);
-  ordered_task->ClearName();
+  ordered_task.GetFactory().Relocate(active_index, *wp);
+  ordered_task.ClearName();
   task_modified = true;
   RefreshView();
 }
@@ -530,8 +526,8 @@ TaskPointWidget::OnRelocateClicked()
 inline void
 TaskPointWidget::OnTypeClicked()
 {
-  if (dlgTaskPointType(&ordered_task, active_index)) {
-    ordered_task->ClearName();
+  if (dlgTaskPointType(ordered_task, active_index)) {
+    ordered_task.ClearName();
     task_modified = true;
     RefreshView();
   }
@@ -550,7 +546,7 @@ TaskPointWidget::OnPreviousClicked()
 inline void
 TaskPointWidget::OnNextClicked()
 {
-  if (active_index >= ordered_task->TaskSize() - 1 || !ReadValues())
+  if (active_index >= ordered_task.TaskSize() - 1 || !ReadValues())
     return;
 
   ++active_index;
@@ -564,8 +560,8 @@ TaskPointWidget::OnNextClicked()
 inline void
 TaskPointWidget::OnOptionalStartsClicked()
 {
-  if (dlgTaskOptionalStarts(&ordered_task)) {
-    ordered_task->ClearName();
+  if (dlgTaskOptionalStarts(ordered_task)) {
+    ordered_task.ClearName();
     task_modified = true;
     RefreshView();
   }
@@ -579,30 +575,24 @@ TaskPointWidget::OnModified(ObservationZoneEditWidget &widget)
 }
 
 bool
-dlgTaskPointShowModal(OrderedTask **task,
+dlgTaskPointShowModal(OrderedTask &task,
                       const unsigned index)
 {
   const DialogLook &look = UIGlobals::GetDialogLook();
 
   WidgetDialog dialog(look);
 
-  TaskPointWidget widget(dialog, *task, index);
+  TaskPointWidget widget(dialog, task, index);
   dialog.CreateFull(UIGlobals::GetMainWindow(), _("Waypoint"), &widget);
   dialog.AddButton(_("Close"), mrOK);
   widget.CreateButtons();
   dialog.ShowModal();
   dialog.StealWidget();
 
-  OrderedTask *ordered_task = widget.GetTask();
-
-  bool task_modified = dialog.GetChanged();
-  if (*task != ordered_task) {
-    *task = ordered_task;
-    task_modified = true;
-  } 
+  bool task_modified = widget.IsModified();
   if (task_modified) {
-    ordered_task->ClearName();
-    ordered_task->UpdateGeometry();
+    task.ClearName();
+    task.UpdateGeometry();
   }
   return task_modified;
 }

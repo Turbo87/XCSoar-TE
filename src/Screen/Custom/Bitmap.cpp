@@ -23,8 +23,14 @@ Copyright_License {
 
 #include "Screen/Bitmap.hpp"
 #include "Screen/Debug.hpp"
+
+#ifdef ENABLE_COREGRAPHICS
+#include "CoreGraphics.hpp"
+#else
 #include "LibPNG.hpp"
 #include "LibJPEG.hpp"
+#endif
+
 #include "UncompressedImage.hpp"
 #include "Util/ConstBuffer.hpp"
 

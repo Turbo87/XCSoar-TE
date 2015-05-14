@@ -53,7 +53,7 @@ class WifiListWidget final
     bool old_visible, old_configured;
   };
 
-  WndButton *connect_button;
+  Button *connect_button;
 
   WifiStatus status;
   TrivialArray<NetworkInfo, 64> networks;
@@ -144,10 +144,10 @@ WifiListWidget::UpdateButtons()
     const auto &info = networks[cursor];
 
     if (info.id >= 0) {
-      connect_button->SetText(_("Remove"));
+      connect_button->SetCaption(_("Remove"));
       connect_button->SetEnabled(true);
     } else if (info.signal_level >= 0) {
-      connect_button->SetText(_("Connect"));
+      connect_button->SetCaption(_("Connect"));
       connect_button->SetEnabled(true);
     }
   } else {

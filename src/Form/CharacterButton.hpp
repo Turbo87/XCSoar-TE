@@ -24,16 +24,14 @@ Copyright_License {
 #ifndef XCSOAR_CHARACTER_BUTTON_HPP
 #define XCSOAR_CHARACTER_BUTTON_HPP
 
-#include "Screen/ButtonWindow.hpp"
+#include "Button.hpp"
 
 #include <tchar.h>
-
-struct ButtonLook;
 
 /**
  * A button that emits a character on press.
  */
-class CharacterButton : public ButtonWindow {
+class CharacterButton : public Button {
   typedef bool (*OnCharacterCallback)(unsigned key);
 
   OnCharacterCallback on_character;
@@ -43,7 +41,7 @@ public:
   void Create(ContainerWindow &parent, const ButtonLook &look,
               const TCHAR *text, PixelRect rc,
               OnCharacterCallback on_character, unsigned character,
-              const ButtonWindowStyle _style=ButtonWindowStyle());
+              const WindowStyle _style=WindowStyle());
 
   unsigned GetCharacter() const {
     return character;

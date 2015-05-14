@@ -46,6 +46,10 @@ class WidgetDialog : public WndForm {
 public:
   WidgetDialog(const DialogLook &look);
 
+  const ButtonLook &GetButtonLook() const {
+    return buttons.GetLook();
+  }
+
   void Create(SingleWindow &parent, const TCHAR *caption,
               const PixelRect &rc, Widget *widget);
 
@@ -72,6 +76,13 @@ public:
     return changed;
   }
 
+  /**
+   * Ensure that the widget is prepared.
+   */
+  void PrepareWidget() {
+    widget.Prepare();
+  }
+
   Widget &GetWidget() {
     assert(widget.IsDefined());
     return *widget.Get();
@@ -83,17 +94,22 @@ public:
     return widget.Steal();
   }
 
-  WndButton *AddButton(const TCHAR *caption,
-                       ActionListener &listener, int id) {
+  Button *AddButton(ButtonRenderer *renderer,
+                    ActionListener &listener, int id) {
+    return buttons.Add(renderer, listener, id);
+  }
+
+  Button *AddButton(const TCHAR *caption,
+                    ActionListener &listener, int id) {
     return buttons.Add(caption, listener, id);
   }
 
-  WndButton *AddButton(const TCHAR *caption, int modal_result) {
+  Button *AddButton(const TCHAR *caption, int modal_result) {
     return AddButton(caption, *this, modal_result);
   }
 
-  WndButton *AddSymbolButton(const TCHAR *caption,
-                             ActionListener &listener, int id) {
+  Button *AddSymbolButton(const TCHAR *caption,
+                          ActionListener &listener, int id) {
     return buttons.AddSymbol(caption, listener, id);
   }
 

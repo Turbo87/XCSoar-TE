@@ -65,6 +65,8 @@ final class IOIOHelper implements IOIOConnectionHolder,
     final String[] bootstraps = new String[]{
       "ioio.lib.impl.SocketIOIOConnectionBootstrap",
       "ioio.lib.android.accessory.AccessoryConnectionBootstrap",
+      "ioio.lib.android.bluetooth.BluetoothIOIOConnectionBootstrap",
+      "ioio.lib.android.device.DeviceConnectionBootstrap",
     };
 
     IOIOConnectionRegistry.addBootstraps(bootstraps);

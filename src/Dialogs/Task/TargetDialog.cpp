@@ -26,10 +26,10 @@ Copyright_License {
 #include "Dialogs/WidgetDialog.hpp"
 #include "Widget/Widget.hpp"
 #include "Form/Edit.hpp"
-#include "Form/SymbolButton.hpp"
 #include "Form/CheckBox.hpp"
 #include "Form/DataField/Float.hpp"
 #include "Form/DataField/Listener.hpp"
+#include "Renderer/SymbolButtonRenderer.hpp"
 #include "UIGlobals.hpp"
 #include "Look/Look.hpp"
 #include "Screen/Layout.hpp"
@@ -59,9 +59,10 @@ public:
                         const AirspaceLook &airspace_look,
                         const TrailLook &trail_look,
                         const TaskLook &task_look,
-                        const AircraftLook &aircraft_look)
+                        const AircraftLook &aircraft_look,
+                        const TopographyLook &topography_look)
     :TargetMapWindow(waypoint_look, airspace_look, trail_look,
-                     task_look, aircraft_look),
+                     task_look, aircraft_look, topography_look),
      widget(_widget) {}
 
 protected:
@@ -101,17 +102,17 @@ class TargetWidget
 
   TargetDialogMapWindow map;
 
-  WndButton name_button;
+  Button name_button;
 #ifndef GNAV
-  WndSymbolButton previous_button;
-  WndSymbolButton next_button;
+  Button previous_button;
+  Button next_button;
 #endif
 
   WndProperty range, radial, ete, delta_t, speed_remaining, speed_achieved;
 
   CheckBoxControl optimized;
 
-  WndButton close_button;
+  Button close_button;
 
   unsigned initial_active_task_point;
   unsigned task_size;
@@ -127,19 +128,14 @@ public:
      rate_limited_bl(*this, 1800, 300),
      map(*this,
          map_look.waypoint, map_look.airspace,
-         map_look.trail, map_look.task, map_look.aircraft),
-     name_button(dialog_look.button),
-#ifndef GNAV
-     previous_button(dialog_look.button),
-     next_button(dialog_look.button),
-#endif
+         map_look.trail, map_look.task, map_look.aircraft,
+         map_look.topography),
      range(dialog_look),
      radial(dialog_look),
      ete(dialog_look),
      delta_t(dialog_look),
      speed_remaining(dialog_look),
-     speed_achieved(dialog_look),
-     close_button(dialog_look.button) {
+     speed_achieved(dialog_look) {
     map.SetTerrain(terrain);
     map.SetTopograpgy(topography);
     map.SetAirspaces(&airspace_database);
@@ -412,20 +408,25 @@ TargetWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   WindowStyle style;
   style.Hide();
 
-  ButtonWindowStyle button_style;
+  WindowStyle button_style;
   button_style.Hide();
   button_style.TabStop();
 
   map.Create(parent, layout.map, style);
 
-  name_button.Create(parent, _T(""), layout.name_button,
+  const auto &button_look = UIGlobals::GetDialogLook().button;
+
+  name_button.Create(parent, button_look, _T(""), layout.name_button,
                      button_style, *this, NAME);
 
 #ifndef GNAV
-  previous_button.Create(parent, _T("<"), layout.previous_button,
-                         button_style, *this, PREVIOUS);
-  next_button.Create(parent, _T(">"), layout.next_button,
-                     button_style, *this, NEXT);
+  previous_button.Create(parent, layout.previous_button, button_style,
+                         new SymbolButtonRenderer(button_look,
+                                                  _T("<")),
+                         *this, PREVIOUS);
+  next_button.Create(parent, layout.next_button, button_style,
+                     new SymbolButtonRenderer(button_look, _T(">")),
+                     *this, NEXT);
 #endif
 
   const unsigned caption_width = ::Layout::Scale(50);
@@ -458,13 +459,11 @@ TargetWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   speed_achieved.SetReadOnly();
   speed_achieved.SetHelpText(_("AA Speed - Assigned Area Task average speed achievable around target points remaining in minimum AAT time."));
 
-  CheckBoxStyle cb_style;
-  cb_style.Hide();
-
   optimized.Create(parent, UIGlobals::GetDialogLook(), _("Optimized"),
-                   layout.optimized, cb_style, *this, OPTIMIZED);
+                   layout.optimized, button_style, *this, OPTIMIZED);
 
-  close_button.Create(parent, _("Close"), layout.close_button,
+  close_button.Create(parent, button_look, _("Close"),
+                      layout.close_button,
                       button_style, dialog, mrOK);
 }
 
@@ -578,7 +577,7 @@ TargetWidget::UpdateNameButton()
       buffer.clear();
   }
 
-  name_button.SetText(buffer);
+  name_button.SetCaption(buffer);
 }
 
 void

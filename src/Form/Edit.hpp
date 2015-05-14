@@ -37,17 +37,22 @@ class ContainerWindow;
  * an editable field (the Editor).
  */
 class WndProperty : public WindowControl {
+  typedef bool (*EditCallback)(const TCHAR *caption, DataField &df,
+                               const TCHAR *help_text);
+
   const DialogLook &look;
 
   /** Position of the Editor Control */
   PixelRect edit_rc;
 
   /** Width reserved for the caption of the Control */
-  PixelScalar caption_width;
+  int caption_width;
 
   tstring value;
 
-  DataField *mDataField;
+  DataField *data_field;
+
+  EditCallback edit_callback;
 
   bool read_only;
 
@@ -84,9 +89,9 @@ public:
    * font.
    */
   gcc_pure
-  UPixelScalar GetRecommendedCaptionWidth() const;
+  unsigned GetRecommendedCaptionWidth() const;
 
-  void SetCaptionWidth(PixelScalar caption_width);
+  void SetCaptionWidth(int caption_width);
 
   void RefreshDisplay();
 
@@ -130,7 +135,7 @@ public:
    * @return The Control's DataField
    */
   DataField *GetDataField() {
-    return mDataField;
+    return data_field;
   }
 
   /**
@@ -138,10 +143,14 @@ public:
    * @return The Control's DataField
    */
   const DataField *GetDataField() const {
-    return mDataField;
+    return data_field;
   }
 
   void SetDataField(DataField *Value);
+
+  void SetEditCallback(EditCallback _ec) {
+    edit_callback = _ec;
+  }
 
   /**
    * Sets the Editors text to the given Value

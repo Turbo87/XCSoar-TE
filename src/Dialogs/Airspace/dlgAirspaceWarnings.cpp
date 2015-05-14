@@ -25,6 +25,7 @@ Copyright_License {
 #include "Airspace.hpp"
 #include "Dialogs/WidgetDialog.hpp"
 #include "Form/Button.hpp"
+#include "Look/DialogLook.hpp"
 #include "Formatter/UserUnits.hpp"
 #include "Screen/Canvas.hpp"
 #include "Screen/Layout.hpp"
@@ -79,10 +80,10 @@ class AirspaceWarningListWidget final
 
   ProtectedAirspaceWarningManager &airspace_warnings;
 
-  WndButton *ack_warn_button;
-  WndButton *ack_day_button;
-  WndButton *ack_space_button;
-  WndButton *enable_button;
+  Button *ack_warn_button;
+  Button *ack_day_button;
+  Button *ack_space_button;
+  Button *enable_button;
 
   TrivialArray<WarningItem, 64u> warning_list;
 
@@ -216,8 +217,14 @@ void
 AirspaceWarningListWidget::Prepare(ContainerWindow &parent,
                                    const PixelRect &rc)
 {
-  CreateList(parent, UIGlobals::GetDialogLook(), rc,
-             Layout::Scale(30));
+  const auto &look = UIGlobals::GetDialogLook();
+
+  const unsigned padding = Layout::GetTextPadding();
+  const unsigned font_height = look.list.font->GetHeight();
+  const unsigned row_height = 3 * padding + 2 * font_height;
+
+  CreateList(parent, look, rc,
+             std::max(Layout::GetMaximumControlHeight(), row_height));
 }
 
 void
@@ -345,14 +352,14 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
 
   // This constant defines the margin that should be respected
   // for renderring within the paint_rc area.
-  const int padding = 2;
+  const unsigned padding = Layout::GetTextPadding();
 
   if (i == 0 && warning_list.empty()) {
     /* the warnings were emptied between the opening of the dialog and
        this refresh, so only need to display "No Warnings" for top
        item, otherwise exit immediately */
-    canvas.DrawText(paint_rc.left + Layout::Scale(padding),
-                    paint_rc.top + Layout::Scale(padding), _("No Warnings"));
+    canvas.DrawText(paint_rc.left + padding,
+                    paint_rc.top + padding, _("No Warnings"));
     return;
   }
 
@@ -362,7 +369,9 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
   const AbstractAirspace &airspace = *warning.airspace;
   const AirspaceInterceptSolution &solution = warning.solution;
 
-  const UPixelScalar text_height = 12, text_top = 1;
+  const unsigned text_height = canvas.GetFontHeight();
+  const int first_row_y = paint_rc.top + padding;
+  const int second_row_y = first_row_y + text_height + padding;
 
   // word "inside" is used as the etalon, because it is longer than "near" and
   // currently (9.4.2011) there is no other possibility for the status text.
@@ -372,12 +381,12 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
 
   // Dynamic columns scaling - "name" column is flexible, altitude and state
   // columns are fixed-width.
-  const PixelScalar left0 = Layout::FastScale(padding),
-    left2 = paint_rc.right - Layout::FastScale(padding) - (status_width + 2 * Layout::FastScale(padding)),
-    left1 = left2 - Layout::FastScale(padding) - altitude_width;
+  const int left0 = padding,
+    left2 = paint_rc.right - padding - (status_width + 2 * padding),
+    left1 = left2 - padding - altitude_width;
 
   PixelRect rc_text_clip = paint_rc;
-  rc_text_clip.right = left1 - Layout::FastScale(padding);
+  rc_text_clip.right = left1 - padding;
 
   if (!warning.ack_expired)
     canvas.SetTextColor(COLOR_GRAY);
@@ -387,18 +396,14 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
                  airspace.GetName(),
                  AirspaceFormatter::GetClass(airspace));
 
-    canvas.DrawClippedText(paint_rc.left + left0,
-                           paint_rc.top + Layout::Scale(text_top),
+    canvas.DrawClippedText(paint_rc.left + left0, first_row_y,
                            rc_text_clip, buffer);
 
     AirspaceFormatter::FormatAltitudeShort(buffer, airspace.GetTop());
-    canvas.DrawText(paint_rc.left + left1,
-                    paint_rc.top + Layout::Scale(text_top), buffer);
+    canvas.DrawText(paint_rc.left + left1, first_row_y, buffer);
 
     AirspaceFormatter::FormatAltitudeShort(buffer, airspace.GetBase());
-    canvas.DrawText(paint_rc.left + left1,
-                    paint_rc.top + Layout::Scale(text_top + text_height),
-                    buffer);
+    canvas.DrawText(paint_rc.left + left1, second_row_y, buffer);
   }
 
   if (warning.state != AirspaceWarning::WARNING_INSIDE &&
@@ -420,8 +425,7 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
       FormatRelativeUserAltitude(delta, buffer + _tcslen(buffer), true);
     }
 
-    canvas.DrawClippedText(paint_rc.left + left0,
-                           paint_rc.top + Layout::Scale(text_top + text_height),
+    canvas.DrawClippedText(paint_rc.left + left0, second_row_y,
                            rc_text_clip, buffer);
   }
 
@@ -449,9 +453,9 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
     PixelRect rc;
 
     rc.left = paint_rc.left + left2;
-    rc.top = paint_rc.top + Layout::FastScale(padding);
-    rc.right = paint_rc.right - Layout::FastScale(padding);
-    rc.bottom = paint_rc.bottom - Layout::FastScale(padding);
+    rc.top = paint_rc.top + padding;
+    rc.right = paint_rc.right - padding;
+    rc.bottom = paint_rc.bottom - padding;
 
     canvas.DrawFilledRectangle(rc, state_color);
 
@@ -463,7 +467,7 @@ AirspaceWarningListWidget::OnPaintItem(Canvas &canvas,
 
   if (state_text != NULL) {
     // -- status text will be centered inside its table cell:
-    canvas.DrawText(paint_rc.left + left2 + Layout::FastScale(padding) + (status_width / 2)  - (canvas.CalcTextWidth(state_text) / 2),
+    canvas.DrawText(paint_rc.left + left2 + padding + (status_width / 2) - (canvas.CalcTextWidth(state_text) / 2),
                     (paint_rc.bottom + paint_rc.top - state_text_size.cy) / 2,
                     state_text);
   }

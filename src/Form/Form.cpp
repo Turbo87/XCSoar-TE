@@ -95,8 +95,7 @@ WndForm::WndForm(const DialogLook &_look)
    modal_result(0), force(false),
    modeless(false),
    dragging(false),
-   client_area(_look),
-   default_focus(nullptr)
+   client_area(_look)
 {
 }
 
@@ -108,8 +107,7 @@ WndForm::WndForm(SingleWindow &main_window, const DialogLook &_look,
    modal_result(0), force(false),
    modeless(false),
    dragging(false),
-   client_area(_look),
-   default_focus(NULL)
+   client_area(_look)
 {
   Create(main_window, rc, Caption, AddBorder(style));
 }
@@ -143,7 +141,6 @@ WndForm::~WndForm()
      our own OnDestroy() method won't be called (during object
      destruction, this object loses its identity) */
   Destroy();
-  SubForm::Clear();
 }
 
 SingleWindow &
@@ -332,7 +329,7 @@ CheckKey(ContainerWindow *container, const Event &event)
   return (r & DLGC_WANTMESSAGE) != 0;
 #else
   Window *focused = container->GetFocusedWindow();
-  if (focused == NULL)
+  if (focused == nullptr)
     return false;
 
   return focused->OnKeyCheck(event.GetKeyCode());
@@ -430,12 +427,12 @@ WndForm::ShowModal()
       if (event.GetKeyCode() == SDLK_TAB) {
         /* the Tab key moves the keyboard focus */
 #if SDL_MAJOR_VERSION >= 2
-        const Uint8 *keystate = ::SDL_GetKeyboardState(NULL);
+        const Uint8 *keystate = ::SDL_GetKeyboardState(nullptr);
         event.event.key.keysym.sym =
             keystate[SDL_SCANCODE_LSHIFT] || keystate[SDL_SCANCODE_RSHIFT]
           ? SDLK_UP : SDLK_DOWN;
 #else
-        const Uint8 *keystate = ::SDL_GetKeyState(NULL);
+        const Uint8 *keystate = ::SDL_GetKeyState(nullptr);
         event.event.key.keysym.sym =
           keystate[SDLK_LSHIFT] || keystate[SDLK_RSHIFT]
           ? SDLK_UP : SDLK_DOWN;
@@ -507,7 +504,7 @@ WndForm::ShowModal()
 #else
   if (old_focus_reference.Defined()) {
     Window *old_focus = old_focus_reference.Get(*root);
-    if (old_focus != NULL)
+    if (old_focus != nullptr)
       old_focus->SetFocus();
   }
 #endif /* !USE_GDI */
@@ -563,7 +560,7 @@ WndForm::OnPaint(Canvas &canvas)
     // JMW todo add here icons?
 
 #ifdef EYE_CANDY
-    if (!IsDithered()) {
+    if (!IsDithered() && is_active) {
       canvas.SetBackgroundTransparent();
       canvas.Stretch(title_rect.left, title_rect.top,
                      title_rect.right - title_rect.left,
@@ -601,7 +598,7 @@ WndForm::OnPaint(Canvas &canvas)
 void
 WndForm::SetCaption(const TCHAR *_caption)
 {
-  if (_caption == NULL)
+  if (_caption == nullptr)
     _caption = _T("");
 
   if (!caption.equals(_caption)) {
@@ -645,10 +642,7 @@ void
 WndForm::SetDefaultFocus()
 {
   SetFocus();
-  if (default_focus)
-    default_focus->SetFocus();
-  else
-    client_area.FocusFirstControl();
+  client_area.FocusFirstControl();
 }
 
 bool

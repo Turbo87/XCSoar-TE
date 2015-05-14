@@ -54,6 +54,7 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/dlgAnalysis.cpp \
 	$(SRC)/Dialogs/dlgBrightness.cpp \
 	$(SRC)/Dialogs/dlgChecklist.cpp \
+	$(SRC)/Dialogs/ProfileListDialog.cpp \
 	$(SRC)/Dialogs/Plane/PlaneListDialog.cpp \
 	$(SRC)/Dialogs/Plane/PlaneDetailsDialog.cpp \
 	$(SRC)/Dialogs/Plane/PlanePolarDialog.cpp \
@@ -67,6 +68,7 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/dlgSimulatorPrompt.cpp \
 	$(SRC)/Dialogs/SimulatorPromptWindow.cpp \
 	$(SRC)/Dialogs/dlgStartup.cpp \
+	$(SRC)/Dialogs/ProfilePasswordDialog.cpp \
 	\
 	$(SRC)/Dialogs/dlgStatus.cpp \
 	$(SRC)/Dialogs/StatusPanels/StatusPanel.cpp \
@@ -335,7 +337,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Gauge/FlarmTrafficWindow.cpp \
 	$(SRC)/Gauge/FlarmTrafficControl.cpp \
 	$(SRC)/Gauge/BigTrafficWidget.cpp \
-	$(SRC)/Look/FlarmTrafficLook.cpp \
 	$(SRC)/Gauge/GaugeFLARM.cpp \
 	$(SRC)/Gauge/GaugeThermalAssistant.cpp \
 	$(SRC)/Gauge/VarioSettings.cpp \
@@ -574,7 +575,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Audio/VegaVoiceSettings.cpp \
 	$(SRC)/Compatibility/fmode.c \
 	$(SRC)/Profile/Profile.cpp \
-	$(SRC)/Profile/Earth.cpp \
 	$(SRC)/Profile/Screen.cpp \
 	$(SRC)/Profile/TrackingProfile.cpp \
 	$(SRC)/Profile/SystemProfile.cpp \
@@ -586,8 +586,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Profile/MapProfile.cpp \
 	$(SRC)/Profile/PageProfile.cpp \
 	$(SRC)/Profile/UIProfile.cpp \
-	$(SRC)/Profile/ProfileGlue.cpp \
-	$(SRC)/Profile/ProfileKeys.cpp \
+	$(SRC)/Profile/Settings.cpp \
 	$(SRC)/Profile/FontConfig.cpp \
 	$(SRC)/Profile/UnitsConfig.cpp \
 	$(SRC)/Profile/DeviceConfig.cpp \
@@ -623,34 +622,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Look/GlobalFonts.cpp \
 	$(SRC)/Look/AutoFont.cpp \
 	$(SRC)/Look/DefaultFonts.cpp \
-	$(SRC)/Look/Look.cpp \
-	$(SRC)/Look/DialogLook.cpp \
-	$(SRC)/Look/ButtonLook.cpp \
-	$(SRC)/Look/TerminalLook.cpp \
-	$(SRC)/Look/VarioLook.cpp \
-	$(SRC)/Look/ChartLook.cpp \
-	$(SRC)/Look/MapLook.cpp \
-	$(SRC)/Look/WindArrowLook.cpp \
-	$(SRC)/Look/ThermalBandLook.cpp \
-	$(SRC)/Look/TraceHistoryLook.cpp \
-	$(SRC)/Look/AirspaceLook.cpp \
-	$(SRC)/Look/TrailLook.cpp \
-	$(SRC)/Look/CrossSectionLook.cpp \
-	$(SRC)/Look/GestureLook.cpp \
-	$(SRC)/Look/HorizonLook.cpp \
-	$(SRC)/Look/TaskLook.cpp \
-	$(SRC)/Look/TrafficLook.cpp \
-	$(SRC)/Look/InfoBoxLook.cpp \
-	$(SRC)/Look/WaypointLook.cpp \
-	$(SRC)/Look/AircraftLook.cpp \
-	$(SRC)/Look/MarkerLook.cpp \
-	$(SRC)/Look/NOAALook.cpp \
-	$(SRC)/Look/FinalGlideBarLook.cpp \
-	$(SRC)/Look/VarioBarLook.cpp \
-	$(SRC)/Look/IconLook.cpp \
-	$(SRC)/Look/UnitsLook.cpp \
-	$(SRC)/Look/ThermalAssistantLook.cpp \
-	$(SRC)/Look/WaveLook.cpp \
 	\
 	$(SRC)/Polar/PolarGlue.cpp \
 	$(SRC)/Polar/PolarFileGlue.cpp \
@@ -699,11 +670,12 @@ endif
 
 ifeq ($(TARGET_IS_DARWIN),y)
 XCSOAR_SOURCES += \
-	$(SRC)/Apple/InternalSensors.mm
+	$(SRC)/Apple/InternalSensors.cpp
 endif
 
 ifeq ($(TARGET),ANDROID)
 XCSOAR_SOURCES += \
+	$(SRC)/Dialogs/Device/ScanBluetoothLeDialog.cpp \
 	$(SRC)/Java/Global.cpp \
 	$(SRC)/Java/String.cpp \
 	$(SRC)/Java/File.cpp \
@@ -723,6 +695,7 @@ XCSOAR_SOURCES += \
 	$(SRC)/Android/NativeInputListener.cpp \
 	$(SRC)/Android/PortBridge.cpp \
 	$(SRC)/Android/BluetoothHelper.cpp \
+	$(SRC)/Android/NativeLeScanCallback.cpp \
 	$(SRC)/Android/Battery.cpp \
 	$(SRC)/Android/DownloadManager.cpp \
 	$(SRC)/Android/Vibrator.cpp \
@@ -787,6 +760,7 @@ endif
 XCSOAR_DEPENDS = GETTEXT PROFILE \
 	TERRAIN \
 	WIDGET FORM DATA_FIELD \
+	LOOK \
 	AUDIO SCREEN EVENT \
 	RESOURCE DATA \
 	DRIVER PORT \

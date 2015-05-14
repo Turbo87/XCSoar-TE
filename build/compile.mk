@@ -7,7 +7,7 @@ endif
 
 EXE := $(findstring .exe,$(MAKE))
 AR = $(TCPREFIX)ar$(EXE)
-AS = $(TCPREFIX)as$(EXE)
+
 ifneq ($(ANALYZER),y)
   ifeq ($(CLANG),y)
     CXX = $(LLVM_PREFIX)clang++$(LLVM_SUFFIX)$(EXE)
@@ -17,6 +17,24 @@ ifneq ($(ANALYZER),y)
     CC = $(TCPREFIX)gcc$(TCSUFFIX)$(EXE)
   endif
 endif
+
+ifeq ($(CLANG),y)
+  AS = $(CC)
+  ASFLAGS += -c -xassembler
+  ifneq ($(LLVM_TARGET),)
+    ASFLAGS += -target $(LLVM_TARGET)
+  else
+    ASFLAGS += $(TARGET_ARCH)
+  endif
+
+  ifeq ($(MIPS),y)
+    # work around "Fatal error: invalid -march= option: `mips32'"
+    ASFLAGS += -integrated-as
+  endif
+else
+  AS = $(TCPREFIX)as$(EXE)
+endif
+
 LD = $(TCPREFIX)ld$(EXE)
 DLLTOOL = $(TCPREFIX)dlltool$(EXE)
 SIZE = $(TCPREFIX)size$(EXE)
@@ -43,7 +61,7 @@ OBJ_SUFFIX = .o
 endif
 
 # Converts a list of source file names to *.o
-SRC_TO_OBJ = $(subst /./,/,$(patsubst %.cpp,%$(OBJ_SUFFIX),$(patsubst %.c,%$(OBJ_SUFFIX),$(patsubst %.mm,%$(OBJ_SUFFIX),$(addprefix $(TARGET_OUTPUT_DIR)/,$(1))))))
+SRC_TO_OBJ = $(subst /./,/,$(patsubst %.cpp,%$(OBJ_SUFFIX),$(patsubst %.c,%$(OBJ_SUFFIX),$(addprefix $(TARGET_OUTPUT_DIR)/,$(1)))))
 
 ####### dependency handling
 
@@ -86,7 +104,3 @@ $(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.cpp $(TARGET_OUTPUT_DIR)/%/../dirstamp
 ifeq ($(IWYU),y)
 	$(Q)iwyu $< $(cxx-flags)
 endif
-
-$(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.mm $(TARGET_OUTPUT_DIR)/%/../dirstamp
-	@$(NQ)echo "  CXX     $@"
-	$(Q)$(WRAPPED_CXX) $< -c -o $@ $(cxx-flags)

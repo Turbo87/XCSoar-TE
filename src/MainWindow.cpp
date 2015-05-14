@@ -249,7 +249,9 @@ MainWindow::InitialiseConfigured()
   look->InitialiseConfigured(CommonInterface::GetUISettings(),
                              Fonts::dialog, Fonts::dialog_bold,
                              Fonts::dialog_small,
-                             Fonts::map, Fonts::map_bold, Fonts::map_label,
+                             Fonts::map, Fonts::map_bold,
+                             Fonts::map_label,
+                             Fonts::map_label_important,
                              Fonts::cdi, Fonts::monospace,
                              Fonts::infobox, Fonts::infobox_small,
 #ifndef GNAV
@@ -260,8 +262,7 @@ MainWindow::InitialiseConfigured()
   InfoBoxManager::Create(*this, ib_layout, look->info_box, look->units);
   map_rect = ib_layout.remaining;
 
-  ButtonLabel::CreateButtonLabels(*this);
-  ButtonLabel::SetFont(Fonts::dialog_bold);
+  ButtonLabel::CreateButtonLabels(*this, look->dialog.button);
 
   ReinitialiseLayout_vario(ib_layout);
 

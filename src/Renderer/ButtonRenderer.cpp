@@ -22,38 +22,43 @@ Copyright_License {
 */
 
 #include "ButtonRenderer.hpp"
-#include "Screen/Color.hpp"
 #include "Screen/Canvas.hpp"
-#include "Screen/Pen.hpp"
+#include "Screen/Layout.hpp"
 #include "Look/ButtonLook.hpp"
 
 void
-ButtonRenderer::DrawButton(Canvas &canvas, PixelRect rc, bool focused,
-                           bool pressed)
+ButtonFrameRenderer::DrawButton(Canvas &canvas, PixelRect rc,
+                                bool focused, bool pressed) const
 {
   const ButtonLook::StateLook &_look = focused ? look.focused : look.standard;
 
   canvas.DrawFilledRectangle(rc, _look.background_color);
 
   canvas.Select(pressed ? _look.dark_border_pen : _look.light_border_pen);
-  canvas.DrawTwoLines(rc.left, rc.bottom - 2, rc.left, rc.top, rc.right - 2,
-                      rc.top);
-  canvas.DrawTwoLines(rc.left + 1, rc.bottom - 3, rc.left + 1, rc.top + 1,
-                      rc.right - 3, rc.top + 1);
+  canvas.DrawTwoLinesExact(rc.left, rc.bottom - 2, rc.left, rc.top, rc.right - 2,
+                           rc.top);
+  canvas.DrawTwoLinesExact(rc.left + 1, rc.bottom - 3, rc.left + 1, rc.top + 1,
+                           rc.right - 3, rc.top + 1);
 
   canvas.Select(pressed ? _look.light_border_pen : _look.dark_border_pen);
-  canvas.DrawTwoLines(rc.left + 1, rc.bottom - 1, rc.right - 1, rc.bottom - 1,
-                      rc.right - 1, rc.top + 1);
-  canvas.DrawTwoLines(rc.left + 2, rc.bottom - 2, rc.right - 2, rc.bottom - 2,
-                      rc.right - 2, rc.top + 2);
+  canvas.DrawTwoLinesExact(rc.left + 1, rc.bottom - 1, rc.right - 1, rc.bottom - 1,
+                           rc.right - 1, rc.top + 1);
+  canvas.DrawTwoLinesExact(rc.left + 2, rc.bottom - 2, rc.right - 2, rc.bottom - 2,
+                           rc.right - 2, rc.top + 2);
 }
 
 PixelRect
-ButtonRenderer::GetDrawingRect(PixelRect rc, bool pressed)
+ButtonFrameRenderer::GetDrawingRect(PixelRect rc, bool pressed) const
 {
   rc.Grow(-2);
   if (pressed)
     rc.Offset(1, 1);
 
   return rc;
+}
+
+unsigned
+ButtonRenderer::GetMinimumButtonWidth() const
+{
+  return Layout::GetMaximumControlHeight();
 }

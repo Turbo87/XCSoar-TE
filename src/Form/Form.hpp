@@ -25,7 +25,6 @@ Copyright_License {
 #define XCSOAR_FORM_FORM_HPP
 
 #include "ActionListener.hpp"
-#include "SubForm.hpp"
 #include "Screen/ContainerWindow.hpp"
 #include "Util/StaticString.hpp"
 
@@ -46,7 +45,7 @@ enum ModalResult {
  * A WndForm represents a Window with a titlebar.
  * It is used to display the XML dialogs and MessageBoxes.
  */
-class WndForm : public ContainerWindow, public SubForm,
+class WndForm : public ContainerWindow,
                 public ActionListener
 {
   class ClientAreaWindow : public ContainerWindow {
@@ -97,11 +96,6 @@ protected:
 
   KeyDownFunction key_down_function;
   CharacterFunction character_function;
-
-  /*
-   * Control which should get the focus by default
-   */
-  Window *default_focus;
 
   RasterPoint last_drag;
 
@@ -221,14 +215,6 @@ public:
 
   void SetCharacterFunction(CharacterFunction function) {
     character_function = function;
-  }
-
-  void SetDefaultFocus(Window *_defaultFocus) {
-    default_focus = _defaultFocus;
-  }
-
-  Window *GetDefaultFocus() {
-    return default_focus;
   }
 
   /**

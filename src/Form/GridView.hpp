@@ -24,17 +24,12 @@ Copyright_License {
 #ifndef XCSOAR_FORM_GRIDVIEW_HPP
 #define XCSOAR_FORM_GRIDVIEW_HPP
 
-#include "Screen/ContainerWindow.hpp"
+#include "Panel.hpp"
 #include "Util/StaticArray.hpp"
-#include "Look/DialogLook.hpp"
 
-class GridView : public ContainerWindow {
-
+class GridView : public PanelControl {
 public:
-  enum
-  {
-    MAX_ITEMS = 32,
-  };
+  static constexpr unsigned MAX_ITEMS = 32;
 
   enum class Direction
   {
@@ -44,29 +39,29 @@ public:
     DOWN
   };
 
-protected:
+private:
   StaticArray<Window *, MAX_ITEMS> items;
-  UPixelScalar column_width;
-  UPixelScalar row_height;
-  UPixelScalar horizontal_spacing;
-  UPixelScalar vertical_spacing;
+
+  unsigned column_width;
+  unsigned row_height;
+
   unsigned num_columns;
   unsigned num_rows;
   unsigned current_page;
-  const DialogLook &look;
 
 public:
-  GridView(ContainerWindow &parent, PixelRect rc,
-           const DialogLook &look,
-           const WindowStyle style=WindowStyle());
+  void Create(ContainerWindow &parent, const DialogLook &look,
+              const PixelRect &rc, const WindowStyle style=WindowStyle());
 
-  void SetItems(const TrivialArray<Window *, MAX_ITEMS> &items);
+  void AddItem(Window &w) {
+    items.push_back(&w);
+  }
 
-  UPixelScalar GetColumnWidth() const {
+  unsigned GetColumnWidth() const {
     return column_width;
   }
 
-  UPixelScalar GetRowHeight() const {
+  unsigned GetRowHeight() const {
     return row_height;
   }
 
@@ -82,8 +77,6 @@ public:
     return num_rows;
   }
 
-  void SetNumRows(unsigned numRows);
-
   gcc_pure
   signed GetIndexOfItemInFocus() const;
 
@@ -91,13 +84,15 @@ public:
   void ShowNextPage(Direction direction = Direction::RIGHT);
   void RefreshLayout();
 
-protected:
+private:
+  gcc_pure
   signed GetNextItemIndex(unsigned currIndex, Direction direction) const;
+
+  gcc_pure
   signed GetNextEnabledItemIndex(signed currIndex, Direction direction) const;
 
-#ifdef USE_GDI
-  virtual void OnPaint(Canvas &canvas) override;
-#endif
+  /* virtual methods from class Window */
+  void OnResize(PixelSize new_size) override;
 };
 
 #endif

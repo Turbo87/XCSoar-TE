@@ -30,9 +30,9 @@ Copyright_License {
 class ButtonPanel {
   ContainerWindow &parent;
   const ButtonLook &look;
-  ButtonWindowStyle style;
+  WindowStyle style;
 
-  StaticArray<WndButton *, 8u> buttons;
+  StaticArray<Button *, 8u> buttons;
 
   /**
    * Map key codes to the button that "owns" it.  Used by KeyPress().
@@ -43,19 +43,26 @@ public:
   ButtonPanel(ContainerWindow &parent, const ButtonLook &look);
   ~ButtonPanel();
 
+  const ButtonLook &GetLook() const {
+    return look;
+  }
+
   void SetDefaultHidden() {
     style.Hide();
   }
 
-  WndButton *Add(tstring::const_pointer caption,
-                 ActionListener &listener, int id);
+  Button *Add(ButtonRenderer *renderer,
+              ActionListener &listener, int id);
+
+  Button *Add(const TCHAR *caption,
+              ActionListener &listener, int id);
 
   /**
    * Add a symbol button.  The caption is one of the "special"
    * #WndSymbolButton strings.
    */
-  WndButton *AddSymbol(tstring::const_pointer caption,
-                       ActionListener &listener, int id);
+  Button *AddSymbol(const TCHAR *caption,
+                    ActionListener &listener, int id);
 
   /**
    * Assign a hot key to the most recently added button.
@@ -103,9 +110,20 @@ public:
    */
   bool KeyPress(unsigned key_code);
 
-protected:
+private:
   gcc_pure
   unsigned Width(unsigned i) const;
+
+  /**
+   * Check how many buttons fit into a row, starting at the given
+   * offset.
+   *
+   * @param start the first button index in this row
+   * @param total_width the total width of the panel in pixels
+   * @return the first button index not in this row
+   */
+  gcc_pure
+  unsigned FitButtonRow(unsigned start, unsigned total_width) const;
 
   gcc_pure
   unsigned RangeMaxWidth(unsigned start, unsigned end) const;

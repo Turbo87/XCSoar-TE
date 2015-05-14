@@ -24,23 +24,40 @@ Copyright_License {
 #ifndef XCSOAR_BUTTON_RENDERER_HPP
 #define XCSOAR_BUTTON_RENDERER_HPP
 
+#include "Compiler.h"
+
 struct PixelRect;
 struct ButtonLook;
 class Canvas;
 
-class ButtonRenderer
-{
+class ButtonFrameRenderer {
   const ButtonLook &look;
 
 public:
-  ButtonRenderer(const ButtonLook &_look):look(_look) {}
+  explicit ButtonFrameRenderer(const ButtonLook &_look):look(_look) {}
 
   const ButtonLook &GetLook() const {
     return look;
   }
 
-  void DrawButton(Canvas &canvas, PixelRect rc, bool focused, bool pressed);
-  PixelRect GetDrawingRect(PixelRect rc, bool pressed);
+  unsigned GetMargin() const {
+    return 2;
+  }
+
+  void DrawButton(Canvas &canvas, PixelRect rc,
+                  bool focused, bool pressed) const;
+  PixelRect GetDrawingRect(PixelRect rc, bool pressed) const;
+};
+
+class ButtonRenderer {
+public:
+  virtual ~ButtonRenderer() {}
+
+  gcc_pure
+  virtual unsigned GetMinimumButtonWidth() const;
+
+  virtual void DrawButton(Canvas &canvas, const PixelRect &rc,
+                          bool enabled, bool focused, bool pressed) const = 0;
 };
 
 #endif

@@ -161,16 +161,15 @@ class ConfigurationExtraButtons final
   const DialogLook &look;
 
   CheckBoxControl expert;
-  WndButton button2, button1;
+  Button button2, button1;
   bool borrowed2, borrowed1;
 
 public:
   ConfigurationExtraButtons(const DialogLook &_look)
     :look(_look),
-     button2(look.button), button1(look.button),
      borrowed2(false), borrowed1(false) {}
 
-  WndButton &GetButton(unsigned number) {
+  Button &GetButton(unsigned number) {
     switch (number) {
     case 1:
       return button1;
@@ -197,8 +196,8 @@ protected:
     expert.Create(parent, look, _("Expert"),
                   layout.expert, style, *this, EXPERT);
 
-    button2.Create(parent, _T(""), layout.button2, style);
-    button1.Create(parent, _T(""), layout.button1, style);
+    button2.Create(parent, look.button, _T(""), layout.button2, style);
+    button1.Create(parent, look.button, _T(""), layout.button1, style);
   }
 
   virtual void Show(const PixelRect &rc) override {
@@ -246,13 +245,13 @@ private:
 
 void
 ConfigPanel::BorrowExtraButton(unsigned i, const TCHAR *caption,
-                               void (*callback)())
+                               ActionListener &listener, int id)
 {
   ConfigurationExtraButtons &extra =
     (ConfigurationExtraButtons &)pager->GetExtra();
-  WndButton &button = extra.GetButton(i);
+  Button &button = extra.GetButton(i);
   button.SetCaption(caption);
-  button.SetOnClickNotify(callback);
+  button.SetListener(listener, id);
   button.Show();
 }
 
@@ -261,7 +260,7 @@ ConfigPanel::ReturnExtraButton(unsigned i)
 {
   ConfigurationExtraButtons &extra =
     (ConfigurationExtraButtons &)pager->GetExtra();
-  WndButton &button = extra.GetButton(i);
+  Button &button = extra.GetButton(i);
   button.Hide();
 }
 

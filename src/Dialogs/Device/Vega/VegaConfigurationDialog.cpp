@@ -107,13 +107,11 @@ class VegaConfigurationExtraButtons final
 
   WidgetDialog &dialog;
 
-  WndButton demo_button, save_button;
+  Button demo_button, save_button;
 
 public:
   VegaConfigurationExtraButtons(WidgetDialog &_dialog)
-    :dialog(_dialog),
-     demo_button(dialog.GetLook().button),
-     save_button(dialog.GetLook().button) {}
+    :dialog(_dialog) {}
 
 protected:
   /* virtual methods from Widget */
@@ -121,12 +119,15 @@ protected:
                        const PixelRect &rc) override {
     Layout layout(rc);
 
-    ButtonWindowStyle style;
+    WindowStyle style;
     style.Hide();
     style.TabStop();
 
-    demo_button.Create(parent, _("Demo"), layout.demo, style, *this, DEMO);
-    save_button.Create(parent, _("Save"), layout.save, style, *this, SAVE);
+    const auto &button_look = dialog.GetLook().button;
+    demo_button.Create(parent, button_look, _("Demo"),
+                       layout.demo, style, *this, DEMO);
+    save_button.Create(parent, button_look, _("Save"),
+                       layout.save, style, *this, SAVE);
   }
 
   virtual void Show(const PixelRect &rc) override {

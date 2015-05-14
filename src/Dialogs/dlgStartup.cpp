@@ -22,6 +22,9 @@ Copyright_License {
 */
 
 #include "Dialogs/Dialogs.h"
+#include "ProfilePasswordDialog.hpp"
+#include "ProfileListDialog.hpp"
+#include "Message.hpp"
 #include "WidgetDialog.hpp"
 #include "Widget/TwoWidgets.hpp"
 #include "Widget/RowFormWidget.hpp"
@@ -55,14 +58,15 @@ protected:
 };
 
 class LogoQuitWidget final : public NullWidget {
+  const ButtonLook &look;
   ActionListener &action_listener;
 
   LogoWindow logo;
-  WndButton quit;
+  Button quit;
 
 public:
-  LogoQuitWidget(const ButtonLook &look, ActionListener &_action_listener)
-    :action_listener(_action_listener), quit(look) {}
+  LogoQuitWidget(const ButtonLook &_look, ActionListener &_action_listener)
+    :look(_look), action_listener(_action_listener) {}
 
 private:
   PixelRect GetButtonRect(PixelRect rc) {
@@ -87,11 +91,12 @@ public:
     WindowStyle style;
     style.Hide();
 
-    ButtonWindowStyle button_style(style);
+    WindowStyle button_style(style);
+    button_style.Hide();
     button_style.TabStop();
 
-    quit.Create(parent, _("Quit"), rc,
-                style, action_listener, mrCancel);
+    quit.Create(parent, look, _("Quit"), rc,
+                button_style, action_listener, mrCancel);
     logo.Create(parent, rc, style);
   }
 
@@ -142,19 +147,38 @@ public:
   }
 };
 
+static bool
+SelectProfileCallback(const TCHAR *caption, DataField &_df,
+                      const TCHAR *help_text)
+{
+  FileDataField &df = (FileDataField &)_df;
+
+  const auto path = SelectProfileDialog(df.GetPathFile());
+  if (path.empty())
+    return false;
+
+  df.ForceModify(path.c_str());
+  return true;
+}
+
 void
 StartupWidget::Prepare(ContainerWindow &parent,
                        const PixelRect &rc)
 {
-  Add(_("Profile"), nullptr, df);
+  auto *pe = Add(_("Profile"), nullptr, df);
+  pe->SetEditCallback(SelectProfileCallback);
+
   AddButton(_("Continue"), action_listener, mrOK);
 }
 
-static void
+static bool
 SelectProfile(const TCHAR *path)
 {
   if (StringIsEmpty(path))
-    return;
+    return true;
+
+  if (!CheckProfilePasswordResult(CheckProfileFilePassword(path)))
+    return false;
 
   Profile::SetFiles(path);
 
@@ -166,13 +190,16 @@ SelectProfile(const TCHAR *path)
   }
 
   File::Touch(path);
+  return true;
 }
 
 bool
 StartupWidget::Save(bool &changed)
 {
   const auto &dff = (const FileDataField &)GetDataField(PROFILE);
-  SelectProfile(dff.GetPathFile());
+  if (!SelectProfile(dff.GetPathFile()))
+    return false;
+
   changed = true;
 
   return true;
@@ -189,9 +216,12 @@ dlgStartupShowModal()
 
   /* skip this dialog if there is only one (or none) */
   if (dff->GetNumFiles() <= 1) {
-    SelectProfile(dff->GetPathFile());
-    delete dff;
-    return true;
+    const TCHAR *path = dff->GetPathFile();
+    if (!ProfileFileHasPassword(path)) {
+      SelectProfile(path);
+      delete dff;
+      return true;
+    }
   }
 
   /* preselect the most recently used profile */

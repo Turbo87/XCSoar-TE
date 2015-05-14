@@ -50,7 +50,7 @@ class OptionStartsWidget : public ListWidget, private ActionListener {
   const bool RealStartExists;
   bool modified;
 
-  WndButton *relocate_button, *remove_button;
+  Button *relocate_button, *remove_button;
 
 public:
   OptionStartsWidget(OrderedTask &_task)
@@ -234,9 +234,9 @@ OptionStartsWidget::Remove(unsigned i)
 }
 
 bool
-dlgTaskOptionalStarts(OrderedTask** task)
+dlgTaskOptionalStarts(OrderedTask &task)
 {
-  OptionStartsWidget widget(**task);
+  OptionStartsWidget widget(task);
   WidgetDialog dialog(UIGlobals::GetDialogLook());
   dialog.CreateFull(UIGlobals::GetMainWindow(),
                     _("Alternate Start Points"), &widget);

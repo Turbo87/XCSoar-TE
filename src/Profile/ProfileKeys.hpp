@@ -26,6 +26,7 @@ Copyright_License {
 
 namespace ProfileKeys {
 
+extern const char Password[];
 extern const char SpeedUnitsValue[];
 extern const char DistanceUnitsValue[];
 extern const char AltitudeUnitsValue[];
@@ -239,6 +240,7 @@ extern const char FlarmLocation[];
 
 extern const char TrackingInterval[];
 extern const char TrackingVehicleType[];
+extern const char TrackingVehicleName[];
 extern const char SkyLinesTrackingEnabled[];
 extern const char SkyLinesTrackingInterval[];
 extern const char SkyLinesTrafficEnabled[];

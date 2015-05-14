@@ -166,7 +166,7 @@ class ManagedFileListWidget
   unsigned font_height;
 
 #ifdef HAVE_DOWNLOAD_MANAGER
-  WndButton *download_button, *add_button, *cancel_button;
+  Button *download_button, *add_button, *cancel_button;
 #endif
 
   FileRepository repository;
@@ -522,9 +522,7 @@ ManagedFileListWidget::Add()
   assert(Net::DownloadManager::IsAvailable());
 
   std::vector<AvailableFile> list;
-  for (auto i = repository.begin(), end = repository.end(); i != end; ++i) {
-    const AvailableFile &remote_file = *i;
-
+  for (const auto &remote_file : repository) {
     if (IsDownloading(remote_file.GetName()))
       /* already downloading this file */
       continue;
