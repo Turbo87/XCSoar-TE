@@ -51,7 +51,6 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Traffic/TrafficList.cpp \
 	$(SRC)/Dialogs/Traffic/FlarmTrafficDetails.cpp \
 	$(SRC)/Dialogs/Traffic/TeamCodeDialog.cpp \
-	$(SRC)/Dialogs/Traffic/TrafficRadar.cpp \
 	$(SRC)/Dialogs/dlgAnalysis.cpp \
 	$(SRC)/Dialogs/dlgBrightness.cpp \
 	$(SRC)/Dialogs/dlgChecklist.cpp \
@@ -336,7 +335,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Gauge/BigThermalAssistantWindow.cpp \
 	$(SRC)/Gauge/BigThermalAssistantWidget.cpp \
 	$(SRC)/Gauge/FlarmTrafficWindow.cpp \
-	$(SRC)/Gauge/FlarmTrafficControl.cpp \
 	$(SRC)/Gauge/BigTrafficWidget.cpp \
 	$(SRC)/Gauge/GaugeFLARM.cpp \
 	$(SRC)/Gauge/GaugeThermalAssistant.cpp \

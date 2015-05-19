@@ -32,9 +32,6 @@ void
 dlgTeamCodeShowModal();
 
 void
-dlgFlarmTrafficShowModal();
-
-void
 dlgFlarmTrafficDetailsShowModal(FlarmId id);
 
 void

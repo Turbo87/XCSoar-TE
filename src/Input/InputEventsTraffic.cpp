@@ -23,7 +23,6 @@ Copyright_License {
 
 #include "InputEvents.hpp"
 #include "PageActions.hpp"
-#include "UIActions.hpp"
 #include "Interface.hpp"
 #include "MainWindow.hpp"
 #include "Gauge/BigTrafficWidget.hpp"
@@ -44,7 +43,7 @@ InputEvents::eventFLARMRadar(gcc_unused const TCHAR *misc)
 void
 InputEvents::eventFlarmTraffic(gcc_unused const TCHAR *misc)
 {
-  UIActions::ShowTrafficRadar();
+  PageActions::ShowTrafficRadar();
 }
 
 void

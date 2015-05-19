@@ -27,7 +27,7 @@ Copyright_License {
 #include "FlarmTrafficWindow.hpp"
 #include "Blackboard/LiveBlackboard.hpp"
 #include "Computer/Settings.hpp"
-#include "UIActions.hpp"
+#include "PageActions.hpp"
 
 #ifdef ENABLE_OPENGL
 #include "Screen/OpenGL/Scope.hpp"
@@ -118,7 +118,7 @@ SmallTrafficWindow::OnMouseUp(PixelScalar x, PixelScalar y)
     ReleaseCapture();
 
     if (was_pressed)
-      UIActions::ShowTrafficRadar();
+      PageActions::ShowTrafficRadar();
 
     return true;
   }
