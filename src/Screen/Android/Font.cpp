@@ -33,7 +33,7 @@ Copyright_License {
 #include <assert.h>
 
 /*
- * create a new instance of org.xcsoarte.TextUtil and store it with a global
+ * create a new instance of org.xcsoar.TextUtil and store it with a global
  * reference in text_util_object member.
  */
 bool

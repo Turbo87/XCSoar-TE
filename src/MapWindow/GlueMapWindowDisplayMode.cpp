@@ -221,11 +221,7 @@ GlueMapWindow::UpdateScreenAngle()
 
   OnProjectionModified();
 
-if (settings.circling_orientation == MapOrientation::NORTH_UP
-      && settings.cruise_orientation == MapOrientation::NORTH_UP)
-    compass_visible = false;
-  else
-    compass_visible = true;
+  compass_visible = orientation != MapOrientation::NORTH_UP;
 }
 
 void
