@@ -32,6 +32,7 @@ Copyright_License {
 #include "Util/StaticString.hpp"
 
 #include <map>
+#include <string>
 
 #include <assert.h>
 #include <stdint.h>
