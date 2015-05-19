@@ -52,7 +52,7 @@ public:
 
   /* virtual methods from Widget */
   virtual void Prepare(ContainerWindow &parent, const PixelRect &rc);
-  virtual bool Save(bool &changed, bool &require_restart);
+  virtual bool Save(bool &changed);
 
 protected:
   bool SaveFixedSetting(LX1600::Setting key, unsigned idx,

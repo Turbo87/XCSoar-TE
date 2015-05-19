@@ -168,7 +168,7 @@ LX16xxConfigWidget::SaveFixedEnumSetting(LX1600::Setting key, unsigned idx,
 }
 
 bool
-LX16xxConfigWidget::Save(bool &changed, bool &require_restart)
+LX16xxConfigWidget::Save(bool &changed)
 {
   LX1600::SettingsMap settings;
 
