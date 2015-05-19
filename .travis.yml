@@ -56,7 +56,7 @@ install:
       sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools p7zip-full;
 
       wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin;
-      7z x -o$HOME/opt android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin;
+      7z x -o$HOME/opt android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin > /dev/null;
       rm android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin;
 
       wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
