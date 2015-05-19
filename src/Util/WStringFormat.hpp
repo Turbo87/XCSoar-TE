@@ -65,7 +65,7 @@ template<typename... Args>
 static inline void
 StringFormatUnsafe(wchar_t *buffer, const wchar_t *fmt, Args&&... args)
 {
-#ifdef _WIN32_WCE
+#if defined(_WIN32_WCE) || (defined(WIN32) && !GCC_CHECK_VERSION(4,8))
   swprintf(buffer, fmt, args...);
 #else
   _swprintf(buffer, fmt, args...);
