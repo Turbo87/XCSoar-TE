@@ -53,6 +53,8 @@ install:
   - if [ "$TARGET" = "ANDROID" ]; then
       mkdir -p ~/opt;
 
+      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools p7zip-full;
+
       wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin;
       7z x -o$HOME/opt android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin
       rm android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.tar.bz2;
@@ -60,8 +62,6 @@ install:
       wget http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
       tar -xf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt;
       rm android-sdk_r$ANDROID_SDK_VERSION-linux.tgz;
-
-      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools;
 
       if [ `uname -m` = x86_64 ]; then
         sudo apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386;
