@@ -19,6 +19,7 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Device/CAI302/UnitsEditor.cpp \
 	$(SRC)/Dialogs/Device/CAI302/WaypointUploader.cpp \
 	$(SRC)/Dialogs/Device/ManageFlarmDialog.cpp \
+	$(SRC)/Dialogs/Device/BlueFly/BlueFlyConfigurationDialog.cpp \
 	$(SRC)/Dialogs/Device/LX/ManageV7Dialog.cpp \
 	$(SRC)/Dialogs/Device/LX/V7ConfigWidget.cpp \
 	$(SRC)/Dialogs/Device/LX/ManageNanoDialog.cpp \
@@ -587,7 +588,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Profile/PageProfile.cpp \
 	$(SRC)/Profile/UIProfile.cpp \
 	$(SRC)/Profile/Settings.cpp \
-	$(SRC)/Profile/FontConfig.cpp \
 	$(SRC)/Profile/UnitsConfig.cpp \
 	$(SRC)/Profile/DeviceConfig.cpp \
 	$(SRC)/Profile/InfoBoxConfig.cpp \
@@ -619,6 +619,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Screen/Ramp.cpp \
 	$(SRC)/Screen/TerminalWindow.cpp \
 	\
+	$(SRC)/Look/FontDescription.cpp \
 	$(SRC)/Look/GlobalFonts.cpp \
 	$(SRC)/Look/AutoFont.cpp \
 	$(SRC)/Look/DefaultFonts.cpp \
@@ -725,11 +726,6 @@ endif
 
 ifeq ($(TARGET),ALTAIR)
 XCSOAR_SOURCES += $(SRC)/Hardware/AltairControl.cpp
-else
-XCSOAR_SOURCES += \
-	$(SRC)/Look/CustomFonts.cpp \
-	$(SRC)/Dialogs/Settings/dlgConfigFonts.cpp \
-	$(SRC)/Dialogs/Settings/FontEdit.cpp
 endif
 
 ifeq ($(HAVE_HTTP),y)

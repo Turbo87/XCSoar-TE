@@ -105,7 +105,6 @@ class TaskPointWidget final
   Button change_type;
   WndOwnerDrawFrame map;
   DockWindow properties_dock;
-  ObservationZoneEditWidget *properties_widget;
 
   Button optional_starts;
   CheckBoxControl score_exit;
@@ -160,6 +159,10 @@ private:
 public:
   /* virtual methods from class Widget */
   void Prepare(ContainerWindow &parent, const PixelRect &rc) override;
+
+  void Unprepare() override {
+    properties_dock.DeleteWidget();
+  }
 
   bool Save(bool &changed) override {
     ReadValues();
@@ -372,16 +375,17 @@ TaskPointWidget::RefreshView()
 
   OrderedTaskPoint &tp = ordered_task.GetPoint(active_index);
 
-  properties_dock.SetWidget(new PanelWidget());
+  properties_dock.DeleteWidget();
 
   ObservationZonePoint &oz = tp.GetObservationZone();
   const bool is_fai_general =
     ordered_task.GetFactoryType() == TaskFactoryType::FAI_GENERAL;
-  properties_widget = CreateObservationZoneEditWidget(oz, is_fai_general);
+  auto *properties_widget = CreateObservationZoneEditWidget(oz, is_fai_general);
   if (properties_widget != nullptr) {
     properties_widget->SetListener(this);
     properties_dock.SetWidget(properties_widget);
-  }
+  } else
+    properties_dock.SetWidget(new PanelWidget());
 
   type_label.SetCaption(OrderedTaskPointName(ordered_task.GetFactory().GetType(tp)));
 
@@ -459,8 +463,7 @@ TaskPointWidget::ReadValues()
     }
   }
 
-  return properties_widget == nullptr ||
-    properties_widget->Save(task_modified);
+  return properties_dock.SaveWidget(task_modified);
 }
 
 void

@@ -368,7 +368,7 @@ TargetWidget::Layout::Layout(PixelRect rc)
     speed_remaining = rl.NextRow(min_control_height);
     speed_achieved = rl.NextRow(min_control_height);
     optimized = rl.NextRow(control_height);
-    close_button = rl.NextRow(control_height);
+    close_button = rl.BottomRow(control_height);
   } else {
     /* portrait: form on the top */
 
@@ -398,6 +398,20 @@ TargetWidget::Layout::Layout(PixelRect rc)
 
     map = rl.GetRemaining();
   }
+}
+
+template<typename... Args>
+static void
+UseRecommendedCaptionWidths(Args&&... args)
+{
+  WndProperty *controls[] = { &args... };
+
+  unsigned width = 0;
+  for (const auto *i : controls)
+    width = std::max(width, i->GetRecommendedCaptionWidth());
+
+  for (auto *i : controls)
+    i->SetCaptionWidth(width);
 }
 
 void
@@ -455,9 +469,12 @@ TargetWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   speed_remaining.SetReadOnly();
   speed_remaining.SetHelpText(_("Speed remaining"));
 
-  speed_achieved.Create(parent, layout.speed_achieved, _("V rem."), caption_width, style);
+  speed_achieved.Create(parent, layout.speed_achieved, _("V ach"), caption_width, style);
   speed_achieved.SetReadOnly();
   speed_achieved.SetHelpText(_("AA Speed - Assigned Area Task average speed achievable around target points remaining in minimum AAT time."));
+
+  UseRecommendedCaptionWidths(range, radial, ete, delta_t,
+                              speed_remaining, speed_achieved);
 
   optimized.Create(parent, UIGlobals::GetDialogLook(), _("Optimized"),
                    layout.optimized, button_style, *this, OPTIMIZED);
