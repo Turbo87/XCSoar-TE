@@ -13,8 +13,8 @@ env:
   matrix:
     - TARGET=ANDROID
     - TARGET=UNIX
-    - TARGET=PC
-    - TARGET=WIN64
+    #- TARGET=PC
+    #- TARGET=WIN64
     - TARGET=WM5
     - TARGET=WM5X
     - TARGET=PPC2000
