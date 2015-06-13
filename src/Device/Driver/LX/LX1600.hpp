@@ -29,7 +29,7 @@ Copyright_License {
 #include "Atmosphere/Pressure.hpp"
 #include "Engine/GlideSolvers/PolarCoefficients.hpp"
 #include "Units/System.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 
 #include <map>
 #include <string>
