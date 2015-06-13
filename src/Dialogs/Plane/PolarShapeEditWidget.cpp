@@ -103,14 +103,14 @@ PixelSize
 PolarShapeEditWidget::GetMinimumSize() const
 {
   return { Layout::Scale(200u),
-      Layout::GetMinimumControlHeight() };
+      2 * Layout::GetMinimumControlHeight() };
 }
 
 PixelSize
 PolarShapeEditWidget::GetMaximumSize() const
 {
   return { Layout::Scale(400u),
-      Layout::GetMaximumControlHeight() };
+      2 * Layout::GetMaximumControlHeight() };
 }
 
 void
@@ -127,9 +127,9 @@ PolarShapeEditWidget::Prepare(ContainerWindow &parent, const PixelRect &_rc)
   const TCHAR *w_text = _("Polar W");
 
   const unsigned row_height = height / 2;
-  const unsigned label_width = Layout::Scale(8) +
-    std::max(look.text_font->TextSize(v_text).cx,
-             look.text_font->TextSize(v_text).cx);
+  const unsigned label_width = 2 * Layout::GetTextPadding() +
+    std::max(look.text_font.TextSize(v_text).cx,
+             look.text_font.TextSize(w_text).cx);
   const UPixelScalar edit_width = (width - label_width) / ARRAY_SIZE(points);
 
   WindowStyle style;
@@ -200,9 +200,9 @@ PolarShapeEditWidget::Prepare(ContainerWindow &parent, const PixelRect &_rc)
 void
 PolarShapeEditWidget::Unprepare()
 {
-  for (unsigned i = 0; i < ARRAY_SIZE(points); ++i) {
-    delete points[i].v;
-    delete points[i].w;
+  for (auto &i : points) {
+    delete i.v;
+    delete i.w;
   }
 
   PanelWidget::Unprepare();

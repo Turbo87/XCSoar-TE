@@ -53,15 +53,33 @@ AirspacePolygon::AirspacePolygon(const std::vector<GeoPoint> &pts,
   }
 }
 
-const GeoPoint 
-AirspacePolygon::GetCenter() const
+const GeoPoint
+AirspacePolygon::GetReferenceLocation() const
 {
   assert(m_border.size() >= 3);
 
   return m_border[0].GetLocation();
 }
 
-bool 
+const GeoPoint
+AirspacePolygon::GetCenter() const
+{
+  assert(m_border.size() >= 3);
+
+  fixed lat(0), lon(0);
+
+  for (const auto &pt : m_border) {
+    lat += pt.GetLocation().latitude.Native();
+    lon += pt.GetLocation().longitude.Native();
+  }
+
+  lon = lon / m_border.size();
+  lat = lat / m_border.size();
+
+  return GeoPoint(Angle::Native(lon), Angle::Native(lat));
+}
+
+bool
 AirspacePolygon::Inside(const GeoPoint &loc) const
 {
   return m_border.IsInside(loc);
@@ -87,7 +105,7 @@ AirspacePolygon::Intersects(const GeoPoint &start, const GeoPoint &end,
   return sorter.all();
 }
 
-GeoPoint 
+GeoPoint
 AirspacePolygon::ClosestPoint(const GeoPoint &loc,
                               const FlatProjection &projection) const
 {

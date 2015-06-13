@@ -104,7 +104,7 @@ LoggerConfigPanel::Save(bool &changed)
   LoggerSettings &logger = settings_computer.logger;
 
   changed |= SaveValue(PilotName, ProfileKeys::PilotName,
-                       logger.pilot_name.buffer(), logger.pilot_name.MAX_SIZE);
+                       logger.pilot_name);
 
   changed |= SaveValue(LoggerTimeStepCruise, ProfileKeys::LoggerTimeStepCruise,
                        logger.time_step_cruise);
@@ -132,8 +132,7 @@ LoggerConfigPanel::Save(bool &changed)
     require_restart = true;
   }
 
-  changed |= SaveValue(LoggerID, ProfileKeys::LoggerID,
-                       logger.logger_id.buffer(), logger.logger_id.MAX_SIZE);
+  changed |= SaveValue(LoggerID, ProfileKeys::LoggerID, logger.logger_id);
 
   return true;
 }

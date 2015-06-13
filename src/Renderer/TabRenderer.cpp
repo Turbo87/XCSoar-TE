@@ -21,41 +21,32 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_TASK_MAP_WINDOW_HPP
-#define XCSOAR_TASK_MAP_WINDOW_HPP
+#include "TabRenderer.hpp"
+#include "Screen/Canvas.hpp"
+#include "Screen/Icon.hpp"
+#include "Look/DialogLook.hpp"
 
-#include "Screen/BufferWindow.hpp"
+#include <algorithm>
 
-struct MapLook;
-class ActionListener;
-class OrderedTask;
+#include <winuser.h>
 
-/**
- * A window that shows the task.
- */
-class TaskMapWindow : public BufferWindow {
-  const MapLook &look;
+void
+TabRenderer::Draw(Canvas &canvas, const PixelRect &rc,
+                  const DialogLook &look,
+                  const TCHAR *caption, const MaskedIcon *icon,
+                  bool focused, bool pressed, bool selected) const
+{
+  canvas.DrawFilledRectangle(rc,
+                             look.list.GetBackgroundColor(selected, focused,
+                                                          pressed));
 
-  ActionListener &listener;
-  const int id;
+  canvas.Select(*look.button.font);
+  canvas.SetTextColor(look.list.GetTextColor(selected, focused, pressed));
+  canvas.SetBackgroundTransparent();
 
-  const OrderedTask *task;
-
-public:
-  TaskMapWindow(const MapLook &_look,
-                ActionListener &_listener, const int _id)
-    :look(_look), listener(_listener), id(_id), task(nullptr) {}
-
-  void SetTask(const OrderedTask *_task) {
-    task = _task;
-    Invalidate();
+  if (icon != nullptr) {
+    icon->Draw(canvas, rc, selected);
+  } else {
+    text_renderer.Draw(canvas, rc, caption);
   }
-
-  /* virtual methods from class Window */
-  bool OnMouseDown(PixelScalar x, PixelScalar y) override;
-
-  /* virtual methods from class BufferWindow */
-  void OnPaintBuffer(Canvas &canvas) override;
-};
-
-#endif /* DLGTASKMANAGER_HPP */
+}

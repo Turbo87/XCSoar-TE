@@ -27,26 +27,8 @@ Copyright_License {
 #include "FontDescription.hpp"
 
 struct FontSettings {
-  FontDescription dialog;
-
-#ifdef GNAV
-  FontDescription dialog_small;
-#endif
-
-  FontDescription infobox;
-  FontDescription infobox_small;
-#ifndef GNAV
-  FontDescription infobox_units;
-#endif
-
-  FontDescription title;
-  FontDescription cdi;
-  FontDescription monospace;
-
   FontDescription map;
   FontDescription map_bold;
-  FontDescription map_label;
-  FontDescription map_label_important;
 };
 
 #endif

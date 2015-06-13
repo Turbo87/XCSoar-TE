@@ -99,7 +99,7 @@ template<size_t N>
 static void
 ReadString(NMEAInputLine &line, NarrowString<N> &value)
 {
-  line.Read(value.buffer(), value.MAX_SIZE);
+  line.Read(value.buffer(), value.capacity());
 }
 
 static void

@@ -35,7 +35,7 @@ Copyright_License {
 #include "FLARM/FlarmId.hpp"
 #include "FLARM/Global.hpp"
 #include "FLARM/TrafficDatabases.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 #include "Language/Language.hpp"
 #include "UIGlobals.hpp"
 #include "Look/DialogLook.hpp"
@@ -355,7 +355,7 @@ static UPixelScalar
 GetRowHeight(const DialogLook &look)
 {
   return look.list.font_bold->GetHeight() + 3 * Layout::GetTextPadding()
-    + look.small_font->GetHeight();
+    + look.small_font.GetHeight();
 }
 
 void
@@ -550,6 +550,16 @@ SinceInMinutes(fixed now_s, uint32_t past_ms)
 
 #endif
 
+/**
+ * Draw right-aligned text.
+ */
+static void
+DrawTextRight(Canvas &canvas, int x, int y, const TCHAR *text)
+{
+  unsigned width = canvas.CalcTextWidth(text);
+  canvas.DrawText(x - width, y, text);
+}
+
 void
 TrafficListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
                                unsigned index)
@@ -570,7 +580,7 @@ TrafficListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
 
   const DialogLook &look = UIGlobals::GetDialogLook();
   const Font &name_font = *look.list.font_bold;
-  const Font &small_font = *look.small_font;
+  const Font &small_font = look.small_font;
 
   const unsigned text_padding = Layout::GetTextPadding();
   const unsigned frame_padding = text_padding / 2;
@@ -678,21 +688,16 @@ TrafficListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
 
   /* draw bearing and distance on the right */
   if (item.vector.IsValid()) {
-    FormatUserDistanceSmart(item.vector.distance, tmp.buffer(), true);
-    unsigned width = canvas.CalcTextWidth(tmp.c_str());
-    canvas.DrawText(rc.right - text_padding - width,
-                    name_y +
-                    (name_font.GetHeight() - small_font.GetHeight()) / 2,
-                    tmp.c_str());
+    DrawTextRight(canvas, rc.right - text_padding,
+                  name_y +
+                  (name_font.GetHeight() - small_font.GetHeight()) / 2,
+                  FormatUserDistanceSmart(item.vector.distance).c_str());
 
     // Draw leg bearing
-    FormatBearing(tmp.buffer(), tmp.MAX_SIZE, item.vector.bearing);
-    width = canvas.CalcTextWidth(tmp.c_str());
-    canvas.DrawText(rc.right - text_padding - width,
-                    rc.bottom - small_font.GetHeight() - text_padding,
-                    tmp.c_str());
+    DrawTextRight(canvas, rc.right - text_padding,
+                  rc.bottom - small_font.GetHeight() - text_padding,
+                  FormatBearing(item.vector.bearing).c_str());
   }
-
 }
 
 void

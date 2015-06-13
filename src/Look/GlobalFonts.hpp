@@ -33,25 +33,8 @@ class Font;
  */
 namespace Fonts
 {
-  /**
-   * Fonts for user interfaces such as dialogs, pop-up messages etc.
-   */
-  extern Font dialog, dialog_bold, dialog_small;
-
-  extern Font infobox;
-  extern Font infobox_small;
-#ifndef GNAV
-  extern Font infobox_units;
-#endif
-
-  extern Font title;
-  extern Font cdi;
-  extern Font monospace;
-
   extern Font map;
   extern Font map_bold;
-  extern Font map_label;
-  extern Font map_label_important;
 
   bool Load(const FontSettings &settings);
 

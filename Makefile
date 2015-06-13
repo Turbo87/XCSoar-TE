@@ -86,6 +86,7 @@ include $(topdir)/build/vfb.mk
 include $(topdir)/build/fb.mk
 include $(topdir)/build/wayland.mk
 include $(topdir)/build/egl.mk
+include $(topdir)/build/glx.mk
 include $(topdir)/build/opengl.mk
 include $(topdir)/build/sdl.mk
 include $(topdir)/build/udev.mk
@@ -112,6 +113,8 @@ include $(topdir)/build/manual.mk
 
 include $(topdir)/build/libboost.mk
 INCLUDES += $(BOOST_CPPFLAGS)
+
+ifneq ($(MAKECMDGOALS),kobo-libs) # kludge to allow bootstrapping kobo-libs
 
 # Create libraries for zzip, jasper and compatibility stuff
 include $(topdir)/build/libresource.mk
@@ -151,6 +154,8 @@ include $(topdir)/build/libwidget.mk
 include $(topdir)/build/libaudio.mk
 include $(topdir)/build/libterrain.mk
 include $(topdir)/build/harness.mk
+
+endif
 
 include $(topdir)/build/setup.mk
 include $(topdir)/build/launch.mk

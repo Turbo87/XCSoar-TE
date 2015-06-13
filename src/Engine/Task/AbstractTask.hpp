@@ -122,7 +122,7 @@ public:
    * @return True if task has started
    */
   gcc_pure
-  virtual bool TaskStarted(bool soft = false) const {
+  virtual bool TaskStarted(gcc_unused bool soft = false) const {
     return true;
   }
 
@@ -217,8 +217,8 @@ protected:
    * @return True if cruise efficiency is updated
    */
   gcc_pure
-  virtual bool CalcCruiseEfficiency(const AircraftState &state_now,
-                                    const GlidePolar &glide_polar,
+  virtual bool CalcCruiseEfficiency(gcc_unused const AircraftState &state_now,
+                                    gcc_unused const GlidePolar &glide_polar,
                                     fixed &val) const {
     val = fixed(1);
     return true;
@@ -424,11 +424,11 @@ public:
 
 public:
   /* virtual methods from class TaskInterface */
-  virtual bool Update(const AircraftState &state_now,
-                      const AircraftState &state_last,
-                      const GlidePolar &glide_polar) override;
-  virtual bool UpdateIdle(const AircraftState &state_now,
-                          const GlidePolar &glide_polar) override;
+  bool Update(const AircraftState &state_now,
+              const AircraftState &state_last,
+              const GlidePolar &glide_polar) override;
+  bool UpdateIdle(const AircraftState &state_now,
+                  const GlidePolar &glide_polar) override;
 };
 
 #endif //ABSTRACTTASK_H

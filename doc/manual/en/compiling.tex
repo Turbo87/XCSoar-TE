@@ -74,8 +74,10 @@ similar operating systems:
 \item \href{http://libjpeg.sourceforge.net/}{libjpeg}
 \item OpenGL (Mesa)
 \item to run XCSoar, you need one of the following fonts (Debian
-  package): DejaVu (\texttt{ttf-dejavu}), Droid (\texttt{ttf-droid}),
-  Freefont (\texttt{ttf-freefont})
+  package): DejaVu (\texttt{fonts-dejavu}),
+  Roboto (\texttt{fonts-roboto}),
+  Droid (\texttt{fonts-droid}),
+  Freefont (\texttt{fonts-freefont-ttf})
 \end{itemize}
 
 The following command installs these on Debian:
@@ -89,7 +91,7 @@ apt-get install make g++ \
   libxml-parser-perl \
   librsvg2-bin xsltproc \
   imagemagick gettext \
-  ttf-dejavu
+  fonts-dejavu
 \end{verbatim*}
 
 To compile, run:
@@ -254,30 +256,32 @@ Furthermore, the following tools are required:
   OS X
 \item \href{https://alioth.debian.org/projects/dpkg}{dpkg} to build the iOS
   Cydia package
+\item \href{http://cdrecord.org/private/cdrecord.html}{mkisofs} to build the
+  OS X DMG package
 \end{itemize}
 
 To compile for iOS / AArch64, run:
 
 \begin{verbatim*}
-make TARGET=IOS64 output/IOS64/xcsoar-testing.deb
+make TARGET=IOS64 cydia-deb
 \end{verbatim*}
 
 To compile for iOS / ARMv7, run:
 
 \begin{verbatim*}
-make TARGET=IOS32 output/IOS32/xcsoar-testing.deb
+make TARGET=IOS32 cydia-deb
 \end{verbatim*}
 
 To compile for OS X / x86\_64, run:
 
 \begin{verbatim*}
-make TARGET=OSX64 output/OSX64/XCSoar.dmg
+make TARGET=OSX64 dmg
 \end{verbatim*}
 
 To compile for OS X / x86, run:
 
 \begin{verbatim*}
-make TARGET=OSX32 output/OSX32/XCSoar.dmg
+make TARGET=OSX32 dmg
 \end{verbatim*}
 
 The \texttt{Makefile} assumes that the Darwin toolchain is installed in
@@ -289,13 +293,22 @@ specified using the \verb|DARWIN_LIBS| option.
 
 \subsection{Compiling for the Raspberry Pi}
 
-To compile, run:
+You need an ARM toolchain.  For example, you can use the Debian
+package \verb|g++-5-arm-linux-gnueabihf|:
 
 \begin{verbatim*}
-make TARGET=PI
+make TARGET=PI TCSUFFIX=-5
 \end{verbatim*}
 
-This target is only used for cross-compiling on a (desktop) computer.
+To optimize for the Raspberry Pi 2 (which has an ARMv7 with NEON
+instead of an ARMv6):
+
+\begin{verbatim*}
+make TARGET=PI2 TCSUFFIX=-5
+\end{verbatim*}
+
+These targets are only used for cross-compiling on a (desktop)
+computer.
 If you compile on the Raspberry Pi, the default target will
 auto-detect the Pi.
 
@@ -313,46 +326,19 @@ the Cubieboard.
 
 \subsection{Compiling for Kobo E-book Readers}
 
-You need an ARM toolchain.  For example, you can use this toolchain
-that was built for Debian Wheezy on AMD64:
+You need an ARM toolchain.  For example, you can use the Debian
+package \verb|g++-5-arm-linux-gnueabihf|.
+
+First build the third-party libraries:
 
 \begin{verbatim*}
-wget http://max.kellermann.name/download/xcsoar/devel/\
-x-tools/x-tools-arm-amd64-2013-12-11.tar.xz
-\end{verbatim*}
-\begin{verbatim*}
-tar xJfC x-tools-arm-amd64-2013-12-11.tar.xz $HOME
-\end{verbatim*}
-\begin{verbatim*}
-export PATH=$HOME/x-tools/arm-unknown-linux-gnueabi/bin:$PATH
+make TARGET=KOBO TCSUFFIX=-5 kobo-libs
 \end{verbatim*}
 
-There are precompiled toolchains for
-\href{http://max.kellermann.name/download/xcsoar/devel/x-tools/x-tools-arm-amd64-2013-12-11.tar.xz}{amd64}
-and for
-\href{http://max.kellermann.name/download/xcsoar/devel/x-tools/x-tools-arm-i386-2013-12-11.tar.xz}{i386}.
-
-You can build your own toolchain with
-\href{http://crosstool-ng.org/}{crosstool-ng}.  The above toolchain
-was built with crosstool-ng and this configuration file:
-\url{http://max.kellermann.name/download/xcsoar/devel/x-tools-arm.config}
-
-Download the
-\href{http://max.kellermann.name/download/xcsoar/devel/kobo/kobo-libs-2013-12-11.tar.xz}{Kobo
-  libraries} and unpack in \texttt{/opt}:
+To compile XCSoar, run:
 
 \begin{verbatim*}
-wget http://max.kellermann.name/download/xcsoar/devel/\
-kobo/kobo-libs-2013-12-11.tar.xz
-\end{verbatim*}
-\begin{verbatim*}
-tar xJfC kobo-libs-2013-12-11.tar.xz /opt
-\end{verbatim*}
-
-To compile, run:
-
-\begin{verbatim*}
-make TARGET=KOBO
+make TARGET=KOBO TCSUFFIX=-5
 \end{verbatim*}
 
 To build the kobo install file \texttt{KoboRoot.tgz}, you need the
@@ -365,8 +351,10 @@ apt-get install fakeroot ttf-bitstream-vera
 Then compile using this command:
 
 \begin{verbatim*}
-make TARGET=KOBO output/KOBO/KoboRoot.tgz
+make TARGET=KOBO TCSUFFIX=-5 output/KOBO/KoboRoot.tgz
 \end{verbatim*}
+
+For this, you need the Debian package \verb|libc6-armhf-cross|.
 
 \subsubsection{Building USB-OTG Kobo Kernel}
 

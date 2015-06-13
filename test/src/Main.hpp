@@ -245,30 +245,21 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 #ifdef ENABLE_LOOK
   look = new Look();
-  look->Initialise(normal_font, bold_font, small_font,
-                   normal_font);
+  look->Initialise(normal_font);
 
   {
     UISettings ui_settings;
     ui_settings.SetDefaults();
     look->InitialiseConfigured(ui_settings,
-                               normal_font, bold_font, small_font,
                                normal_font, bold_font,
-                               small_font, normal_font,
-                               small_font, monospace_font,
-                               normal_font, small_font,
-#ifndef GNAV
-                               small_font,
-#endif
-                               small_font);
+                               100);
   }
 
   dialog_look = &look->dialog;
   button_look = &dialog_look->button;
 #elif defined(ENABLE_DIALOG_LOOK)
   dialog_look = new DialogLook();
-  dialog_look->Initialise(bold_font, normal_font, small_font,
-                          bold_font, bold_font, bold_font);
+  dialog_look->Initialise();
   button_look = &dialog_look->button;
 #elif defined(ENABLE_BUTTON_LOOK)
   button_look = new ButtonLook();

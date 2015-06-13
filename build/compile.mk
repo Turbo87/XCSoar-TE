@@ -27,7 +27,7 @@ ifeq ($(CLANG),y)
     ASFLAGS += $(TARGET_ARCH)
   endif
 
-  ifeq ($(MIPS),y)
+  ifeq ($(call bool_or,$(MIPS),$(MIPS64)),y)
     # work around "Fatal error: invalid -march= option: `mips32'"
     ASFLAGS += -integrated-as
   endif
@@ -49,6 +49,11 @@ STRIP = strip$(EXE)
 WINDRES = wrc$(EXE)
 endif
 
+ifeq ($(CLANG)$(TARGET_IS_DARWIN)$(LTO),nny)
+# use gcc's "ar" wrapper which takes care for loading the LTO plugin
+AR = $(LLVM_PREFIX)gcc-ar$(LLVM_SUFFIX)$(EXE)
+endif
+
 CXX_VERSION := $(shell $(CXX) -dumpversion)
 
 ####### paths
@@ -61,7 +66,7 @@ OBJ_SUFFIX = .o
 endif
 
 # Converts a list of source file names to *.o
-SRC_TO_OBJ = $(subst /./,/,$(patsubst %.cpp,%$(OBJ_SUFFIX),$(patsubst %.c,%$(OBJ_SUFFIX),$(addprefix $(TARGET_OUTPUT_DIR)/,$(1)))))
+SRC_TO_OBJ = $(subst /./,/,$(patsubst %.cpp,%$(OBJ_SUFFIX),$(patsubst %.cxx,%$(OBJ_SUFFIX),$(patsubst %.c,%$(OBJ_SUFFIX),$(addprefix $(TARGET_OUTPUT_DIR)/,$(1))))))
 
 ####### dependency handling
 
@@ -82,6 +87,12 @@ $(TARGET_OUTPUT_DIR)/%.i: %.cpp FORCE
 $(TARGET_OUTPUT_DIR)/%.s: %.cpp FORCE
 	$(CXX) $< -S -o $@ $(cxx-flags)
 
+$(TARGET_OUTPUT_DIR)/%.i: %.cxx FORCE
+	$(CXX) $< -E -o $@ $(cxx-flags)
+
+$(TARGET_OUTPUT_DIR)/%.s: %.cxx FORCE
+	$(CXX) $< -S -o $@ $(cxx-flags)
+
 $(TARGET_OUTPUT_DIR)/%.i: %.c FORCE
 	$(CC) $< -E -o $@ $(cc-flags)
 
@@ -99,6 +110,13 @@ $(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.c $(TARGET_OUTPUT_DIR)/%/../dirstamp
 	$(Q)$(WRAPPED_CC) $< -c -o $@ $(cc-flags)
 
 $(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.cpp $(TARGET_OUTPUT_DIR)/%/../dirstamp
+	@$(NQ)echo "  CXX     $@"
+	$(Q)$(WRAPPED_CXX) $< -c -o $@ $(cxx-flags)
+ifeq ($(IWYU),y)
+	$(Q)iwyu $< $(cxx-flags)
+endif
+
+$(TARGET_OUTPUT_DIR)/%$(OBJ_SUFFIX): %.cxx $(TARGET_OUTPUT_DIR)/%/../dirstamp
 	@$(NQ)echo "  CXX     $@"
 	$(Q)$(WRAPPED_CXX) $< -c -o $@ $(cxx-flags)
 ifeq ($(IWYU),y)

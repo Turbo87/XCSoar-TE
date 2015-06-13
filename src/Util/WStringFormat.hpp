@@ -68,6 +68,13 @@ StringFormatUnsafe(wchar_t *buffer, const wchar_t *fmt, Args&&... args)
 #if defined(_WIN32_WCE) || (defined(WIN32) && !GCC_CHECK_VERSION(4,8))
   swprintf(buffer, fmt, args...);
 #else
+  /* work around a problem in mingw-w64/libstdc++: libstdc++ defines
+     __USE_MINGW_ANSI_STDIO=1 and forces mingw to expose the
+     POSIX-compatible stdio functions instead of the
+     Microsoft-compatible ones, but those have a major problem for us:
+     "%s" denotes a "narrow" string, not a "wide" string, and we'd
+     need to use "%ls"; this workaround explicitly selects the
+     Microsoft-compatible implementation */
   _swprintf(buffer, fmt, args...);
 #endif
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2013 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2015 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,30 +27,67 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "StaticString.hpp"
+#ifndef ALLOCATED_STRING_HXX
+#define ALLOCATED_STRING_HXX
 
-#ifdef _UNICODE
-#include <windows.h>
-#endif
+#include "StringPointer.hxx"
 
-bool
-CopyUTF8(char *dest, size_t dest_size, const char *src)
-{
-  if (!::ValidateUTF8(src))
-    return false;
+#include <utility>
 
-  CopyString(dest, src, dest_size);
-  CropIncompleteUTF8(dest);
-  return true;
-}
+/**
+ * A string pointer whose memory is managed by this class.
+ *
+ * Unlike std::string, this object can hold a "nullptr" special value.
+ */
+template<typename T=char>
+class AllocatedString {
+public:
+	typedef typename StringPointer<T>::pointer pointer;
+	typedef typename StringPointer<T>::const_pointer const_pointer;
 
-#ifdef _UNICODE
+private:
+	pointer value;
 
-bool
-CopyUTF8(TCHAR *dest, size_t dest_size, const char *src)
-{
-  int result = MultiByteToWideChar(CP_UTF8, 0, src, -1, dest, dest_size);
-  return result > 0;
-}
+	explicit AllocatedString(pointer _value)
+		:value(_value) {}
+
+public:
+	AllocatedString(std::nullptr_t n):value(n) {}
+
+	AllocatedString(AllocatedString &&src)
+		:value(src.Steal()) {}
+
+	~AllocatedString() {
+		delete[] value;
+	}
+
+	static AllocatedString Donate(pointer value) {
+		return AllocatedString(value);
+	}
+
+	static AllocatedString Null() {
+		return nullptr;
+	}
+
+	AllocatedString &operator=(AllocatedString &&src) {
+		*(StringPointer<T> *)this = std::move(src);
+		std::swap(value, src.value);
+		return *this;
+	}
+
+	constexpr bool IsNull() const {
+		return value == nullptr;
+	}
+
+	constexpr const_pointer c_str() const {
+		return value;
+	}
+
+	pointer Steal() {
+		pointer result = value;
+		value = nullptr;
+		return result;
+	}
+};
 
 #endif

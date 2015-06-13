@@ -26,14 +26,14 @@ Copyright_License {
 #include "Widget/ListWidget.hpp"
 #include "Widget/TwoWidgets.hpp"
 #include "Widget/RowFormWidget.hpp"
-#include "Screen/Canvas.hpp"
-#include "Screen/Layout.hpp"
 #include "Screen/Key.h"
 #include "Form/Form.hpp"
 #include "Form/Edit.hpp"
 #include "Form/DataField/Listener.hpp"
 #include "Form/DataField/Prefix.hpp"
-#include "Profile/Profile.hpp"
+#include "Profile/Current.hpp"
+#include "Profile/Map.hpp"
+#include "Profile/ProfileKeys.hpp"
 #include "Waypoint/LastUsed.hpp"
 #include "Waypoint/WaypointList.hpp"
 #include "Waypoint/WaypointListBuilder.hpp"
@@ -43,11 +43,14 @@ Copyright_License {
 #include "Compiler.h"
 #include "Form/DataField/Enum.hpp"
 #include "Util/StringUtil.hpp"
+#include "Util/StringPointer.hxx"
+#include "Util/AllocatedString.hxx"
 #include "UIGlobals.hpp"
 #include "Look/MapLook.hpp"
 #include "Look/DialogLook.hpp"
 #include "Util/Macros.hpp"
 #include "Renderer/WaypointListRenderer.hpp"
+#include "Renderer/TwoTextRowsRenderer.hpp"
 #include "Units/Units.hpp"
 #include "Formatter/AngleFormatter.hpp"
 #include "Formatter/UserUnits.hpp"
@@ -139,6 +142,8 @@ class WaypointListWidget final
 
   WaypointList items;
 
+  TwoTextRowsRenderer row_renderer;
+
 public:
   WaypointListWidget(ActionListener &_action_listener,
                      WaypointFilterWidget &_filter_widget)
@@ -156,45 +161,44 @@ public:
   }
 
   /* virtual methods from class Widget */
-  virtual void Prepare(ContainerWindow &parent,
-                       const PixelRect &rc) override;
+  void Prepare(ContainerWindow &parent, const PixelRect &rc) override;
 
-  virtual void Unprepare() override {
+  void Unprepare() override {
     DeleteWindow();
   }
 
-  virtual void Show(const PixelRect &rc) override {
+  void Show(const PixelRect &rc) override {
     ListWidget::Show(rc);
     UpdateList();
     CommonInterface::GetLiveBlackboard().AddListener(*this);
   }
 
-  virtual void Hide() override {
+  void Hide() override {
     CommonInterface::GetLiveBlackboard().RemoveListener(*this);
 
     ListWidget::Hide();
   }
 
   /* virtual methods from ListItemRenderer */
-  virtual void OnPaintItem(Canvas &canvas, const PixelRect rc,
-                           unsigned idx) override;
+  void OnPaintItem(Canvas &canvas, const PixelRect rc,
+                   unsigned idx) override;
 
   /* virtual methods from ListCursorHandler */
-  virtual bool CanActivateItem(unsigned index) const override {
+  bool CanActivateItem(unsigned index) const override {
     return true;
   }
 
-  virtual void OnActivateItem(unsigned index) override;
+  void OnActivateItem(unsigned index) override;
 
   /* virtual methods from ActionListener */
-  virtual void OnAction(int id) override;
+  void OnAction(int id) override;
 
   /* virtual methods from DataFieldListener */
-  virtual void OnModified(DataField &df) override;
+  void OnModified(DataField &df) override;
 
 private:
   /* virtual methods from BlackboardListener */
-  virtual void OnGPSUpdate(const MoreData &basic) override;
+  void OnGPSUpdate(const MoreData &basic) override;
 };
 
 class WaypointFilterWidget : public RowFormWidget {
@@ -211,10 +215,10 @@ public:
   void Update();
 
   /* virtual methods from class Widget */
-  virtual void Prepare(ContainerWindow &parent,
+  void Prepare(ContainerWindow &parent,
                        const PixelRect &rc) override;
 #ifdef GNAV
-  virtual bool KeyPress(unsigned key_code) override;
+  bool KeyPress(unsigned key_code) override;
 #endif
 };
 
@@ -230,8 +234,8 @@ public:
     list = _list;
   }
 
-  virtual void Prepare(ContainerWindow &parent,
-                       const PixelRect &rc) override {
+  /* virtual methods from class Widget */
+  void Prepare(ContainerWindow &parent, const PixelRect &rc) override {
     AddButton(_("Select"), *list, SELECT);
     AddButton(_("Cancel"), dialog, mrCancel);
   }
@@ -244,11 +248,10 @@ GetDirectionData(TCHAR *buffer, size_t size, int direction_filter_index)
 {
   if (direction_filter_index == 0)
     _tcscpy(buffer, _T("*"));
-  else if (direction_filter_index == 1) {
-    TCHAR bearing[8];
-    FormatBearing(bearing, ARRAY_SIZE(bearing), last_heading);
-    StringFormatUnsafe(buffer, _T("HDG(%s)"), bearing);
-  } else
+  else if (direction_filter_index == 1)
+    StringFormatUnsafe(buffer, _T("HDG(%s)"),
+                       FormatBearing(last_heading).c_str());
+  else
     FormatBearing(buffer, size, direction_filter_items[direction_filter_index]);
 
   return buffer;
@@ -322,7 +325,9 @@ void
 WaypointListWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
   const DialogLook &look = UIGlobals::GetDialogLook();
-  CreateList(parent, look, rc, WaypointListRenderer::GetHeight(look));
+  CreateList(parent, look, rc,
+             row_renderer.CalculateLayout(*look.list.font_bold,
+                                          look.small_font));
   UpdateList();
 }
 
@@ -368,19 +373,25 @@ CreateDirectionDataField(DataFieldListener *listener)
   return df;
 }
 
+static void
+ReplaceProfilePathBase(DataFieldEnum &df, unsigned i,
+                       const char *profile_key)
+{
+  const auto p = Profile::map.GetPathBase(profile_key);
+  if (!p.IsNull())
+    df.replaceEnumText(i, p.c_str());
+}
+
 static DataField *
 CreateTypeDataField(DataFieldListener *listener)
 {
   DataFieldEnum *df = new DataFieldEnum(listener);
   df->addEnumTexts(type_filter_items);
 
-  const TCHAR *p = Profile::GetPathBase(ProfileKeys::WaypointFile);
-  if (p != nullptr)
-    df->replaceEnumText((unsigned)TypeFilter::FILE_1, p);
-
-  p = Profile::GetPathBase(ProfileKeys::AdditionalWaypointFile);
-  if (p != nullptr)
-    df->replaceEnumText((unsigned)TypeFilter::FILE_2, p);
+  ReplaceProfilePathBase(*df, (unsigned)TypeFilter::FILE_1,
+                         ProfileKeys::WaypointFile);
+  ReplaceProfilePathBase(*df, (unsigned)TypeFilter::FILE_2,
+                         ProfileKeys::AdditionalWaypointFile);
 
   df->Set((int)dialog_state.type_index);
   return df;
@@ -432,15 +443,10 @@ WaypointListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
   if (items.empty()) {
     assert(i == 0);
 
-    const UPixelScalar line_height = rc.bottom - rc.top;
-    const Font &name_font =
-      *UIGlobals::GetDialogLook().list.font;
-    canvas.SetTextColor(COLOR_BLACK);
-    canvas.Select(name_font);
-    canvas.DrawText(rc.left + line_height + Layout::FastScale(2),
-                    rc.top + line_height / 2 - name_font.GetHeight() / 2,
-                    dialog_state.IsDefined() || way_points.IsEmpty() ?
-                    _("No Match!") : _("Choose a filter or click here"));
+    const auto *text = dialog_state.IsDefined() || way_points.IsEmpty()
+      ? _("No Match!")
+      : _("Choose a filter or click here");
+    row_renderer.DrawFirstRow(canvas, rc, text);
     return;
   }
 
@@ -450,7 +456,7 @@ WaypointListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
 
   WaypointListRenderer::Draw(canvas, rc, *info.waypoint,
                              info.GetVector(location),
-                             UIGlobals::GetDialogLook(),
+                             row_renderer,
                              UIGlobals::GetMapLook().waypoint,
                              CommonInterface::GetMapSettings().waypoint);
 }

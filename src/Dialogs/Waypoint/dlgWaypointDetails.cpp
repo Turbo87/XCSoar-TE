@@ -42,6 +42,7 @@ Copyright_License {
 #include "Screen/Bitmap.hpp"
 #include "Screen/Layout.hpp"
 #include "Screen/Key.h"
+#include "Screen/LargeTextWindow.hpp"
 #include "MainWindow.hpp"
 #include "Interface.hpp"
 #include "Components.hpp"
@@ -50,9 +51,12 @@ Copyright_License {
 #include "Compiler.h"
 #include "Language/Language.hpp"
 #include "Waypoint/LastUsed.hpp"
-#include "Profile/Profile.hpp"
+#include "Profile/Current.hpp"
+#include "Profile/Map.hpp"
 #include "Profile/ProfileKeys.hpp"
 #include "OS/RunFile.hpp"
+#include "Util/StringPointer.hxx"
+#include "Util/AllocatedString.hxx"
 
 #include <assert.h>
 #include <stdio.h>
@@ -68,14 +72,15 @@ public:
   explicit WaypointExternalFileListHandler(const Waypoint &_waypoint)
     :waypoint(_waypoint) {}
 
-  virtual void OnPaintItem(Canvas &canvas, const PixelRect rc,
-                           unsigned idx) override;
+  /* virtual methods from class ListItemRenderer */
+  void OnPaintItem(Canvas &canvas, const PixelRect rc,
+                   unsigned idx) override;
 
-  virtual bool CanActivateItem(unsigned index) const override {
+  bool CanActivateItem(gcc_unused unsigned index) const override {
     return true;
   }
 
-  virtual void OnActivateItem(unsigned index) override;
+  void OnActivateItem(unsigned index) override;
 };
 
 void
@@ -459,7 +464,7 @@ WaypointDetailsWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 
   details_panel.Create(parent, look, layout.main, dock_style);
   details_text.Create(details_panel, layout.details_text);
-  details_text.SetFont(*look.text_font);
+  details_text.SetFont(look.text_font);
   details_text.SetText(waypoint.details.c_str());
 
 #ifdef HAVE_RUN_FILE
@@ -601,7 +606,8 @@ WaypointDetailsWidget::OnGotoClicked()
 }
 
 void
-WaypointDetailsWidget::OnImagePaint(Canvas &canvas, const PixelRect &rc)
+WaypointDetailsWidget::OnImagePaint(gcc_unused Canvas &canvas,
+                                    gcc_unused const PixelRect &rc)
 {
   canvas.ClearWhite();
   if (page >= 3 && page < 3 + (int)images.size()) {
@@ -664,9 +670,9 @@ UpdateCaption(WndForm *form, const Waypoint *waypoint)
   }
 
   if (key != nullptr) {
-    const TCHAR *filename = Profile::GetPathBase(key);
-    if (filename != nullptr)
-      buffer.AppendFormat(_T(" (%s)"), filename);
+    const auto filename = Profile::map.GetPathBase(key);
+    if (!filename.IsNull())
+      buffer.AppendFormat(_T(" (%s)"), filename.c_str());
   }
 
   form->SetCaption(buffer);

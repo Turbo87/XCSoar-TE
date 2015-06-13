@@ -43,9 +43,11 @@ Copyright_License {
 
 enum ControlIndex {
   AirspaceDisplay,
+  AirspaceLabelSelection,
   ClipAltitude,
   AltWarningMargin,
   AirspaceWarnings,
+  WarningDialog,
   WarningTime,
   RepetitiveSound,
   AcknowledgeTime,
@@ -76,6 +78,14 @@ static constexpr StaticEnumChoice as_fill_mode_list[] = {
     N_("Draws a solid outline with a half transparent border around the airspace.") },
   { (unsigned)AirspaceRendererSettings::FillMode::NONE, N_("No fill"),
     N_("Don't fill the airspace area.") },
+  { 0 }
+};
+
+static constexpr StaticEnumChoice as_label_selection_list[] = {
+  { (unsigned)AirspaceRendererSettings::LabelSelection::NONE, N_("None"),
+    N_("No labels will be displayed.") },
+  { (unsigned)AirspaceRendererSettings::LabelSelection::ALL, N_("All"),
+    N_("All labels will be displayed.") },
   { 0 }
 };
 
@@ -132,6 +142,7 @@ AirspaceConfigPanel::ShowDisplayControls(AirspaceDisplayMode mode)
 void
 AirspaceConfigPanel::ShowWarningControls(bool visible)
 {
+  SetRowVisible(WarningDialog, visible);
   SetRowVisible(WarningTime, visible);
   SetRowVisible(RepetitiveSound, visible);
   SetRowVisible(AcknowledgeTime, visible);
@@ -173,12 +184,19 @@ AirspaceConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
     CommonInterface::GetComputerSettings().airspace;
   const AirspaceRendererSettings &renderer =
     CommonInterface::GetMapSettings().airspace;
+  const UISettings &ui_settings =
+    CommonInterface::GetUISettings();
 
   RowFormWidget::Prepare(parent, rc);
 
   AddEnum(_("Airspace display"),
           _("Controls filtering of airspace for display and warnings.  The airspace filter button also allows filtering of display and warnings independently for each airspace class."),
           as_display_list, (unsigned)renderer.altitude_mode, this);
+
+  AddEnum(_("Label visibility"),
+          _("Determines what labels are displayed."),
+          as_label_selection_list, (unsigned)renderer.label_selection);
+  SetExpertRow(AirspaceLabelSelection);
 
   AddFloat(_("Clip altitude"),
            _("For clip airspace mode, this is the altitude below which airspace is displayed."),
@@ -190,6 +208,11 @@ AirspaceConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 
   AddBoolean(_("Warnings"), _("Enable/disable all airspace warnings."),
              computer.enable_warnings, this);
+
+  AddBoolean(_("Warnings dialog"),
+             _("Enable/disable displaying airspaces warnings dialog."),
+             ui_settings.enable_airspace_warning_dialog, this);
+  SetExpertRow(WarningDialog);
 
   AddTime(_("Warning time"),
           _("This is the time before an airspace incursion is estimated at which the system will warn the pilot."),
@@ -238,14 +261,20 @@ AirspaceConfigPanel::Save(bool &_changed)
     CommonInterface::SetComputerSettings().airspace;
   AirspaceRendererSettings &renderer =
     CommonInterface::SetMapSettings().airspace;
+  UISettings &ui_settings = CommonInterface::SetUISettings();
 
   changed |= SaveValueEnum(AirspaceDisplay, ProfileKeys::AltMode, renderer.altitude_mode);
+
+  changed |= SaveValueEnum(AirspaceLabelSelection, ProfileKeys::AirspaceLabelSelection, renderer.label_selection);
 
   changed |= SaveValue(ClipAltitude, UnitGroup::ALTITUDE, ProfileKeys::ClipAlt, renderer.clip_altitude);
 
   changed |= SaveValue(AltWarningMargin, UnitGroup::ALTITUDE, ProfileKeys::AltMargin, computer.warnings.altitude_warning_margin);
 
   changed |= SaveValue(AirspaceWarnings, ProfileKeys::AirspaceWarning, computer.enable_warnings);
+
+  changed |= SaveValue(WarningDialog, ProfileKeys::AirspaceWarningDialog,
+                       ui_settings.enable_airspace_warning_dialog);
 
   if (SaveValue(WarningTime, ProfileKeys::WarningTime, computer.warnings.warning_time)) {
     changed = true;

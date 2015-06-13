@@ -23,7 +23,10 @@ Copyright_License {
 
 #include "Glue.hpp"
 #include "Settings.hpp"
+#include "Queue.hpp"
+#include "Assemble.hpp"
 #include "NMEA/Info.hpp"
+#include "Net/State.hpp"
 #include "Net/IPv4Address.hpp"
 
 #ifdef HAVE_POSIX
@@ -33,15 +36,22 @@ Copyright_License {
 #include <assert.h>
 
 SkyLinesTracking::Glue::Glue()
-  :interval(0), clock(fixed(10))
+  :interval(0),
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
-  , traffic_clock(fixed(60)), traffic_enabled(false)
+   traffic_enabled(false),
 #endif
+   roaming(true),
+   queue(nullptr)
 {
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   assert(io_thread != nullptr);
   client.SetIOThread(io_thread);
 #endif
+}
+
+SkyLinesTracking::Glue::~Glue()
+{
+  delete queue;
 }
 
 void
@@ -58,11 +68,50 @@ SkyLinesTracking::Glue::Tick(const NMEAInfo &basic)
     return;
   }
 
-  if (clock.CheckAdvance(basic.time))
+  bool connected = false;
+  switch (GetNetState()) {
+  case NetState::UNKNOWN:
+  case NetState::DISCONNECTED:
+    break;
+
+  case NetState::CONNECTED:
+    connected = true;
+    break;
+
+  case NetState::ROAMING:
+    connected = roaming;
+    break;
+  }
+
+  if (!connected) {
+    /* queue the packet, send it later */
+    if (queue == nullptr)
+      queue = new Queue();
+    queue->Push(ToFix(client.GetKey(), basic));
+    return;
+  }
+
+  if (queue != nullptr) {
+    /* send queued fix packets, 8 at a time */
+    unsigned n = 8;
+    while (n-- > 0) {
+      const auto &packet = queue->Peek();
+      if (!client.SendPacket(packet))
+        break;
+
+      queue->Pop();
+      if (queue->IsEmpty()) {
+        delete queue;
+        queue = nullptr;
+      }
+    }
+
+    return;
+  } else if (clock.CheckAdvance(basic.time, fixed(interval)))
     client.SendFix(basic);
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
-  if (traffic_enabled && traffic_clock.CheckAdvance(basic.time))
+  if (traffic_enabled && traffic_clock.CheckAdvance(basic.time, fixed(60)))
     client.SendTrafficRequest(true, true);
 #endif
 }
@@ -70,20 +119,22 @@ SkyLinesTracking::Glue::Tick(const NMEAInfo &basic)
 void
 SkyLinesTracking::Glue::SetSettings(const Settings &settings)
 {
-  client.SetKey(settings.key);
-
-  if (interval != settings.interval) {
-    interval = settings.interval;
-    clock = GPSClock(fixed(std::max(settings.interval, 1u)));
+  if (!settings.enabled || settings.key == 0) {
+    client.Close();
+    return;
   }
 
-  if (!settings.enabled)
-    client.Close();
-  else if (!client.IsDefined())
+  client.SetKey(settings.key);
+
+  interval = settings.interval;
+
+  if (!client.IsDefined())
     // TODO: fix hard-coded IP address:
     client.Open(IPv4Address(95, 128, 34, 172, Client::GetDefaultPort()));
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   traffic_enabled = settings.traffic_enabled;
 #endif
+
+  roaming = settings.roaming;
 }

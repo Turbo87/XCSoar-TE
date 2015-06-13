@@ -87,6 +87,7 @@ public class XCSoar extends Activity {
       return;
     }
 
+    NetUtil.initialise(this);
     InternalGPS.Initialize();
     NonGPSSensors.Initialize();
 
@@ -145,9 +146,19 @@ public class XCSoar extends Activity {
     finish();
   }
 
-  Handler quitHandler = new Handler() {
+  final Handler quitHandler = new Handler() {
     public void handleMessage(Message msg) {
       quit();
+    }
+  };
+
+  final Handler errorHandler = new Handler() {
+    public void handleMessage(Message msg) {
+      nativeView = null;
+      TextView tv = new TextView(XCSoar.this);
+      tv.setText(msg.obj.toString());
+      setContentView(tv);
+
     }
   };
 
@@ -167,7 +178,7 @@ public class XCSoar extends Activity {
       return;
     }
 
-    nativeView = new NativeView(this, quitHandler);
+    nativeView = new NativeView(this, quitHandler, errorHandler);
     setContentView(nativeView);
     // Receive keyboard events
     nativeView.setFocusableInTouchMode(true);

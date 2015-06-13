@@ -29,6 +29,7 @@ Copyright_License {
 #include "Asset.hpp"
 #include "LocalPath.hpp"
 #include "Util/StringUtil.hpp"
+#include "Util/StringAPI.hpp"
 #include "OS/FileUtil.hpp"
 #include "OS/PathName.hpp"
 
@@ -124,12 +125,6 @@ bool
 Profile::GetPathIsEqual(const char *key, const TCHAR *value)
 {
   return map.GetPathIsEqual(key, value);
-}
-
-const TCHAR *
-Profile::GetPathBase(const char *key)
-{
-  return map.GetPathBase(key);
 }
 
 void

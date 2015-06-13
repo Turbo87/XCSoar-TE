@@ -71,24 +71,24 @@ static inline bool
 IsMono()
 {
 #ifdef KOBO
+  /* on the Kobo, "mono" mode can be set at runtime; the shutdown
+     screen renders in greyscale mode */
   return FreeType::mono;
 #else
   return IsDithered();
 #endif
 }
 
-gcc_const
-static inline FT_Long
+static constexpr inline FT_Long
 FT_FLOOR(FT_Long x)
 {
   return (x & -64) / 64;
 }
 
-gcc_const
-static inline FT_Long
+static constexpr inline FT_Long
 FT_CEIL(FT_Long x)
 {
-  return ((x + 63) & -64) / 64;
+  return FT_FLOOR(x + 63);
 }
 
 gcc_pure
@@ -105,6 +105,8 @@ NextChar(const TCHAR *p)
 void
 Font::Initialise()
 {
+  FreeType::Initialise();
+
   if (IsMono()) {
     /* disable anti-aliasing */
     load_flags |= FT_LOAD_TARGET_MONO;
@@ -116,6 +118,18 @@ Font::Initialise()
   italic_font_path = FindDefaultItalicFont();
   bold_italic_font_path = FindDefaultBoldItalicFont();
   monospace_font_path = FindDefaultMonospaceFont();
+}
+
+void
+Font::Deinitialise()
+{
+  delete[] font_path;
+  delete[] bold_font_path;
+  delete[] italic_font_path;
+  delete[] bold_italic_font_path;
+  delete[] monospace_font_path;
+
+  FreeType::Deinitialise();
 }
 
 gcc_pure
@@ -252,10 +266,6 @@ Font::TextSize(const TCHAR *text) const
     const FT_GlyphSlot glyph = face->glyph;
     const FT_Glyph_Metrics &metrics = glyph->metrics;
 
-    const int glyph_minx = FT_FLOOR(metrics.horiBearingX);
-    const int glyph_maxx = minx + FT_CEIL(metrics.width);
-    const int glyph_advance = FT_CEIL(metrics.horiAdvance);
-
     if (use_kerning) {
       if (prev_index != 0 && i != 0) {
         FT_Vector delta;
@@ -266,6 +276,10 @@ Font::TextSize(const TCHAR *text) const
 
       prev_index = i;
     }
+
+    const int glyph_minx = FT_FLOOR(metrics.horiBearingX);
+    const int glyph_maxx = minx + FT_CEIL(metrics.width);
+    const int glyph_advance = FT_CEIL(metrics.horiAdvance);
 
     int z = x + glyph_minx;
     if (z < minx)
@@ -290,8 +304,8 @@ RenderGlyph(uint8_t *buffer, unsigned buffer_width, unsigned buffer_height,
   int pitch = bitmap.pitch;
 
   if (x < 0) {
-    src -= x;
-    width += x;
+    src += x;
+    width -= x;
     x = 0;
   }
 
@@ -302,8 +316,8 @@ RenderGlyph(uint8_t *buffer, unsigned buffer_width, unsigned buffer_height,
     width = buffer_width - x;
 
   if (y < 0) {
-    src -= y * pitch;
-    height += y;
+    src += y * pitch;
+    height -= y;
     y = 0;
   }
 
@@ -378,7 +392,7 @@ Font::Render(const TCHAR *text, const PixelSize size, void *_buffer) const
   const FT_Face face = this->face;
   const bool use_kerning = FT_HAS_KERNING(face);
 
-  int x = 0, minx = 0;
+  int x = 0;
   unsigned prev_index = 0;
 
 #ifndef ENABLE_OPENGL
@@ -404,9 +418,6 @@ Font::Render(const TCHAR *text, const PixelSize size, void *_buffer) const
     const FT_GlyphSlot glyph = face->glyph;
     const FT_Glyph_Metrics &metrics = glyph->metrics;
 
-    const int glyph_minx = FT_FLOOR(metrics.horiBearingX);
-    const int glyph_advance = FT_CEIL(metrics.horiAdvance);
-
     if (use_kerning) {
       if (prev_index != 0) {
         FT_Vector delta;
@@ -418,15 +429,10 @@ Font::Render(const TCHAR *text, const PixelSize size, void *_buffer) const
       prev_index = i;
     }
 
-    int z = x + glyph_minx;
-    if (z < minx)
-      minx = z;
+    RenderGlyph((uint8_t *)buffer, size.cx, size.cy, glyph,
+                x + FT_FLOOR(metrics.horiBearingX),
+                ascent_height - FT_FLOOR(metrics.horiBearingY));
 
-    const int glyph_maxy = FT_FLOOR(metrics.horiBearingY);
-
-    RenderGlyph((uint8_t *)buffer, size.cx, size.cy,
-                glyph, x - minx, ascent_height - glyph_maxy);
-
-    x += glyph_advance;
+    x += FT_CEIL(metrics.horiAdvance);
   }
 }

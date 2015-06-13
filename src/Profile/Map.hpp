@@ -25,7 +25,7 @@ Copyright_License {
 #define XCSOAR_PROFILE_MAP2_HPP
 
 #include "Math/fixed.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StringBuffer.hxx"
 #include "Compiler.h"
 
 #include <map>
@@ -35,6 +35,9 @@ Copyright_License {
 #include <tchar.h>
 
 struct GeoPoint;
+class RGB8Color;
+template<typename T> class StringPointer;
+template<typename T> class AllocatedString;
 
 class ProfileMap : public std::map<std::string, std::string> {
   bool modified;
@@ -95,8 +98,8 @@ public:
   bool Get(const char *key, TCHAR *value, size_t max_size) const;
 
   template<size_t max>
-  bool Get(const char *key, StaticString<max> &value) const {
-    return Get(key, value.buffer(), value.MAX_SIZE);
+  bool Get(const char *key, StringBuffer<TCHAR, max> &value) const {
+    return Get(key, value.data(), value.capacity());
   }
 
 #ifdef _UNICODE
@@ -148,8 +151,12 @@ public:
   /**
    * Gets a path from the profile and return its base name only.
    */
+#ifdef _UNICODE
+  AllocatedString<TCHAR> GetPathBase(const char *key) const;
+#else
   gcc_pure
-  const TCHAR *GetPathBase(const char *key) const;
+  StringPointer<TCHAR> GetPathBase(const char *key) const;
+#endif
 
   void SetPath(const char *key, const TCHAR *value);
 
@@ -166,6 +173,19 @@ public:
    * character.
    */
   void SetGeoPoint(const char *key, const GeoPoint &value);
+
+  // screen values
+
+  /**
+   * Load a Color from the profile.
+   */
+  bool GetColor(const char *key, RGB8Color &value) const;
+
+  /**
+   * Save a Color to the profile.  It is stored as a RGB hex string
+   * e.g. #123456
+   */
+  void SetColor(const char *key, const RGB8Color value);
 };
 
 #endif

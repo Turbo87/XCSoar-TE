@@ -32,6 +32,7 @@ WindComputer::Reset()
   circling_wind.Reset();
   wind_ekf.Reset();
   wind_store.reset();
+  ekf_active = false;
 }
 
 gcc_pure
@@ -50,6 +51,11 @@ WindComputer::Compute(const WindSettings &settings,
                       const GlidePolar &glide_polar,
                       const MoreData &basic, DerivedInfo &calculated)
 {
+  if (!settings.IsAutoWindEnabled()) {
+    calculated.estimated_wind_available.Clear();
+    return;
+  }
+
   if (!calculated.flight.flying)
     return;
 
@@ -60,14 +66,28 @@ WindComputer::Compute(const WindSettings &settings,
   }
 
   if (settings.ZigZagWindEnabled() &&
-      basic.airspeed_available && basic.airspeed_real &&
-      basic.true_airspeed > GetVTakeoffFallback(glide_polar)) {
-    WindEKFGlue::Result result = wind_ekf.Update(basic, calculated);
-    if (result.quality > 0)
-      wind_store.SlotMeasurement(basic, result.wind, result.quality);
-  }
+      basic.airspeed_available && basic.airspeed_real) {
+    if (basic.true_airspeed > GetVTakeoffFallback(glide_polar)) {
+      WindEKFGlue::Result result = wind_ekf.Update(basic, calculated);
+      if (result.quality > 0) {
+        wind_store.SlotMeasurement(basic, result.wind, result.quality);
 
-  if (settings.IsAutoWindEnabled())
+        /* skip WindStore if EKF is used because EKF is already
+           filtered */
+        /* note that even though we don't use WindStore to obtain the
+           wind estimate, we still store the EKF wind vector to it for
+           the analysis dialog */
+        calculated.estimated_wind = result.wind;
+        calculated.estimated_wind_available.Update(basic.clock);
+        ekf_active = true;
+      }
+    }
+  } else
+    /* EKF cannot be used without airspeed */
+    ekf_active = false;
+
+  /* skip WindStore? */
+  if (!ekf_active)
     wind_store.SlotAltitude(basic, calculated);
 }
 
@@ -92,28 +112,22 @@ void
 WindComputer::Select(const WindSettings &settings,
                      const NMEAInfo &basic, DerivedInfo &calculated)
 {
-  if (basic.external_wind_available && settings.use_external_wind) {
+  if (calculated.estimated_wind_available.Modified(settings.manual_wind_available)) {
+    // auto wind when available and newer than manual wind
+    calculated.wind = calculated.estimated_wind;
+    calculated.wind_available = calculated.estimated_wind_available;
+    calculated.wind_source = ekf_active
+      ? DerivedInfo::WindSource::EKF
+      : DerivedInfo::WindSource::CIRCLING;
+
+  } else if (basic.external_wind_available.Modified(settings.manual_wind_available)) {
     // external wind available
     calculated.wind = basic.external_wind;
     calculated.wind_available = basic.external_wind_available;
     calculated.wind_source = DerivedInfo::WindSource::EXTERNAL;
 
-  } else if (settings.manual_wind_available && !settings.IsAutoWindEnabled()) {
-    // manual wind only if available and desired
-    calculated.wind = settings.manual_wind;
-    calculated.wind_available = settings.manual_wind_available;
-    calculated.wind_source = DerivedInfo::WindSource::MANUAL;
-
-  } else if (calculated.estimated_wind_available.Modified(settings.manual_wind_available)
-             && settings.IsAutoWindEnabled()) {
-    // auto wind when available and newer than manual wind
-    calculated.wind = calculated.estimated_wind;
-    calculated.wind_available = calculated.estimated_wind_available;
-    calculated.wind_source = DerivedInfo::WindSource::AUTO;
-
-  } else if (settings.manual_wind_available
-             && settings.IsAutoWindEnabled()) {
-    // manual wind overrides auto wind if available
+  } else if (settings.manual_wind_available) {
+    // wind was set manually
     calculated.wind = settings.manual_wind;
     calculated.wind_available = settings.manual_wind_available;
     calculated.wind_source = DerivedInfo::WindSource::MANUAL;

@@ -24,15 +24,16 @@ Copyright_License {
 #ifndef XCSOAR_POPUP_MESSAGE_H
 #define XCSOAR_POPUP_MESSAGE_H
 
+#include "Screen/PaintWindow.hpp"
+#include "Renderer/TextRenderer.hpp"
 #include "Thread/Mutex.hpp"
-#include "Util/StaticString.hpp"
-#include "Screen/LargeTextWindow.hpp"
+#include "Util/StaticString.hxx"
 
 #include <tchar.h>
 
 struct UISettings;
+struct DialogLook;
 class SingleWindow;
-class StatusMessageList;
 
 /**
  * - Single window, created in GUI thread.
@@ -49,15 +50,12 @@ class StatusMessageList;
  * - Optional logging of all messages to file
  * - Thread locking so available from any thread
  */
-class PopupMessage : public LargeTextWindow
+class PopupMessage : public PaintWindow
 {
 public:
   enum Type {
-    MSG_UNKNOWN = 0,
-    MSG_AIRSPACE = 1,
-    MSG_USERINTERFACE = 2,
-    MSG_GLIDECOMPUTER = 3,
-    MSG_COMMS = 4,
+    MSG_UNKNOWN,
+    MSG_USERINTERFACE,
   };
 
 private:
@@ -105,10 +103,12 @@ private:
     bool AppendTo(StaticString<2000> &buffer, unsigned now);
   };
 
-  const StatusMessageList &status_messages;
-
   SingleWindow &parent;
+  const DialogLook &look;
+
   PixelRect rc; // maximum message size
+
+  TextRenderer renderer;
 
   const UISettings &settings;
 
@@ -121,10 +121,12 @@ private:
   bool enable_sound;
 
 public:
-  PopupMessage(const StatusMessageList &_status_messages,
-               SingleWindow &_parent, const UISettings &settings);
+  PopupMessage(SingleWindow &_parent, const DialogLook &_look,
+               const UISettings &settings);
 
   void Create(const PixelRect _rc);
+
+  void UpdateLayout(PixelRect _rc);
 
   /** returns true if messages have changed */
   bool Render();
@@ -147,13 +149,23 @@ public:
 
 private:
   gcc_pure
-  PixelRect GetRect(UPixelScalar height) const;
+  unsigned CalculateWidth() const;
 
-  void UpdateTextAndLayout(const TCHAR *text);
+  gcc_pure
+  PixelRect GetRect(unsigned width, unsigned height) const;
+
+  gcc_pure
+  PixelRect GetRect() const;
+
+  void UpdateTextAndLayout();
   int GetEmptySlot();
 
 protected:
-  virtual bool OnMouseDown(PixelScalar x, PixelScalar y);
+  /* virtual methods from class Window */
+  bool OnMouseDown(PixelScalar x, PixelScalar y) override;
+
+  /* virtual methods from class PaintWindow */
+  void OnPaint(Canvas &canvas) override;
 };
 
 #endif

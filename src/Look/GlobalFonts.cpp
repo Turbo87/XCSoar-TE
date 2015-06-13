@@ -27,75 +27,23 @@ Copyright_License {
 
 #include <algorithm>
 
-Font Fonts::dialog, Fonts::dialog_bold, Fonts::dialog_small;
-
-/// values inside infoboxes  like numbers, etc.
-Font Fonts::infobox;
-Font Fonts::infobox_small;
-#ifndef GNAV
-Font Fonts::infobox_units;
-#endif
-/// Titles of infoboxes like Next, WP L/D etc.
-Font Fonts::title;
-/// vario display, runway informations
-Font Fonts::cdi;
-Font Fonts::monospace;
 /// text names on the map
 Font Fonts::map;
 /// menu buttons, waypoint selection, messages, etc.
 Font Fonts::map_bold;
-/// Flarm Traffic draweing and stats, map labels in italic
-Font Fonts::map_label;
-/// font labels for important labels (e.g. big/medium cities)
-Font Fonts::map_label_important;
 
 bool
 Fonts::Load(const FontSettings &settings)
 {
-  dialog.Load(settings.dialog);
-
-  auto d = settings.dialog;
-  d.SetBold();
-  dialog_bold.Load(d);
-
-#ifdef GNAV
-  dialog_small.Load(settings.dialog_small);
-#else
-  d = settings.dialog;
-  d.SetHeight(std::max(6u, d.GetHeight() * 3u / 4u));
-  dialog_small.Load(d);
-#endif
-
-  title.Load(settings.title);
-  cdi.Load(settings.cdi);
-  map_label.Load(settings.map_label);
-  map_label_important.Load(settings.map_label_important);
   map.Load(settings.map);
   map_bold.Load(settings.map_bold);
-  monospace.Load(settings.monospace);
 
-  return title.IsDefined() && cdi.IsDefined() &&
-    map_label.IsDefined() && map_label_important.IsDefined() &&
-    map.IsDefined() && map_bold.IsDefined() &&
-    monospace.IsDefined();
+  return map.IsDefined() && map_bold.IsDefined();
 }
 
 void
 Fonts::Deinitialize()
 {
-  dialog.Destroy();
-  dialog_bold.Destroy();
-  dialog_small.Destroy();
-  infobox.Destroy();
-  infobox_small.Destroy();
-#ifndef GNAV
-  infobox_units.Destroy();
-#endif
-  title.Destroy();
   map.Destroy();
   map_bold.Destroy();
-  cdi.Destroy();
-  map_label.Destroy();
-  map_label_important.Destroy();
-  monospace.Destroy();
 }

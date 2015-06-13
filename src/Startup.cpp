@@ -62,7 +62,6 @@ Copyright_License {
 #include "Computer/GlideComputerInterface.hpp"
 #include "Computer/Events.hpp"
 #include "Monitor/AllMonitors.hpp"
-#include "StatusMessage.hpp"
 #include "MergeThread.hpp"
 #include "CalculationThread.hpp"
 #include "Replay/Replay.hpp"
@@ -118,7 +117,7 @@ LoadProfile()
     return false;
 
   Profile::Load();
-  Profile::Use();
+  Profile::Use(Profile::map);
 
   Units::SetConfig(CommonInterface::GetUISettings().format.units);
   SetUserCoordinateFormat(CommonInterface::GetUISettings().format.coordinate_format);
@@ -134,8 +133,6 @@ static void
 AfterStartup()
 {
   StartupLogFreeRamAndStorage();
-
-  CommonInterface::status_messages.Startup(true);
 
   if (is_simulator()) {
     InputEvents::processGlideComputer(GCE_STARTUP_SIMULATOR);
@@ -167,8 +164,6 @@ AfterStartup()
   InfoBoxManager::SetDirty();
 
   ForceCalculation();
-
-  CommonInterface::status_messages.Startup(false);
 }
 
 /**
@@ -204,7 +199,7 @@ Startup()
     style.Resizable();
 
   MainWindow *const main_window = CommonInterface::main_window =
-    new MainWindow(CommonInterface::status_messages);
+    new MainWindow();
   main_window->Create(SystemWindowSize(), style);
   if (!main_window->IsDefined())
     return false;
@@ -285,7 +280,6 @@ Startup()
 
   ReadLanguageFile();
 
-  CommonInterface::status_messages.LoadFile();
   InputEvents::readFile();
 
   // Initialize DeviceBlackboard

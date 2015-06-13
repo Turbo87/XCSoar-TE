@@ -22,11 +22,13 @@ Copyright_License {
 */
 
 #include "AutoFont.hpp"
-#include "FontSettings.hpp"
+#include "FontDescription.hpp"
 #include "Screen/Font.hpp"
 #include "Asset.hpp"
 
 #include <algorithm>
+
+#ifndef GNAV
 
 void
 AutoSizeFont(FontDescription &d, unsigned width, const TCHAR *text)
@@ -69,16 +71,4 @@ AutoSizeFont(FontDescription &d, unsigned width, const TCHAR *text)
   d.SetHeight(d.GetHeight() + 1);
 }
 
-void
-AutoSizeInfoBoxFonts(FontSettings &settings, unsigned control_width)
-{
-  if (!IsAltair())
-    AutoSizeFont(settings.infobox, control_width, _T("1234m"));
-
-#ifndef GNAV
-  settings.infobox_units.SetHeight(settings.infobox.GetHeight() * 2u / 5u);
 #endif
-
-  if (!IsAltair())
-    AutoSizeFont(settings.infobox_small, control_width, _T("12345m"));
-}

@@ -75,8 +75,8 @@ public:
     const unsigned row_height =
       std::max(Layout::GetMaximumControlHeight(),
                unsigned(Layout::GetTextPadding()) * 3
-               + look.text_font->GetHeight()
-               + look.small_font->GetHeight());
+               + look.text_font.GetHeight()
+               + look.small_font.GetHeight());
 
     CreateList(parent, look, rc, row_height);
     UpdateList();
@@ -165,7 +165,7 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
 
   const unsigned x1 = rc.left + padding;
   const unsigned y1 = rc.top + padding;
-  const unsigned y2 = y1 + look.text_font->GetHeight() + padding;
+  const unsigned y2 = y1 + look.text_font.GetHeight() + padding;
 
   static char wifi_security[][20] = {
     "WPA",
@@ -173,10 +173,10 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
     "Open",
   };
 
-  canvas.Select(*look.text_font);
+  canvas.Select(look.text_font);
   canvas.DrawText(x1, y1, info.ssid);
 
-  canvas.Select(*look.small_font);
+  canvas.Select(look.small_font);
   canvas.DrawText(x1, y2, info.bssid);
 
   const TCHAR *state = nullptr;
@@ -190,7 +190,7 @@ WifiListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
     const auto addr = IPv4Address::GetDeviceAddress("eth0");
     if (addr.IsDefined()) { /* valid address? */
       StaticString<40> addr_str;
-      if (addr.ToString(addr_str.buffer(), addr_str.MAX_SIZE) != nullptr) {
+      if (addr.ToString(addr_str.buffer(), addr_str.capacity()) != nullptr) {
         state_buffer.Format(_T("%s (%s)"), state, addr_str.c_str());
         state = state_buffer;
       }

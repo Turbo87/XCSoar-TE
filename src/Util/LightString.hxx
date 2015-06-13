@@ -31,6 +31,7 @@
 #define LIGHT_STRING_HXX
 
 #include "StringPointer.hxx"
+#include "AllocatedString.hxx"
 
 #include <utility>
 
@@ -45,23 +46,22 @@ public:
 	typedef typename StringPointer<T>::const_pointer const_pointer;
 
 private:
-	pointer allocation;
+	AllocatedString<T> allocation;
 
 	explicit LightString(pointer _allocation)
-		:StringPointer<T>(_allocation), allocation(_allocation) {}
+		:StringPointer<T>(_allocation),
+		allocation(AllocatedString<T>::Donate(_allocation)) {}
 
 public:
 	explicit LightString(const_pointer _value)
 		:StringPointer<T>(_value), allocation(nullptr) {}
 
-	LightString(std::nullptr_t n):StringPointer<T>(n), allocation(n) {}
+	LightString(std::nullptr_t n)
+		:StringPointer<T>(n), allocation(n) {}
 
 	LightString(LightString &&src)
-		:StringPointer<T>(std::move(src)), allocation(src.Steal()) {}
-
-	~LightString() {
-		delete[] allocation;
-	}
+		:StringPointer<T>(std::move(src)),
+		 allocation(std::move(src.allocation)) {}
 
 	static LightString Donate(pointer allocation) {
 		return LightString(allocation);
@@ -73,14 +73,12 @@ public:
 
 	LightString &operator=(LightString &&src) {
 		*(StringPointer<T> *)this = std::move(src);
-		std::swap(allocation, src.allocation);
+		allocation = std::move(src.allocation);
 		return *this;
 	}
 
 	pointer Steal() {
-		pointer result = allocation;
-		allocation = nullptr;
-		return result;
+		return allocation.Steal();
 	}
 };
 

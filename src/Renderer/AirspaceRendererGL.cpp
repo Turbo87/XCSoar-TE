@@ -34,7 +34,6 @@ Copyright_License {
 #include "Airspace/AirspaceCircle.hpp"
 #include "Airspace/AirspaceVisitor.hpp"
 #include "Airspace/AirspaceWarningCopy.hpp"
-
 #include "Screen/OpenGL/Scope.hpp"
 
 class AirspaceVisitorRenderer final
@@ -68,7 +67,7 @@ private:
       settings.classes[airspace.GetType()];
     const AirspaceClassLook &class_look = look.classes[airspace.GetType()];
 
-    RasterPoint screen_center = projection.GeoToScreen(airspace.GetCenter());
+    RasterPoint screen_center = projection.GeoToScreen(airspace.GetReferenceLocation());
     unsigned screen_radius = projection.GeoToScreenDistance(airspace.GetRadius());
 
     if (!warning_manager.IsAcked(airspace) &&
@@ -236,7 +235,7 @@ public:
 
 private:
   void VisitCircle(const AirspaceCircle &airspace) {
-    RasterPoint screen_center = projection.GeoToScreen(airspace.GetCenter());
+    RasterPoint screen_center = projection.GeoToScreen(airspace.GetReferenceLocation());
     unsigned screen_radius = projection.GeoToScreenDistance(airspace.GetRadius());
 
     if (!warning_manager.IsAcked(airspace) && SetupInterior(airspace)) {
@@ -316,14 +315,12 @@ AirspaceRenderer::DrawInternal(Canvas &canvas,
 {
   if (settings.fill_mode == AirspaceRendererSettings::FillMode::ALL ||
       settings.fill_mode == AirspaceRendererSettings::FillMode::NONE) {
-    AirspaceFillRenderer renderer(canvas, projection, look, awc,
-                                  settings);
+    AirspaceFillRenderer renderer(canvas, projection, look, awc, settings);
     airspaces->VisitWithinRange(projection.GetGeoScreenCenter(),
                                 projection.GetScreenDistanceMeters(),
                                 renderer, visible);
   } else {
-    AirspaceVisitorRenderer renderer(canvas, projection, look, awc,
-                                     settings);
+    AirspaceVisitorRenderer renderer(canvas, projection, look, awc, settings);
     airspaces->VisitWithinRange(projection.GetGeoScreenCenter(),
                                 projection.GetScreenDistanceMeters(),
                                 renderer, visible);

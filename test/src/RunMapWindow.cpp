@@ -33,6 +33,7 @@ Copyright_License {
 #include "Profile/ProfileKeys.hpp"
 #include "Profile/ComputerProfile.hpp"
 #include "Profile/MapProfile.hpp"
+#include "Profile/Current.hpp"
 #include "Waypoint/WaypointGlue.hpp"
 #include "Topography/TopographyStore.hpp"
 #include "Topography/TopographyGlue.hpp"
@@ -179,11 +180,11 @@ Main()
 {
   ComputerSettings settings_computer;
   settings_computer.SetDefaults();
-  Profile::Load(settings_computer);
+  Profile::Load(Profile::map, settings_computer);
 
   MapSettings settings_map;
   settings_map.SetDefaults();
-  Profile::Load(settings_map);
+  Profile::Load(Profile::map, settings_map);
 
   LoadFiles(settings_computer.poi, settings_computer.team_code);
 

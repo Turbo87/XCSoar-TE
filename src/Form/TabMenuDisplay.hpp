@@ -26,6 +26,7 @@ Copyright_License {
 
 #include "TabMenuData.hpp"
 #include "Screen/PaintWindow.hpp"
+#include "Renderer/TabRenderer.hpp"
 #include "Util/StaticArray.hpp"
 
 struct DialogLook;
@@ -47,14 +48,30 @@ class TabMenuDisplay final : public PaintWindow
    * class that holds the child menu button and info for the menu
    */
   struct SubMenuButton {
+    //TODO MainMenuButton *group;
+    unsigned main_menu_index;
+    const TCHAR *caption;
+
     PixelRect rc;
-  };
+
+    TabRenderer renderer;
+
+    void Draw(Canvas &canvas, const DialogLook &look,
+              bool focused, bool pressed, bool selected) const {
+      renderer.Draw(canvas, rc, look, caption, nullptr,
+                    focused, pressed, selected);
+    }
+};
 
   /**
    * class that holds the main menu button and info
    */
   struct MainMenuButton {
+    const TCHAR *caption;
+
     PixelRect rc;
+
+    TabRenderer renderer;
 
     /* index to Pages array of first page in submenu */
     unsigned first_page_index;
@@ -65,6 +82,12 @@ class TabMenuDisplay final : public PaintWindow
     unsigned NumSubMenus() const {
       return last_page_index - first_page_index + 1;
     };
+
+    void Draw(Canvas &canvas, const DialogLook &look,
+              bool focused, bool pressed, bool selected) const {
+      renderer.Draw(canvas, rc, look, caption, nullptr,
+                    focused, pressed, selected);
+    }
   };
 
   /* internally used structure for tracking menu down and selection status */
@@ -119,11 +142,6 @@ class TabMenuDisplay final : public PaintWindow
   /* holds info and buttons for the main menu.  not on child menus */
   StaticArray<MainMenuButton, MAX_MAIN_MENU_ITEMS> main_menu_buttons;
 
-  /* holds pointer to array of menus info (must be sorted by MenuGroup) */
-  const TabMenuPage *pages;
-
-  const TabMenuGroup *groups;
-
   bool dragging; // tracks that mouse is down and captured
   bool drag_off_button; // set by mouse_move
 
@@ -147,8 +165,7 @@ public:
    * displayed in the menu
    * @param num_pages Size the menus array
    */
-  void InitMenu(const TabMenuPage pages_in[], unsigned num_pages,
-                const TabMenuGroup groups[], unsigned n_groups);
+  void InitMenu(const TabMenuGroup groups[], unsigned n_groups);
 
   const TCHAR *GetCaption(TCHAR buffer[], size_t size) const;
 
@@ -180,22 +197,10 @@ private:
     return buttons.size();
   }
 
-  const TCHAR *GetPageCaption(unsigned page) const {
-    assert(page < GetNumPages());
-
-    return pages[page].menu_caption;
-  }
-
-  const TCHAR *GetGroupCaption(unsigned group) const {
-    assert(group < main_menu_buttons.size());
-
-    return groups[group].caption;
-  }
-
   const TCHAR *GetPageParentCaption(unsigned page) const {
     assert(page < GetNumPages());
 
-    return GetGroupCaption(pages[page].main_menu_index);
+    return main_menu_buttons[buttons[page].main_menu_index].caption;
   }
 
   unsigned GetNumMainMenuItems() const {
@@ -206,7 +211,7 @@ private:
   unsigned GetPageMainIndex(unsigned page) const {
     assert(page < GetNumPages());
 
-    return pages[page].main_menu_index;
+    return buttons[page].main_menu_index;
   }
 
   /**
@@ -219,20 +224,6 @@ private:
    */
   gcc_pure
   int GetPageNum(MenuTabIndex i) const;
-
-  void AddMenu(unsigned first, unsigned last,
-               unsigned main_menu_index) {
-    assert(main_menu_index == main_menu_buttons.size());
-    assert(main_menu_index < MAX_MAIN_MENU_ITEMS);
-
-    MainMenuButton &b = main_menu_buttons.append();
-    b.first_page_index = first;
-    b.last_page_index = last;
-  }
-
-  void AddMenuItem() {
-    buttons.append();
-  }
 
   gcc_pure
   const PixelRect &GetButtonPosition(MenuTabIndex i) const;
@@ -294,24 +285,24 @@ private:
   void DragEnd();
 
 protected:
-  virtual void OnResize(PixelSize new_size) override;
+  void OnResize(PixelSize new_size) override;
 
-  virtual bool OnMouseMove(PixelScalar x, PixelScalar y,
-                           unsigned keys) override;
-  virtual bool OnMouseUp(PixelScalar x, PixelScalar y) override;
-  virtual bool OnMouseDown(PixelScalar x, PixelScalar y) override;
-  virtual bool OnKeyCheck(unsigned key_code) const override;
-  virtual bool OnKeyDown(unsigned key_code) override;
+  bool OnMouseMove(PixelScalar x, PixelScalar y,
+                   unsigned keys) override;
+  bool OnMouseUp(PixelScalar x, PixelScalar y) override;
+  bool OnMouseDown(PixelScalar x, PixelScalar y) override;
+  bool OnKeyCheck(unsigned key_code) const override;
+  bool OnKeyDown(unsigned key_code) override;
 
   /**
    * canvas is the tabmenu which is the full content window, no content
    * @param canvas
    * Todo: support icons and "ButtonOnly" style
    */
-  virtual void OnPaint(Canvas &canvas) override;
+  void OnPaint(Canvas &canvas) override;
 
-  virtual void OnKillFocus() override;
-  virtual void OnSetFocus() override;
+  void OnKillFocus() override;
+  void OnSetFocus() override;
 
 private:
   void InvalidateButton(MenuTabIndex i) {
@@ -325,10 +316,10 @@ private:
    * draw border around main menu
    */
   void PaintMainMenuBorder(Canvas &canvas) const;
-  void PaintMainMenuItems(Canvas &canvas, const unsigned CaptionStyle) const;
+  void PaintMainMenuItems(Canvas &canvas) const;
   void PaintSubMenuBorder(Canvas &canvas,
                           const MainMenuButton &main_button) const;
-  void PaintSubMenuItems(Canvas &canvas, const unsigned CaptionStyle) const;
+  void PaintSubMenuItems(Canvas &canvas) const;
 };
 
 #endif

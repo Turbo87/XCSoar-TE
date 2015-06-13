@@ -49,16 +49,20 @@ public:
   AirspaceCircle(const GeoPoint &loc, const fixed _radius);
 
   /* virtual methods from class AbstractAirspace */
-  virtual const GeoPoint GetCenter() const override {
+  const GeoPoint GetReferenceLocation() const override {
     return m_center;
   }
 
-  virtual bool Inside(const GeoPoint &loc) const override;
-  virtual AirspaceIntersectionVector Intersects(const GeoPoint &g1,
-                                                const GeoPoint &end,
-                                                const FlatProjection &projection) const override;
-  virtual GeoPoint ClosestPoint(const GeoPoint &loc,
-                                const FlatProjection &projection) const override;
+  const GeoPoint GetCenter() const override {
+		return GetReferenceLocation();
+  }
+
+  bool Inside(const GeoPoint &loc) const override;
+  AirspaceIntersectionVector Intersects(const GeoPoint &g1,
+                                        const GeoPoint &end,
+                                        const FlatProjection &projection) const override;
+  GeoPoint ClosestPoint(const GeoPoint &loc,
+                        const FlatProjection &projection) const override;
 
   /**
    * Accessor for radius

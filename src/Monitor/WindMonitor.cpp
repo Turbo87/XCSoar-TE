@@ -21,44 +21,16 @@ Copyright_License {
 }
 */
 
-#include "TaskMapWindow.hpp"
-#include "Screen/Canvas.hpp"
-#include "Gauge/TaskView.hpp"
-#include "Look/MapLook.hpp"
-#include "Form/ActionListener.hpp"
+#include "WindMonitor.hpp"
 #include "Interface.hpp"
-#include "Components.hpp"
-
-#ifdef ENABLE_OPENGL
-#include "Screen/OpenGL/Scissor.hpp"
-#endif
 
 void
-TaskMapWindow::OnPaintBuffer(Canvas &canvas)
+WindMonitor::Check()
 {
-  if (task == nullptr) {
-    canvas.ClearWhite();
-    return;
-  }
+  auto &settings_computer = CommonInterface::SetComputerSettings();
+  const auto &calculated = CommonInterface::Calculated();
 
-#ifdef ENABLE_OPENGL
-  /* enable clipping */
-  GLCanvasScissor scissor(canvas);
-#endif
-
-  const NMEAInfo &basic = CommonInterface::Basic();
-  PaintTask(canvas, GetClientRect(), *task,
-            basic.location_available ? basic.location : GeoPoint::Invalid(),
-            CommonInterface::GetMapSettings(),
-            look.task, look.airspace,
-            terrain, &airspace_database,
-            true);
-
-}
-
-bool
-TaskMapWindow::OnMouseDown(PixelScalar x, PixelScalar y)
-{
-  listener.OnAction(id);
-  return true;
+  /* as soon as another wind setting is used, clear the manual wind */
+  if (calculated.wind_available.Modified(settings_computer.wind.manual_wind_available))
+    settings_computer.wind.manual_wind_available.Clear();
 }

@@ -77,12 +77,21 @@ namespace SkyLinesTracking {
       return socket.IsDefined();
     }
 
+    uint64_t GetKey() const {
+      return key;
+    }
+
     void SetKey(uint64_t _key) {
       key = _key;
     }
 
     bool Open(SocketAddress _address);
     void Close();
+
+    template<typename P>
+    bool SendPacket(const P &packet) {
+      return socket.Write(&packet, sizeof(packet), address) == sizeof(packet);
+    }
 
     bool SendFix(const NMEAInfo &basic);
     bool SendPing(uint16_t id);

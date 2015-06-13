@@ -1,3 +1,21 @@
+xcsoar (6.8~alpha6) unstable; urgency=medium
+
+  * new release
+
+ -- Max Kellermann <max@duempel.org>  Fri, 12 Jun 2015 14:20:53 +0200
+
+xcsoar (6.8~alpha5) unstable; urgency=medium
+
+  * new release
+
+ -- Max Kellermann <max@duempel.org>  Thu, 28 May 2015 20:33:25 +0200
+
+xcsoar (6.8~alpha4) unstable; urgency=medium
+
+  * new release
+
+ -- Max Kellermann <max@duempel.org>  Wed, 20 May 2015 14:32:35 +0200
+
 xcsoar (6.8~alpha3) unstable; urgency=medium
 
   * new release
@@ -15,6 +33,12 @@ xcsoar (6.8~alpha1) unstable; urgency=medium
   * new release
 
  -- Max Kellermann <max@duempel.org>  Tue, 14 Apr 2015 11:50:48 +0200
+
+xcsoar (6.7.8) unstable; urgency=medium
+
+  * new release
+
+ -- Max Kellermann <max@duempel.org>  Fri, 22 May 2015 19:55:41 +0200
 
 xcsoar (6.7.7) unstable; urgency=medium
 

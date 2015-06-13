@@ -27,7 +27,6 @@ Copyright_License {
 #include "Screen/SingleWindow.hpp"
 #include "Screen/Timer.hpp"
 #include "InfoBoxes/InfoBoxLayout.hpp"
-#include "PopupMessage.hpp"
 #include "BatteryTimer.hpp"
 #include "Widget/ManagedWidget.hpp"
 #include "UIUtil/GestureManager.hpp"
@@ -46,22 +45,16 @@ struct UIState;
 struct Look;
 class GlueMapWindow;
 class Widget;
-class StatusMessageList;
 class RasterTerrain;
 class TopographyStore;
 class MapWindowProjection;
+class PopupMessage;
 
 /**
  * The XCSoar main window.
  */
 class MainWindow : public SingleWindow {
   enum class Command: uint8_t {
-    /**
-     * Check the airspace_warning_pending flag and show the airspace
-     * warning dialog.
-     */
-    AIRSPACE_WARNING,
-
     /**
      * Called by the #MergeThread when new GPS data is available.
      */
@@ -120,7 +113,7 @@ class MainWindow : public SingleWindow {
   GestureManager gestures;
 
 public:
-  PopupMessage popup;
+  PopupMessage *popup;
 
 private:
   WindowTimer timer;
@@ -140,10 +133,8 @@ private:
 
   bool restore_page_pending;
 
-  bool airspace_warning_pending;
-
 public:
-  MainWindow(const StatusMessageList &status_messages);
+  MainWindow();
   virtual ~MainWindow();
 
 #ifdef USE_GDI
@@ -266,16 +257,6 @@ public:
   }
 
   void SetFullScreen(bool _full_screen);
-
-  /**
-   * A new airspace warning was found.  This method sends the
-   * Command::AIRSPACE_WARNING command to this window, which displays the
-   * airspace warning dialog.
-   */
-  void SendAirspaceWarning() {
-    airspace_warning_pending = true;
-    SendUser((unsigned)Command::AIRSPACE_WARNING);
-  }
 
   void SendGPSUpdate() {
     SendUser((unsigned)Command::GPS_UPDATE);

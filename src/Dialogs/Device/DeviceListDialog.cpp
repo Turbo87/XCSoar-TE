@@ -35,7 +35,7 @@ Copyright_License {
 #include "Dialogs/Message.hpp"
 #include "UIGlobals.hpp"
 #include "Util/TrivialArray.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 #include "Util/Macros.hpp"
 #include "Device/MultipleDevices.hpp"
 #include "Device/Descriptor.hpp"
@@ -55,6 +55,7 @@ Copyright_License {
 #include "Operation/MessageOperationEnvironment.hpp"
 #include "Simulator.hpp"
 #include "Logger/ExternalLogger.hpp"
+#include "Profile/Current.hpp"
 #include "Profile/Profile.hpp"
 #include "Profile/DeviceConfig.hpp"
 #include "Interface.hpp"
@@ -239,7 +240,7 @@ DeviceListWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   const UPixelScalar margin = Layout::GetTextPadding();
   font_height = look.list.font->GetHeight();
   CreateList(parent, look, rc, 3 * margin + font_height +
-             look.small_font->GetHeight()).SetLength(NUMDEV);
+             look.small_font.GetHeight()).SetLength(NUMDEV);
 
   for (Item &i : items)
     i.Clear();
@@ -411,7 +412,7 @@ DeviceListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc, unsigned idx)
     status = _("Not connected");
   }
 
-  canvas.Select(*look.small_font);
+  canvas.Select(look.small_font);
   canvas.DrawText(rc.left + margin, rc.top + 2 * margin + font_height,
                   status);
 }
@@ -436,7 +437,7 @@ DeviceListWidget::EnableDisableCurrent()
   /* save new config to profile .. */
 
   config.enabled = !config.enabled;
-  Profile::SetDeviceConfig(index, config);
+  Profile::SetDeviceConfig(Profile::map, index, config);
   Profile::Save();
 
   /* .. and reopen the device */
@@ -530,7 +531,7 @@ DeviceListWidget::EditCurrent()
   /* save new config to profile .. */
 
   config = widget.GetConfig();
-  Profile::SetDeviceConfig(index, config);
+  Profile::SetDeviceConfig(Profile::map, index, config);
   Profile::Save();
 
   /* .. and reopen the device */

@@ -81,10 +81,11 @@ RenderShadowedText(Canvas &canvas, const TCHAR *text,
   canvas.SetBackgroundTransparent();
 
   canvas.SetTextColor(inverted ? COLOR_BLACK : COLOR_WHITE);
-  canvas.DrawText(x + Layout::SmallScale(1), y, text);
-  canvas.DrawText(x - Layout::SmallScale(1), y, text);
-  canvas.DrawText(x, y + 1, text);
-  canvas.DrawText(x, y - 1, text);
+  const int offset = canvas.GetFontHeight() / 12u;
+  canvas.DrawText(x + offset, y, text);
+  canvas.DrawText(x - offset, y, text);
+  canvas.DrawText(x, y + offset, text);
+  canvas.DrawText(x, y - offset, text);
 
   canvas.SetTextColor(inverted ? COLOR_WHITE : COLOR_BLACK);
   canvas.DrawText(x, y, text);
@@ -141,7 +142,7 @@ TextInBox(Canvas &canvas, const TCHAR *text, PixelScalar x, PixelScalar y,
 #endif
 
       canvas.DrawRoundRectangle(rc.left, rc.top, rc.right, rc.bottom,
-                                Layout::SmallScale(8), Layout::SmallScale(8));
+                                Layout::VptScale(8), Layout::VptScale(8));
     }
 
     canvas.SetBackgroundTransparent();

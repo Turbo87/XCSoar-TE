@@ -45,25 +45,39 @@ public:
   /**
    * @param _height the cell height of the font
    */
-  explicit FontDescription(const TCHAR *face,
-                           unsigned _height,
-                           bool _bold=false, bool _italic=false,
-                           bool _monospace=false);
+  FontDescription(const TCHAR *face,
+                  unsigned _height,
+                  bool _bold=false, bool _italic=false,
+                  bool _monospace=false);
 
-  operator const LOGFONT &() const {
+  explicit operator const LOGFONT &() const {
     return logfont;
   }
 
+#ifndef GNAV
   unsigned GetHeight() const {
-    return logfont.lfHeight;
+    return -logfont.lfHeight;
   }
 
   void SetHeight(unsigned _height) {
-    logfont.lfHeight = _height;
+    logfont.lfHeight = -int(_height);
   }
+
+  FontDescription WithHeight(unsigned _height) const {
+    FontDescription result(*this);
+    result.SetHeight(_height);
+    return result;
+  }
+#endif
 
   void SetBold(bool bold=true) {
     logfont.lfWeight = bold ? FW_BOLD : FW_MEDIUM;
+  }
+
+  FontDescription WithBold(bool bold=true) const {
+    FontDescription result(*this);
+    result.SetBold(bold);
+    return result;
   }
 
 private:
@@ -102,12 +116,20 @@ public:
     height = _height;
   }
 
+  constexpr FontDescription WithHeight(unsigned _height) const {
+    return FontDescription(_height, bold, italic, monospace);
+  }
+
   constexpr bool IsBold() const {
     return bold;
   }
 
   void SetBold(bool _bold=true) {
     bold = _bold;
+  }
+
+  constexpr FontDescription WithBold(bool _bold=true) const {
+    return FontDescription(height, _bold, italic, monospace);
   }
 
   constexpr bool IsItalic() const {

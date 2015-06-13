@@ -111,6 +111,14 @@ public:
    * @return Location of reference point
    */
   gcc_pure
+  virtual const GeoPoint GetReferenceLocation() const = 0;
+
+  /**
+   * Get geometric center of airspace.
+   *
+   * @return center
+   */
+  gcc_pure
   virtual const GeoPoint GetCenter() const = 0;
 
   /**
@@ -223,9 +231,9 @@ public:
     days_of_operation = mask;
   }
 
-  /** 
+  /**
    * Get type of airspace
-   * 
+   *
    * @return Type/class of airspace
    */
   AirspaceClass GetType() const {

@@ -4,6 +4,8 @@ FORM_SRC_DIR = $(SRC)/Form
 
 FORM_SOURCES = \
 	$(SRC)/UIUtil/KineticManager.cpp \
+	$(SRC)/Renderer/TextRenderer.cpp \
+	$(SRC)/Renderer/TabRenderer.cpp \
 	$(SRC)/Renderer/ButtonRenderer.cpp \
 	$(SRC)/Renderer/TextButtonRenderer.cpp \
 	$(SRC)/Renderer/SymbolRenderer.cpp \
@@ -22,7 +24,6 @@ FORM_SOURCES = \
 	$(FORM_SRC_DIR)/ScrollBar.cpp \
 	$(FORM_SRC_DIR)/Edit.cpp \
 	$(FORM_SRC_DIR)/DigitEntry.cpp \
-	$(FORM_SRC_DIR)/TabBar.cpp \
 	$(FORM_SRC_DIR)/TabDisplay.cpp \
 	$(FORM_SRC_DIR)/TabMenuDisplay.cpp \
 	$(FORM_SRC_DIR)/CharacterButton.cpp \

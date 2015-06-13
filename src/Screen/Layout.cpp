@@ -34,6 +34,8 @@ namespace Layout
   unsigned scale_1024 = 1024;
   unsigned small_scale = 1024;
   unsigned pen_width_scale = 1024;
+  unsigned pt_scale = 1024;
+  unsigned vpt_scale = 1024;
   unsigned font_scale = 1024;
   unsigned text_padding = 2;
   unsigned minimum_control_height = 20, maximum_control_height = 44;
@@ -86,24 +88,33 @@ Layout::Initialize(PixelSize new_size, unsigned ui_scale)
 
   pen_width_scale = std::max(1024u, x_dpi * 1024u / 80u);
 
+  pt_scale = 1024 * y_dpi / 72;
+
+  vpt_scale = pt_scale;
+  if (is_small_screen)
+    /* small screens (on portable devices) use a smaller font because
+       the viewing distance is usually smaller */
+    vpt_scale = vpt_scale * 2 / 3;
+
   font_scale = 1024 * y_dpi * ui_scale / 72 / 100;
   if (is_small_screen)
     /* small screens (on portable devices) use a smaller font because
        the viewing distance is usually smaller */
     font_scale = font_scale * 2 / 3;
 
-  text_padding = Scale(2);
+  text_padding = VptScale(2);
 
-  minimum_control_height = Scale(20);
+  minimum_control_height = std::min(FontScale(23),
+                                    min_screen_pixels / 12);
 
   if (HasTouchScreen()) {
     /* larger rows for touch screens */
-    maximum_control_height = Display::GetYDPI() * 3 / 7;
+    maximum_control_height = PtScale(30);
     if (maximum_control_height < minimum_control_height)
       maximum_control_height = minimum_control_height;
   } else {
     maximum_control_height = minimum_control_height;
   }
 
-  hit_radius = x_dpi / (HasTouchScreen() ? 3 : 12);
+  hit_radius = PtScale(HasTouchScreen() ? 24 : 6);
 }

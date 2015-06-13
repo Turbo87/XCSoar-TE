@@ -38,7 +38,7 @@ Copyright_License {
 #include "Airspace/AirspaceCircle.hpp"
 #include "Geo/GeoVector.hpp"
 #include "Engine/Airspace/AirspaceClass.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 
 #include <tchar.h>
 #include <stdio.h>
@@ -806,10 +806,8 @@ static bool
 ParseLineTNP(Airspaces &airspace_database, TCHAR *line,
              TempAirspaceType &temp_area, bool &ignore)
 {
-  // Strip comments
-  auto *comment = StringFind(line, _T('*'));
-  if (comment != nullptr)
-    *comment = _T('\0');
+  if (*line == _T('#'))
+    return true;
 
   const TCHAR* parameter;
   if ((parameter = StringAfterPrefixCI(line, _T("INCLUDE="))) != nullptr) {

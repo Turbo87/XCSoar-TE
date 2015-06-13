@@ -35,6 +35,7 @@ Copyright_License {
 #include "Components.hpp"
 #include "Time/PeriodClock.hpp"
 #include "MainWindow.hpp"
+#include "PopupMessage.hpp"
 #include "Asset.hpp"
 #include "Simulator.hpp"
 #include "Replay/Replay.hpp"
@@ -64,7 +65,8 @@ static void
 MessageProcessTimer()
 {
   // don't display messages if airspace warning dialog is active
-  if (CommonInterface::main_window->popup.Render())
+  if (CommonInterface::main_window->popup != nullptr &&
+      CommonInterface::main_window->popup->Render())
     // turn screen on if blanked and receive a new message
     ResetUserIdle();
 }
@@ -210,23 +212,10 @@ ProcessAutoBugs()
 }
 
 static void
-ManualWindProcessTimer()
-{
-  ComputerSettings &settings_computer =
-    CommonInterface::SetComputerSettings();
-  const DerivedInfo &calculated = CommonInterface::Calculated();
-
-  /* as soon as another wind setting is used, clear the manual wind */
-  if (calculated.wind_available.Modified(settings_computer.wind.manual_wind_available))
-    settings_computer.wind.manual_wind_available.Clear();
-}
-
-static void
 SettingsProcessTimer()
 {
   BallastDumpProcessTimer();
   ProcessAutoBugs();
-  ManualWindProcessTimer();
 }
 
 static void

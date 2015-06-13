@@ -29,7 +29,7 @@ Copyright_License {
 #include "Units/Units.hpp"
 #include "Language/Language.hpp"
 #include "NMEA/ClimbHistory.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 
 #include <stdio.h>
 
@@ -59,7 +59,6 @@ void
 RenderGlidePolar(Canvas &canvas, const PixelRect rc,
                  const ChartLook &chart_look,
                  const ClimbHistory &climb_history,
-                 const ComputerSettings &settings_computer,
                  const GlidePolar &glide_polar)
 {
   ChartRenderer chart(chart_look, canvas, rc);

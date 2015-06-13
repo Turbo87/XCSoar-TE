@@ -116,7 +116,7 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Task/Widgets/LineSectorZoneEditWidget.cpp \
 	$(SRC)/Dialogs/Task/Widgets/SectorZoneEditWidget.cpp \
 	$(SRC)/Dialogs/Task/Widgets/KeyholeZoneEditWidget.cpp \
-	$(SRC)/Dialogs/Task/Manager/TaskMapWindow.cpp \
+	$(SRC)/Dialogs/Task/Manager/TaskMapButtonRenderer.cpp \
 	$(SRC)/Dialogs/Task/Manager/TaskManagerDialog.cpp \
 	$(SRC)/Dialogs/Task/Manager/TaskClosePanel.cpp \
 	$(SRC)/Dialogs/Task/Manager/TaskEditPanel.cpp \
@@ -124,7 +124,6 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Task/Manager/TaskMiscPanel.cpp \
 	$(SRC)/Dialogs/Task/Manager/TaskActionsPanel.cpp \
 	$(SRC)/Dialogs/Task/Manager/TaskListPanel.cpp \
-	$(SRC)/Dialogs/Task/Manager/TaskCalculatorPanel.cpp \
 	$(SRC)/Dialogs/Task/OptionalStartsDialog.cpp \
 	$(SRC)/Dialogs/Task/TaskPointDialog.cpp \
 	$(SRC)/Dialogs/Task/MutateTaskPointDialog.cpp \
@@ -180,6 +179,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/Engine/Trace/Vector.cpp \
 	$(SRC)/Engine/Util/Gradient.cpp \
 	$(SRC)/HorizonWidget.cpp \
+	$(SRC)/Renderer/TextRowRenderer.cpp \
+	$(SRC)/Renderer/TwoTextRowsRenderer.cpp \
 	$(SRC)/Renderer/HorizonRenderer.cpp \
 	$(SRC)/Renderer/GradientRenderer.cpp \
 	$(SRC)/Renderer/GlassRenderer.cpp \
@@ -428,6 +429,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/Renderer/AirspaceRenderer.cpp \
 	$(SRC)/Renderer/AirspaceRendererGL.cpp \
 	$(SRC)/Renderer/AirspaceRendererOther.cpp \
+	$(SRC)/Renderer/AirspaceLabelList.cpp \
+	$(SRC)/Renderer/AirspaceLabelRenderer.cpp \
 	$(SRC)/Renderer/AirspaceListRenderer.cpp \
 	$(SRC)/Renderer/AirspacePreviewRenderer.cpp \
 	$(SRC)/Renderer/BestCruiseArrowRenderer.cpp \
@@ -654,6 +657,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/Device/Config.cpp \
 	$(DIALOG_SOURCES) \
 	\
+	$(SRC)/Monitor/WindMonitor.cpp \
+	$(SRC)/Monitor/AirspaceWarningMonitor.cpp \
 	$(SRC)/Monitor/TaskAdvanceMonitor.cpp \
 	$(SRC)/Monitor/MatTaskMonitor.cpp \
 	$(SRC)/Monitor/AllMonitors.cpp \
@@ -683,7 +688,9 @@ XCSOAR_SOURCES += \
 	$(SRC)/Device/Port/AndroidPort.cpp \
 	$(SRC)/Device/Port/AndroidBluetoothPort.cpp \
 	$(SRC)/Device/Port/AndroidIOIOUartPort.cpp \
+	$(SRC)/Android/NativeView.cpp \
 	$(SRC)/Android/Environment.cpp \
+	$(SRC)/Android/Bitmap.cpp \
 	$(SRC)/Android/Product.cpp \
 	$(SRC)/Android/Nook.cpp \
 	$(SRC)/Android/InternalSensors.cpp \
@@ -744,6 +751,7 @@ endif
 
 XCSOAR_SOURCES += \
 	$(SRC)/Tracking/SkyLines/Client.cpp \
+	$(SRC)/Tracking/SkyLines/Assemble.cpp \
 	$(SRC)/Tracking/SkyLines/Glue.cpp \
 	$(SRC)/Tracking/TrackingGlue.cpp
 

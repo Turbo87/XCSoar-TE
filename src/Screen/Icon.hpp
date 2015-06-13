@@ -62,8 +62,7 @@ public:
     Draw(canvas, pt.x, pt.y);
   }
 
-protected:
-  void CalculateLayout(bool center);
+  void Draw(Canvas &canvas, const PixelRect &rc, bool inverse) const;
 };
 
 #endif

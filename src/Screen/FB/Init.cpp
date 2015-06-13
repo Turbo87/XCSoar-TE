@@ -33,16 +33,8 @@ Copyright_License {
 #include "Hardware/RotateDisplay.hpp"
 #endif
 
-#ifdef USE_FREETYPE
-#include "Screen/FreeType/Init.hpp"
-#endif
-
 ScreenGlobalInit::ScreenGlobalInit()
 {
-#ifdef USE_FREETYPE
-  FreeType::Initialise();
-#endif
-
   Font::Initialise();
 
   event_queue = new EventQueue();
@@ -60,9 +52,7 @@ ScreenGlobalInit::~ScreenGlobalInit()
   delete event_queue;
   event_queue = nullptr;
 
-#ifdef USE_FREETYPE
-  FreeType::Deinitialise();
-#endif
+  Font::Deinitialise();
 
   ScreenDeinitialized();
 }

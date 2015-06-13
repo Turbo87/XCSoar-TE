@@ -104,8 +104,7 @@ InputEvents::eventNearestAirspaceDetails(gcc_unused const TCHAR *misc)
     // Prevent the dialog from closing itself without active warning
     // This is relevant if there are only acknowledged airspaces in the list
     // AutoClose will be reset when the dialog is closed again by hand
-    dlgAirspaceWarningsShowModal(*XCSoarInterface::main_window,
-                                 *airspace_warnings);
+    dlgAirspaceWarningsShowModal(*airspace_warnings);
     return;
   }
 
@@ -125,11 +124,4 @@ InputEvents::eventNearestAirspaceDetails(gcc_unused const TCHAR *misc)
   } 
 
   dlgAirspaceDetails(*as, airspace_warnings);
-
-  // clear previous warning if any
-  XCSoarInterface::main_window->popup.Acknowledge(PopupMessage::MSG_AIRSPACE);
-
-  // TODO code: No control via status data (ala DoStatusMEssage)
-  // - can we change this?
-//  Message::AddMessage(5000, Message::MSG_AIRSPACE, text);
 }

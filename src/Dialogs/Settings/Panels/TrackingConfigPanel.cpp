@@ -30,6 +30,7 @@ Copyright_License {
 #include "Form/DataField/Listener.hpp"
 #include "Language/Language.hpp"
 #include "Tracking/TrackingSettings.hpp"
+#include "Net/State.hpp"
 #include "Form/DataField/Base.hpp"
 #include "Widget/RowFormWidget.hpp"
 #include "Screen/Layout.hpp"
@@ -40,6 +41,9 @@ Copyright_License {
 enum ControlIndex {
 #ifdef HAVE_SKYLINES_TRACKING
   SL_ENABLED,
+#ifdef HAVE_NET_STATE_ROAMING
+  SL_ROAMING,
+#endif
   SL_INTERVAL,
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   SL_TRAFFIC_ENABLED,
@@ -89,6 +93,9 @@ private:
 void
 TrackingConfigPanel::SetSkyLinesEnabled(bool enabled)
 {
+#ifdef HAVE_NET_STATE_ROAMING
+  SetRowEnabled(SL_ROAMING, enabled);
+#endif
   SetRowEnabled(SL_INTERVAL, enabled);
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   SetRowEnabled(SL_TRAFFIC_ENABLED, enabled);
@@ -187,6 +194,9 @@ TrackingConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 
 #ifdef HAVE_SKYLINES_TRACKING
   AddBoolean(_T("SkyLines"), nullptr, settings.skylines.enabled, this);
+#ifdef HAVE_NET_STATE_ROAMING
+  AddBoolean(_T("Roaming"), nullptr, settings.skylines.roaming, this);
+#endif
   AddEnum(_("Tracking Interval"), nullptr, tracking_intervals,
           settings.skylines.interval);
 
@@ -266,12 +276,17 @@ TrackingConfigPanel::Save(bool &_changed)
                            settings.vehicleType);
 
   changed |= SaveValue(TrackingVehicleName, ProfileKeys::TrackingVehicleName,
-                       settings.vehicle_name.buffer(), settings.vehicle_name.MAX_SIZE);
+                       settings.vehicle_name);
 #endif
 
 #ifdef HAVE_SKYLINES_TRACKING
   changed |= SaveValue(SL_ENABLED, ProfileKeys::SkyLinesTrackingEnabled,
                        settings.skylines.enabled);
+
+#ifdef HAVE_NET_STATE_ROAMING
+  changed |= SaveValue(SL_ROAMING, ProfileKeys::SkyLinesRoaming,
+                       settings.skylines.roaming);
+#endif
 
   changed |= SaveValue(SL_INTERVAL, ProfileKeys::SkyLinesTrackingInterval,
                        settings.skylines.interval);
@@ -289,13 +304,13 @@ TrackingConfigPanel::Save(bool &_changed)
   changed |= SaveValue(LT24Enabled, ProfileKeys::LiveTrack24Enabled, settings.livetrack24.enabled);
 
   changed |= SaveValue(LT24Server, ProfileKeys::LiveTrack24Server,
-                       settings.livetrack24.server.buffer(), settings.livetrack24.server.MAX_SIZE);
+                       settings.livetrack24.server);
 
   changed |= SaveValue(LT24Username, ProfileKeys::LiveTrack24Username,
-                       settings.livetrack24.username.buffer(), settings.livetrack24.username.MAX_SIZE);
+                       settings.livetrack24.username);
 
   changed |= SaveValue(LT24Password, ProfileKeys::LiveTrack24Password,
-                       settings.livetrack24.password.buffer(), settings.livetrack24.password.MAX_SIZE);
+                       settings.livetrack24.password);
 #endif
 
   _changed |= changed;

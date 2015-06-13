@@ -1,6 +1,7 @@
 # Build rules for the HTTP client library
 
 LIBNET_SOURCES = \
+	$(SRC)/Net/State.cpp \
 	$(SRC)/Net/IPv4Address.cpp \
 	$(SRC)/Net/StaticSocketAddress.cpp \
 	$(SRC)/Net/SocketAddress.cpp \
@@ -34,7 +35,8 @@ else
 $(eval $(call pkg-config-library,CURL,libcurl))
 
 LIBNET_CPPFLAGS = $(CURL_CPPFLAGS)
-LIBNET_LDLIBS = $(CURL_LDLIBS)
+LIBNET_LDADD = $(ZLIB_LDADD)
+LIBNET_LDLIBS = $(CURL_LDLIBS) $(ZLIB_LDLIBS)
 endif
 endif
 

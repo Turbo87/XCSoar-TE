@@ -37,7 +37,7 @@ Copyright_License {
 #include "Units/System.hpp"
 #include "Time/TimeoutClock.hpp"
 #include "Operation/Operation.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 
 #include <assert.h>
 #include <stdio.h>
@@ -53,9 +53,10 @@ public:
     :port(_port) {}
 
 public:
-  virtual bool ParseNMEA(const char *line, struct NMEAInfo &info) override;
-  virtual bool Declare(const Declaration &declaration, const Waypoint *home,
-                       OperationEnvironment &env) override;
+  /* virtual methods from class Device */
+  bool ParseNMEA(const char *line, struct NMEAInfo &info) override;
+  bool Declare(const Declaration &declaration, const Waypoint *home,
+               OperationEnvironment &env) override;
 };
 
 static bool

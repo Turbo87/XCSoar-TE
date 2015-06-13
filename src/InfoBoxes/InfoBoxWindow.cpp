@@ -43,8 +43,6 @@ Copyright_License {
 
 using std::max;
 
-#define SELECTORWIDTH Layout::Scale(5)
-
 InfoBoxWindow::InfoBoxWindow(ContainerWindow &parent, PixelRect rc,
                              unsigned border_flags,
                              const InfoBoxSettings &_settings,
@@ -90,7 +88,7 @@ InfoBoxWindow::PaintTitle(Canvas &canvas)
 
   canvas.SetTextColor(look.GetTitleColor(data.title_color));
 
-  const Font &font = *look.title.font;
+  const Font &font = look.title_font;
   canvas.Select(font);
 
   PixelSize tsize = canvas.CalcTextSize(data.title);
@@ -137,18 +135,18 @@ InfoBoxWindow::PaintValue(Canvas &canvas, Color background_color)
 
 #ifndef GNAV
   // Do text-based unit rendering on higher resolutions
-  if (Layout::FastScale(10) > 18) {
-    canvas.Select(*look.unit_font);
+  if (look.unit_font.IsDefined()) {
+    canvas.Select(look.unit_font);
     PixelScalar unit_width =
         UnitSymbolRenderer::GetSize(canvas, data.value_unit).cx;
 
-    canvas.Select(*look.value.font);
-    int ascent_height = look.value.font->GetAscentHeight();
+    canvas.Select(look.value_font);
+    int ascent_height = look.value_font.GetAscentHeight();
 
     PixelSize value_size = canvas.CalcTextSize(data.value);
     if (value_size.cx + unit_width > value_rect.right - value_rect.left) {
-      canvas.Select(*look.small_font);
-      ascent_height = look.small_font->GetAscentHeight();
+      canvas.Select(look.small_value_font);
+      ascent_height = look.small_value_font.GetAscentHeight();
       value_size = canvas.CalcTextSize(data.value);
     }
 
@@ -162,9 +160,9 @@ InfoBoxWindow::PaintValue(Canvas &canvas, Color background_color)
 
     if (unit_width != 0) {
       const int unit_height =
-        UnitSymbolRenderer::GetAscentHeight(*look.unit_font, data.value_unit);
+        UnitSymbolRenderer::GetAscentHeight(look.unit_font, data.value_unit);
 
-      canvas.Select(*look.unit_font);
+      canvas.Select(look.unit_font);
       UnitSymbolRenderer::Draw(canvas,
                                { x + value_size.cx,
                                  y + ascent_height - unit_height },
@@ -174,9 +172,9 @@ InfoBoxWindow::PaintValue(Canvas &canvas, Color background_color)
   }
 #endif
 
-  canvas.Select(*look.value.font);
-  UPixelScalar ascent_height = look.value.font->GetAscentHeight();
-  UPixelScalar capital_height = look.value.font->GetCapitalHeight();
+  canvas.Select(look.value_font);
+  UPixelScalar ascent_height = look.value_font.GetAscentHeight();
+  UPixelScalar capital_height = look.value_font.GetCapitalHeight();
 
   PixelSize unit_size;
   const UnitSymbol *unit_symbol = units_look.GetSymbol(data.value_unit);
@@ -189,9 +187,9 @@ InfoBoxWindow::PaintValue(Canvas &canvas, Color background_color)
 
   PixelSize value_size = canvas.CalcTextSize(data.value);
   if (value_size.cx + unit_size.cx > value_rect.right - value_rect.left) {
-    canvas.Select(*look.small_font);
-    ascent_height = look.small_font->GetAscentHeight();
-    capital_height = look.small_font->GetCapitalHeight();
+    canvas.Select(look.small_value_font);
+    ascent_height = look.small_value_font.GetAscentHeight();
+    capital_height = look.small_value_font.GetCapitalHeight();
     value_size = canvas.CalcTextSize(data.value);
   }
 
@@ -227,7 +225,7 @@ InfoBoxWindow::PaintComment(Canvas &canvas)
 
   canvas.SetTextColor(look.GetCommentColor(data.comment_color));
 
-  const Font &font = *look.comment.font;
+  const Font &font = look.title_font;
   canvas.Select(font);
 
   PixelSize tsize = canvas.CalcTextSize(data.comment);
@@ -403,10 +401,10 @@ InfoBoxWindow::OnResize(PixelSize new_size)
     rc.bottom -= look.BORDER_WIDTH;
 
   title_rect = rc;
-  title_rect.bottom = rc.top + look.title.font->GetHeight();
+  title_rect.bottom = rc.top + look.title_font.GetHeight();
 
   comment_rect = rc;
-  comment_rect.top = comment_rect.bottom - (look.comment.font->GetHeight() + 2);
+  comment_rect.top = comment_rect.bottom - (look.title_font.GetHeight() + 2);
   value_rect = rc;
   value_rect.top = title_rect.bottom;
   value_rect.bottom = comment_rect.top;

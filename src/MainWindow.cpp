@@ -24,6 +24,7 @@ Copyright_License {
 #include "MainWindow.hpp"
 #include "Startup.hpp"
 #include "MapWindow/GlueMapWindow.hpp"
+#include "PopupMessage.hpp"
 #include "InfoBoxes/InfoBoxManager.hpp"
 #include "InfoBoxes/InfoBoxLayout.hpp"
 #include "Interface.hpp"
@@ -58,10 +59,6 @@ Copyright_License {
 
 #ifdef ANDROID
 #include "Dialogs/Message.hpp"
-#endif
-
-#ifdef HAVE_TEXT_CACHE
-#include "Screen/Custom/Cache.hpp"
 #endif
 
 #if !defined(WIN32) && !defined(ANDROID)
@@ -128,7 +125,7 @@ GetMapRectAbove(const PixelRect &rc, const PixelRect &bottom_rect)
   return result;
 }
 
-MainWindow::MainWindow(const StatusMessageList &status_messages)
+MainWindow::MainWindow()
   :look(nullptr),
 #ifdef HAVE_SHOW_MENU_BUTTON
    show_menu_button(nullptr),
@@ -138,14 +135,13 @@ MainWindow::MainWindow(const StatusMessageList &status_messages)
    suppress_traffic_gauge(false), force_traffic_gauge(false),
    thermal_assistant(*this),
    dragging(false),
-   popup(status_messages, *this, CommonInterface::GetUISettings()),
+   popup(nullptr),
    timer(*this),
    FullScreen(false),
 #ifndef ENABLE_OPENGL
    draw_suspended(false),
 #endif
-   restore_page_pending(false),
-   airspace_warning_pending(false)
+   restore_page_pending(false)
 {
 }
 
@@ -210,8 +206,7 @@ MainWindow::Initialise()
   if (look == nullptr)
     look = new Look();
 
-  look->Initialise(Fonts::dialog, Fonts::dialog_bold, Fonts::dialog_small,
-                   Fonts::map);
+  look->Initialise(Fonts::map);
 }
 
 void
@@ -230,21 +225,10 @@ MainWindow::InitialiseConfigured()
   const InfoBoxLayout::Layout ib_layout =
     InfoBoxLayout::Calculate(rc, ui_settings.info_boxes.geometry);
 
-  Fonts::SizeInfoboxFont(ib_layout.control_size.cx);
-
   assert(look != nullptr);
   look->InitialiseConfigured(CommonInterface::GetUISettings(),
-                             Fonts::dialog, Fonts::dialog_bold,
-                             Fonts::dialog_small,
                              Fonts::map, Fonts::map_bold,
-                             Fonts::map_label,
-                             Fonts::map_label_important,
-                             Fonts::cdi, Fonts::monospace,
-                             Fonts::infobox, Fonts::infobox_small,
-#ifndef GNAV
-                             Fonts::infobox_units,
-#endif
-                             Fonts::title);
+                             ib_layout.control_size.cx);
 
   InfoBoxManager::Create(*this, ib_layout, look->info_box, look->units);
   map_rect = ib_layout.remaining;
@@ -272,7 +256,8 @@ MainWindow::InitialiseConfigured()
   map->SetUIState(CommonInterface::GetUIState());
   map->Create(*this, map_rect);
 
-  popup.Create(rc);
+  popup = new PopupMessage(*this, look->dialog, ui_settings);
+  popup->Create(rc);
 }
 
 void
@@ -281,7 +266,8 @@ MainWindow::Deinitialise()
   InfoBoxManager::Destroy();
   ButtonLabel::Destroy();
 
-  popup.Destroy();
+  delete popup;
+  popup = nullptr;
 
   // During destruction of GlueMapWindow WM_SETFOCUS gets called for
   // MainWindow which tries to set the focus to GlueMapWindow. Prevent
@@ -356,14 +342,13 @@ MainWindow::ReinitialiseLayout()
   const InfoBoxLayout::Layout ib_layout =
     InfoBoxLayout::Calculate(rc, ui_settings.info_boxes.geometry);
 
-  Fonts::SizeInfoboxFont(ib_layout.control_size.cx);
+  look->ReinitialiseLayout(ib_layout.control_size.cx);
 
   InfoBoxManager::Create(*this, ib_layout, look->info_box, look->units);
   InfoBoxManager::ProcessTimer();
   map_rect = ib_layout.remaining;
 
-  popup.Destroy();
-  popup.Create(rc);
+  popup->UpdateLayout(rc);
 
   ReinitialiseLayout_vario(ib_layout);
 
@@ -695,25 +680,7 @@ MainWindow::OnTimer(WindowTimer &_timer)
 bool
 MainWindow::OnUser(unsigned id)
 {
-  ProtectedAirspaceWarningManager *airspace_warnings;
-
   switch ((Command)id) {
-  case Command::AIRSPACE_WARNING:
-    airspace_warnings = GetAirspaceWarnings();
-    if (!airspace_warning_pending || airspace_warnings == nullptr)
-      return true;
-
-    airspace_warning_pending = false;
-    if (dlgAirspaceWarningVisible())
-      /* already visible */
-      return true;
-
-    /* un-blank the display, play a sound and show the dialog */
-    ResetUserIdle();
-    PlayResource(_T("IDR_WAV_BEEPBWEEP"));
-    dlgAirspaceWarningsShowModal(*this, *airspace_warnings, true);
-    return true;
-
   case Command::GPS_UPDATE:
     UIReceiveSensorData();
     return true;

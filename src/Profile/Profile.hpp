@@ -31,7 +31,8 @@ Copyright_License {
 #include <tchar.h>
 
 struct GeoPoint;
-class RGB8Color;
+template<typename T> class StringPointer;
+template<typename T> class AllocatedString;
 
 namespace Profile
 {
@@ -75,23 +76,6 @@ namespace Profile
   bool GetPath(const char *key, TCHAR *value);
   void SetPath(const char *key, const TCHAR *value);
   bool GetPathIsEqual(const char *key, const TCHAR *value);
-
-  /**
-   * Gets a path from the profile and return its base name only.
-   */
-  gcc_pure
-  const TCHAR *GetPathBase(const char *key);
-
-  /**
-   * Load a Color from the profile.
-   */
-  bool GetColor(const char *key, RGB8Color &value);
-
-  /**
-   * Save a Color to the profile.  It is stored as a RGB hex string
-   * e.g. #123456
-   */
-  void SetColor(const char *key, const RGB8Color value);
 };
 
 #endif

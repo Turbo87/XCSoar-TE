@@ -25,6 +25,8 @@ Copyright_License {
 #define XCSOAR_ALL_MONITORS_HPP
 
 #include "Blackboard/BlackboardListener.hpp"
+#include "WindMonitor.hpp"
+#include "AirspaceWarningMonitor.hpp"
 #include "TaskAdvanceMonitor.hpp"
 #include "MatTaskMonitor.hpp"
 
@@ -32,6 +34,8 @@ Copyright_License {
  * A container that combines all monitor classes.
  */
 class AllMonitors final : private NullBlackboardListener {
+  WindMonitor wind;
+  AirspaceWarningMonitor airspace_warnings;
   TaskAdvanceMonitor task_advance;
   MatTaskMonitor mat_task;
 
@@ -40,18 +44,22 @@ public:
   ~AllMonitors();
 
   void Reset() {
+    wind.Reset();
+    airspace_warnings.Reset();
     task_advance.Reset();
     mat_task.Reset();
   }
 
   void Check() {
+    wind.Check();
+    airspace_warnings.Check();
     task_advance.Check();
     mat_task.Check();
   }
 
 private:
-  virtual void OnCalculatedUpdate(const MoreData &basic,
-                                  const DerivedInfo &calculated) override {
+  void OnCalculatedUpdate(const MoreData &basic,
+                          const DerivedInfo &calculated) override {
     Check();
   }
 };

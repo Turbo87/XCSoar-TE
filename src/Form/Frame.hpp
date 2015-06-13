@@ -26,8 +26,8 @@ Copyright_License {
 
 #include "Screen/PaintWindow.hpp"
 #include "Screen/Color.hpp"
-#include "Screen/Features.hpp"
-#include "Util/StaticString.hpp"
+#include "Renderer/TextRenderer.hpp"
+#include "Util/StaticString.hxx"
 
 #include <tchar.h>
 
@@ -38,7 +38,7 @@ class WndFrame : public PaintWindow {
 
   Color caption_color;
 
-  unsigned mCaptionStyle;
+  TextRenderer text_renderer;
 
   StaticString<300> text;
 
@@ -48,6 +48,10 @@ public:
   WndFrame(ContainerWindow &parent, const DialogLook &look,
            PixelRect rc,
            const WindowStyle style=WindowStyle());
+
+  const DialogLook &GetLook() const {
+    return look;
+  }
 
   void SetAlignCenter();
   void SetVAlignCenter();
@@ -60,6 +64,7 @@ public:
 
   void SetCaption(const TCHAR *_text) {
     SetText(_text);
+    text_renderer.InvalidateLayout();
   }
 
   void SetCaptionColor(const Color &color) {
@@ -71,7 +76,7 @@ public:
 
 protected:
   /** from class PaintWindow */
-  virtual void OnPaint(Canvas &canvas) override;
+  void OnPaint(Canvas &canvas) override;
 };
 
 #endif

@@ -25,7 +25,7 @@ Copyright_License {
 #define XCSOAR_FLARM_VERSION_HPP
 
 #include "NMEA/Validity.hpp"
-#include "Util/StaticString.hpp"
+#include "Util/StaticString.hxx"
 
 #include <type_traits>
 
@@ -50,7 +50,7 @@ struct FlarmVersion {
     }
   }
 
-  void Expire(fixed clock) {
+  void Expire(gcc_unused fixed clock) {
     /* no expiry; this object will be cleared only when the device
        connection is lost */
   }
