@@ -56,7 +56,7 @@ install:
   - if [ "$TARGET" = "ANDROID" ]; then
       mkdir -p ~/opt;
 
-      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools p7zip-full;
+      sudo apt-get install openjdk-7-jre-headless openjdk-7-jdk ant vorbis-tools p7zip-full expect;
 
       wget http://dl.google.com/android/ndk/android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin;
       7z x -o$HOME/opt android-ndk-r$ANDROID_NDK_VERSION-linux-x86_64.bin > /dev/null;
@@ -70,8 +70,8 @@ install:
         sudo apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386;
       fi
 
-      echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools;
-      echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
+      tools/accept-licenses "~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools" "android-sdk-license-5be876d5";
+      tools/accept-licenses "~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL" "android-sdk-license-5be876d5";
     fi
 
   # Windows Mobile
