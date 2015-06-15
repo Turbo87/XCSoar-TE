@@ -27,6 +27,7 @@ Copyright_License {
 #include "Dialogs/TextEntry.hpp"
 #include "Dialogs/WidgetDialog.hpp"
 #include "Widget/ListWidget.hpp"
+#include "Renderer/TextRowRenderer.hpp"
 #include "Form/Button.hpp"
 #include "Screen/Canvas.hpp"
 #include "Screen/Layout.hpp"
@@ -90,6 +91,8 @@ class ProfileListWidget final
 
   std::vector<ListItem> list;
 
+  TextRowRenderer row_renderer;
+
 public:
   ProfileListWidget(bool _select=false):select(_select) {}
 
@@ -140,13 +143,6 @@ private:
   /* virtual methods from class ActionListener */
   virtual void OnAction(int id) override;
 };
-
-gcc_pure
-static UPixelScalar
-GetRowHeight(const DialogLook &look)
-{
-  return 2 * Layout::GetTextPadding() + look.list.font->GetHeight();
-}
 
 void
 ProfileListWidget::UpdateList()
@@ -204,7 +200,8 @@ void
 ProfileListWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
   const DialogLook &look = UIGlobals::GetDialogLook();
-  CreateList(parent, look, rc, GetRowHeight(look));
+  CreateList(parent, look, rc,
+             row_renderer.CalculateLayout(*look.list.font));
   UpdateList();
 }
 
@@ -219,13 +216,7 @@ ProfileListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc, unsigned i)
 {
   assert(i < list.size());
 
-  const DialogLook &look = UIGlobals::GetDialogLook();
-  const Font &name_font = *look.list.font;
-
-  canvas.Select(name_font);
-
-  canvas.DrawClippedText(rc.left + Layout::GetTextPadding(),
-                         rc.top + Layout::GetTextPadding(), rc, list[i].name);
+  row_renderer.DrawTextRow(canvas, rc, list[i].name);
 }
 
 inline void
@@ -393,6 +384,7 @@ ProfileListDialog()
   dialog.CreateFull(UIGlobals::GetMainWindow(), _("Profiles"), &widget);
   widget.CreateButtons(dialog);
   dialog.AddButton(_("Close"), mrOK);
+  dialog.EnableCursorSelection();
 
   dialog.ShowModal();
   dialog.StealWidget();
@@ -407,6 +399,7 @@ SelectProfileDialog(tstring::const_pointer selected_path)
   dialog.AddButton(_("Select"), mrOK);
   widget.CreateButtons(dialog);
   dialog.AddButton(_("Cancel"), mrCancel);
+  dialog.EnableCursorSelection();
 
   if (selected_path != nullptr) {
     dialog.PrepareWidget();

@@ -42,7 +42,7 @@ Button::Create(ContainerWindow &parent,
                WindowStyle style,
                ButtonRenderer *_renderer)
 {
-  dragging = down = false;
+  dragging = down = selected = false;
   renderer = _renderer;
 
   PaintWindow::Create(parent, rc, style);
@@ -88,6 +88,16 @@ Button::SetCaption(const TCHAR *caption)
   Invalidate();
 }
 
+void
+Button::SetSelected(bool _selected)
+{
+  if (_selected == selected)
+    return;
+
+  selected = _selected;
+  Invalidate();
+}
+
 unsigned
 Button::GetMinimumWidth() const
 {
@@ -117,6 +127,13 @@ Button::OnClicked()
   }
 
   return false;
+}
+
+void
+Button::Click()
+{
+  SetDown(false);
+  OnClicked();
 }
 
 void
@@ -152,8 +169,7 @@ Button::OnKeyDown(unsigned key_code)
 #endif
   case KEY_RETURN:
   case KEY_SPACE:
-    SetDown(false);
-    OnClicked();
+    Click();
     return true;
 
   default:
@@ -195,8 +211,7 @@ Button::OnMouseUp(PixelScalar x, PixelScalar y)
   if (!down)
     return true;
 
-  SetDown(false);
-  OnClicked();
+  Click();
   return true;
 }
 
@@ -229,7 +244,9 @@ Button::OnPaint(Canvas &canvas)
   assert(renderer != nullptr);
 
   const bool pressed = down;
-  const bool focused = HasCursorKeys() ? HasFocus() : pressed;
+  const bool focused = HasCursorKeys()
+    ? HasFocus() || (selected && !HasPointer())
+    : pressed;
 
   renderer->DrawButton(canvas, GetClientRect(),
                        IsEnabled(), focused, pressed);

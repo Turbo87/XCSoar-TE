@@ -124,7 +124,7 @@ AlternatesListWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
 void
 AlternatesListWidget::OnActivateItem(unsigned index)
 {
-  details_button->OnClicked();
+  details_button->Click();
 }
 
 void
@@ -139,7 +139,7 @@ AlternatesListWidget::OnAction(int id)
     auto const &waypoint = item.waypoint;
 
     protected_task_manager->DoGoto(waypoint);
-    cancel_button->OnClicked();
+    cancel_button->Click();
 
     break;
   }
@@ -161,6 +161,7 @@ dlgAlternatesListShowModal()
   WidgetDialog dialog(dialog_look);
   dialog.CreateFull(UIGlobals::GetMainWindow(), _("Alternates"), &widget);
   widget.CreateButtons(dialog);
+  dialog.EnableCursorSelection();
 
   int i = dialog.ShowModal() == mrOK
     ? (int)widget.GetCursorIndex()
