@@ -1,7 +1,3 @@
-============================================================================
-SUMMARY OF NEW FEATURES AND BUG FIXES SINCE V4.0
-============================================================================
-
 XCSoar TE
 * user interface
   - new logo
@@ -91,6 +87,8 @@ Version 6.8 - not yet released
   - allow horizontal speeds in m/s
   - download data files from site configuration
   - remove support for custom status files
+  - merge airspace warning buttons "ACK Warn" and "ACK Space" (#1086)
+  - show airspace warning at bottom (#1378, #2628, #3275)
   - profile manager
   - password-protected profiles (#851)
   - checklist remembers last opened list (#3110)
@@ -102,6 +100,7 @@ Version 6.8 - not yet released
   - use /dev/input/event* on Raspberry Pi and Cubieboard (#3179)
   - support mouse wheel on Raspberry Pi and Cubieboard
   - scale touchscreen coordinates to screen size
+  - bigger icons on high-dpi screens (#2795, #3267, #3397, #3540)
   - improved keypad support (#3281)
   - new translation: Simplified Chinese
 * tracking
@@ -122,6 +121,7 @@ Version 6.8 - not yet released
   - support open Wifi networks (#3391)
   - support USB-OTG
   - export data partition via USB storage
+  - enable crash dumps in XCSoarData/crash/
 
 Version 6.7.8 - 2015-05-22
 * user interface

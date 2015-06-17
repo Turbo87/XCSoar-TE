@@ -26,9 +26,13 @@
 
 SampledTaskPoint::SampledTaskPoint(const GeoPoint &location,
                                    const bool b_scored)
-  :boundary_scored(b_scored), past(false)
+  :boundary_scored(b_scored), past(false),
+   nominal_points(1, location)
 {
-  nominal_points.push_back(location);
+#ifndef NDEBUG
+  search_max.SetInvalid();
+  search_min.SetInvalid();
+#endif
 }
 
 // SAMPLES
@@ -106,6 +110,8 @@ SampledTaskPoint::Reset()
 const SearchPointVector &
 SampledTaskPoint::GetSearchPoints() const
 {
+  assert(!boundary_points.empty());
+
   if (HasSampled())
     return sampled_points;
 
