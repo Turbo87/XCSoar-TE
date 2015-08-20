@@ -119,6 +119,26 @@ LibInputHandler::HandleEvent(struct libinput_event *li_event)
 {
   int type = libinput_event_get_type(li_event);
   switch (type) {
+  case LIBINPUT_EVENT_DEVICE_ADDED:
+  case LIBINPUT_EVENT_DEVICE_REMOVED:
+    {
+      libinput_device *event_device = libinput_event_get_device(li_event);
+      assert(nullptr != event_device);
+      if (libinput_device_has_capability(event_device,
+                                         LIBINPUT_DEVICE_CAP_POINTER)) {
+        n_pointers += (LIBINPUT_EVENT_DEVICE_ADDED == type) ? 1 : -1;
+      }
+      if (libinput_device_has_capability(event_device,
+                                         LIBINPUT_DEVICE_CAP_TOUCH)) {
+        n_touch_screens += (LIBINPUT_EVENT_DEVICE_ADDED == type) ? 1 : -1;
+      }
+      if (libinput_device_has_capability(event_device,
+                                         LIBINPUT_DEVICE_CAP_KEYBOARD)) {
+        n_keyboards += (LIBINPUT_EVENT_DEVICE_ADDED == type) ? 1 : -1;
+      }
+    }
+    break;
+
   case LIBINPUT_EVENT_KEYBOARD_KEY:
     {
       /* Discard all data on stdin to avoid that keyboard input data is read
@@ -178,11 +198,18 @@ LibInputHandler::HandleEvent(struct libinput_event *li_event)
     {
       libinput_event_pointer *ptr_li_event =
         libinput_event_get_pointer_event(li_event);
+#ifdef LIBINPUT_LEGACY_API
+      double axis_value = libinput_event_pointer_get_axis_value(ptr_li_event);
+#else
       double axis_value =
-        libinput_event_pointer_get_axis_value(ptr_li_event);
-      Event event(Event::MOUSE_WHEEL, (unsigned) x, (unsigned) y);
-      event.param = unsigned((int) axis_value);
-      queue.Push(event);
+        libinput_event_pointer_get_axis_value(
+          ptr_li_event, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+#endif
+      if (0 != axis_value) {
+        Event event(Event::MOUSE_WHEEL, (unsigned) x, (unsigned) y);
+        event.param = unsigned((int) axis_value);
+        queue.Push(event);
+      }
     }
     break;
   case LIBINPUT_EVENT_TOUCH_DOWN:

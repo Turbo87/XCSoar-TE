@@ -44,10 +44,10 @@ Copyright_License {
 #include <stdio.h>
 #include <stdlib.h>
 
-enum AirspaceFileType {
-  AFT_UNKNOWN,
-  AFT_OPENAIR,
-  AFT_TNP
+enum class AirspaceFileType {
+  UNKNOWN,
+  OPENAIR,
+  TNP,
 };
 
 struct AirspaceClassCharCouple
@@ -546,15 +546,6 @@ ValueAfterSpace(const TCHAR *p)
   return p + 1;
 }
 
-static const TCHAR *
-SkipSpaces(const TCHAR *p)
-{
-  while (*p == _T(' '))
-    p++;
-
-  return p;
-}
-
 static bool
 ParseLine(Airspaces &airspace_database, TCHAR *line,
           TempAirspaceType &temp_area)
@@ -611,12 +602,12 @@ ParseLine(Airspaces &airspace_database, TCHAR *line,
   case _T('V'):
   case _T('v'):
     // Need to set these while in count mode, or DB/DA will crash
-    if ((value = StringAfterPrefixCI(SkipSpaces(line + 1), _T("X="))) != nullptr) {
+    if ((value = StringAfterPrefixCI(StripLeft(line + 1), _T("X="))) != nullptr) {
       if (!ReadCoords(value, temp_area.center))
         return false;
-    } else if (StringAfterPrefixCI(SkipSpaces(line + 1), _T("D=-"))) {
+    } else if (StringAfterPrefixCI(StripLeft(line + 1), _T("D=-"))) {
       temp_area.rotation = -1;
-    } else if (StringAfterPrefixCI(SkipSpaces(line + 1), _T("D=+"))) {
+    } else if (StringAfterPrefixCI(StripLeft(line + 1), _T("D=+"))) {
       temp_area.rotation = +1;
     }
     break;
@@ -878,16 +869,16 @@ ParseLineTNP(Airspaces &airspace_database, TCHAR *line,
 static AirspaceFileType
 DetectFileType(const TCHAR *line)
 {
-  if (StringAfterPrefixCI(line, _T("INCLUDE=")) ||
-      StringAfterPrefixCI(line, _T("TYPE=")) ||
-      StringAfterPrefixCI(line, _T("TITLE=")))
-    return AFT_TNP;
+  if (StringStartsWithIgnoreCase(line, _T("INCLUDE=")) ||
+      StringStartsWithIgnoreCase(line, _T("TYPE=")) ||
+      StringStartsWithIgnoreCase(line, _T("TITLE=")))
+    return AirspaceFileType::TNP;
 
   const TCHAR *p = StringAfterPrefixCI(line, _T("AC"));
   if (p != nullptr && (StringIsEmpty(p) || *p == _T(' ')))
-    return AFT_OPENAIR;
+    return AirspaceFileType::OPENAIR;
 
-  return AFT_UNKNOWN;
+  return AirspaceFileType::UNKNOWN;
 }
 
 bool
@@ -901,29 +892,31 @@ AirspaceParser::Parse(TLineReader &reader, OperationEnvironment &operation)
   const long file_size = reader.GetSize();
 
   TempAirspaceType temp_area;
-  AirspaceFileType filetype = AFT_UNKNOWN;
+  AirspaceFileType filetype = AirspaceFileType::UNKNOWN;
 
   TCHAR *line;
 
   // Iterate through the lines
   for (unsigned line_num = 1; (line = reader.ReadLine()) != nullptr; line_num++) {
+    StripRight(line);
+
     // Skip empty line
     if (StringIsEmpty(line))
       continue;
 
-    if (filetype == AFT_UNKNOWN) {
+    if (filetype == AirspaceFileType::UNKNOWN) {
       filetype = DetectFileType(line);
-      if (filetype == AFT_UNKNOWN)
+      if (filetype == AirspaceFileType::UNKNOWN)
         continue;
     }
 
     // Parse the line
-    if (filetype == AFT_OPENAIR)
+    if (filetype == AirspaceFileType::OPENAIR)
       if (!ParseLine(airspaces, line, temp_area) &&
           !ShowParseWarning(line_num, line, operation))
         return false;
 
-    if (filetype == AFT_TNP)
+    if (filetype == AirspaceFileType::TNP)
       if (!ParseLineTNP(airspaces, line, temp_area, ignore) &&
           !ShowParseWarning(line_num, line, operation))
         return false;
@@ -933,7 +926,7 @@ AirspaceParser::Parse(TLineReader &reader, OperationEnvironment &operation)
       operation.SetProgressPosition(reader.Tell() * 1024 / file_size);
   }
 
-  if (filetype == AFT_UNKNOWN) {
+  if (filetype == AirspaceFileType::UNKNOWN) {
     operation.SetErrorMessage(_("Unknown airspace filetype"));
     return false;
   }

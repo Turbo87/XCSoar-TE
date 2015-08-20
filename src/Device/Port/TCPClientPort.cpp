@@ -23,7 +23,7 @@ Copyright_License {
 
 #include "TCPClientPort.hpp"
 #include "Util/StaticString.hxx"
-#include "Net/StaticSocketAddress.hpp"
+#include "Net/StaticSocketAddress.hxx"
 
 #ifdef HAVE_POSIX
 #include "IO/Async/GlobalIOThread.hpp"
@@ -47,7 +47,7 @@ TCPClientPort::Connect(const char *host, unsigned port)
   service.UnsafeFormat("%u", port);
 
   StaticSocketAddress address;
-  if (!address.Lookup(host, service, AF_INET))
+  if (!address.Lookup(host, service, SOCK_STREAM))
     return false;
 
   SocketDescriptor s;

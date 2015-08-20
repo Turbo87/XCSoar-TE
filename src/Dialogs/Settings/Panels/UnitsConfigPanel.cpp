@@ -45,6 +45,8 @@ enum ControlIndex {
   UnitsTemperature,
   UnitsTaskSpeed,
   UnitsPressure,
+  UnitsMass,
+  UnitsWingLoading,
   spacer_2,
   UnitsLatLon
 };
@@ -77,6 +79,8 @@ UnitsConfigPanel::UpdateUnitFields(const UnitSetting &units)
   LoadValueEnum(UnitsTemperature, units.temperature_unit);
   LoadValueEnum(UnitsTaskSpeed, units.task_speed_unit);
   LoadValueEnum(UnitsPressure, units.pressure_unit);
+  LoadValueEnum(UnitsMass, units.mass_unit);
+  LoadValueEnum(UnitsWingLoading, units.wing_loading_unit);
 
   // Ignore the coord.format for the preset selection.
 }
@@ -93,6 +97,8 @@ UnitsConfigPanel::PresetCheck()
   current_dlg_set.temperature_unit = (Unit)GetValueInteger((unsigned)UnitsTemperature);
   current_dlg_set.task_speed_unit = (Unit)GetValueInteger((unsigned)UnitsTaskSpeed);
   current_dlg_set.pressure_unit = (Unit)GetValueInteger((unsigned)UnitsPressure);
+  current_dlg_set.mass_unit = (Unit)GetValueInteger((unsigned)UnitsMass);
+  current_dlg_set.wing_loading_unit = (Unit)GetValueInteger((unsigned)UnitsWingLoading);
 
   LoadValueEnum(UnitsPreset, Units::Store::EqualsPresetUnits(current_dlg_set));
 }
@@ -216,6 +222,26 @@ UnitsConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
           (unsigned)config.pressure_unit, this);
   SetExpertRow(UnitsPressure);
 
+  static constexpr StaticEnumChoice mass_labels_list[] = {
+    { (unsigned)Unit::KG, _T("kg") },
+    { (unsigned)Unit::LB, _T("lb") },
+    { 0 }
+  };
+  AddEnum(_("Mass"), _("Units used mass."),
+          mass_labels_list,
+          (unsigned)config.mass_unit, this);
+  SetExpertRow(UnitsMass);
+
+  static constexpr StaticEnumChoice wing_loading_labels_list[] = {
+    { (unsigned)Unit::KG_PER_M2, _T("kg/m²") },
+    { (unsigned)Unit::LB_PER_FT2, _T("lb/ft²") },
+    { 0 }
+  };
+  AddEnum(_("Wing loading"), _("Units used for wing loading."),
+          wing_loading_labels_list,
+          (unsigned)config.wing_loading_unit, this);
+  SetExpertRow(UnitsWingLoading);
+
   AddSpacer();
   SetExpertRow(spacer_2);
 
@@ -259,6 +285,12 @@ UnitsConfigPanel::Save(bool &_changed)
   changed |= SaveValueEnum(UnitsTaskSpeed, ProfileKeys::TaskSpeedUnitsValue, config.task_speed_unit);
 
   changed |= SaveValueEnum(UnitsPressure, ProfileKeys::PressureUnitsValue, config.pressure_unit);
+
+  changed |= SaveValueEnum(UnitsMass, ProfileKeys::MassUnitValue,
+                           config.mass_unit);
+
+  changed |= SaveValueEnum(UnitsWingLoading, ProfileKeys::WingLoadingUnitValue,
+                           config.wing_loading_unit);
 
   changed |= SaveValueEnum(UnitsLatLon, ProfileKeys::LatLonUnits, coordinate_format);
 

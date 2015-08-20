@@ -195,7 +195,7 @@ WaypointReaderSeeYou::ParseLine(const TCHAR* line, const unsigned linenum,
     return true;
 
   // If task marker is reached ignore all following lines
-  if (_tcsstr(line, _T("-----Related Tasks-----")) == line)
+  if (StringStartsWith(line, _T("-----Related Tasks-----")))
     ignore_following = true;
   if (ignore_following)
     return true;
@@ -211,20 +211,19 @@ WaypointReaderSeeYou::ParseLine(const TCHAR* line, const unsigned linenum,
       iLongitude >= n_params)
     return false;
 
-  Waypoint new_waypoint;
+  GeoPoint location;
 
   // Latitude (e.g. 5115.900N)
-  if (!ParseAngle(params[iLatitude], new_waypoint.location.latitude, true))
+  if (!ParseAngle(params[iLatitude], location.latitude, true))
     return false;
 
   // Longitude (e.g. 00715.900W)
-  if (!ParseAngle(params[iLongitude], new_waypoint.location.longitude, false))
+  if (!ParseAngle(params[iLongitude], location.longitude, false))
     return false;
 
-  new_waypoint.location.Normalize(); // ensure longitude is within -180:180
+  location.Normalize(); // ensure longitude is within -180:180
 
-  new_waypoint.file_num = file_num;
-  new_waypoint.original_id = 0;
+  Waypoint new_waypoint = factory.Create(location);
 
   // Name (e.g. "Some Turnpoint")
   if (*params[iName] == _T('\0'))
@@ -235,7 +234,7 @@ WaypointReaderSeeYou::ParseLine(const TCHAR* line, const unsigned linenum,
   /// @todo configurable behaviour
   if ((iElevation >= n_params ||
       !ParseAltitude(params[iElevation], new_waypoint.elevation)) &&
-      !CheckAltitude(new_waypoint))
+      !factory.FallbackElevation(new_waypoint))
     return false;
 
   // Style (e.g. 5)

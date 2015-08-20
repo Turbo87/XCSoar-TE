@@ -656,14 +656,25 @@ UpdateCaption(WndForm *form, const Waypoint *waypoint)
   buffer.Format(_T("%s: %s"), _("Waypoint"), waypoint->name.c_str());
 
   const char *key = nullptr;
-  switch (waypoint->file_num) {
-  case 1:
+  const TCHAR *name = nullptr;
+
+  switch (waypoint->origin) {
+  case WaypointOrigin::NONE:
+    break;
+
+  case WaypointOrigin::USER:
+    name = _T("user.cup");
+    break;
+
+  case WaypointOrigin::PRIMARY:
     key = ProfileKeys::WaypointFile;
     break;
-  case 2:
+
+  case WaypointOrigin::ADDITIONAL:
     key = ProfileKeys::AdditionalWaypointFile;
     break;
-  case 3:
+
+  case WaypointOrigin::WATCHED:
     key = ProfileKeys::WatchedWaypointFile;
     break;
   }
@@ -672,7 +683,8 @@ UpdateCaption(WndForm *form, const Waypoint *waypoint)
     const auto filename = Profile::map.GetPathBase(key);
     if (!filename.IsNull())
       buffer.AppendFormat(_T(" (%s)"), filename.c_str());
-  }
+  } else if (name != nullptr)
+    buffer.AppendFormat(_T(" (%s)"), name);
 
   form->SetCaption(buffer);
 }

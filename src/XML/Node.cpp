@@ -31,24 +31,6 @@
 
 #include <assert.h>
 
-void
-XMLNode::Data::Ref()
-{
-  assert(ref_count > 0);
-
-  ++ref_count;
-}
-
-void
-XMLNode::Data::Unref()
-{
-  assert(ref_count > 0);
-
-  --ref_count;
-  if (ref_count == 0)
-    delete this;
-}
-
 XMLNode
 XMLNode::CreateRoot(const TCHAR *name)
 {
@@ -99,28 +81,6 @@ XMLNode::AddText(const TCHAR *text, size_t length)
   assert(text != nullptr);
 
   d->text.append(text, length);
-}
-
-XMLNode&
-XMLNode::operator=(const XMLNode& A)
-{
-  Data *old = d;
-
-  d = A.d;
-  if (d != nullptr)
-    d->Ref();
-
-  if (old != nullptr)
-    old->Unref();
-
-  return *this;
-}
-
-XMLNode::XMLNode(const XMLNode &A)
-{
-  d = A.d;
-  if (d)
-    d->Ref();
 }
 
 const XMLNode *

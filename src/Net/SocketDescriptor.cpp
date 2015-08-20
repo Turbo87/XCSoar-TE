@@ -28,9 +28,9 @@
  */
 
 #include "SocketDescriptor.hpp"
-#include "SocketAddress.hpp"
-#include "StaticSocketAddress.hpp"
-#include "IPv4Address.hpp"
+#include "SocketAddress.hxx"
+#include "StaticSocketAddress.hxx"
+#include "IPv4Address.hxx"
 
 #ifdef HAVE_POSIX
 #include <sys/socket.h>
@@ -249,7 +249,7 @@ SocketDescriptor::Read(void *buffer, size_t length,
 
   socklen_t addrlen = address.GetCapacity();
   ssize_t nbytes = ::recvfrom(Get(), (char *)buffer, length, flags,
-                              address, &addrlen);
+			      address.GetAddress(), &addrlen);
   if (nbytes > 0)
     address.SetSize(addrlen);
 
@@ -258,7 +258,7 @@ SocketDescriptor::Read(void *buffer, size_t length,
 
 ssize_t
 SocketDescriptor::Write(const void *buffer, size_t length,
-                        const StaticSocketAddress &address)
+                        SocketAddress address)
 {
   int flags = 0;
 #ifdef HAVE_POSIX
@@ -269,5 +269,5 @@ SocketDescriptor::Write(const void *buffer, size_t length,
 #endif
 
   return ::sendto(Get(), (const char *)buffer, length, flags,
-                  address, address.GetSize());
+                  address.GetAddress(), address.GetSize());
 }

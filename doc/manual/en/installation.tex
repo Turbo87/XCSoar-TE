@@ -91,13 +91,13 @@ discover/manual.html}.
 XCSoar runs on the following platforms:
 
 \begin{itemize}
-\item PDAs with Pocket PC 2000, 2002, 2003 \\
+\item PDAs with Pocket PC 2003, 2002, 2003 \\
   Example: iPaq 3800, iPaq 3900
 \item PDAs with Windows Mobile \\
-  Example: iPaq hx4700, Dell Axim x51v
+  Example: Paq hx4700, Dell Axim x51v
 \item PNAs with Windows CE 3.0 or newer \\
   Example: HP314, Mio400
-  \item Android mobile phones and tablets with Android 1.6 or newer \\
+\item Android mobile phones and tablets with Android 1.6 or newer \\
   Example: Dell Streak, Samsung Galaxy S II, HTC Desire HD,
   Motorola Xoom
 \item eReader Kobo (experimental, Dec. 2013)
@@ -148,10 +148,6 @@ NMEA Device &
 \hline
 \input{supported_devices_table.tex}
 \end{tabular}}
-\footnotetext{LX Navigation offers a variety of intelligent vario 
-  devices such as LX1600, LX5000, LX7000. They all share their NMEA functionality. 
-  The offered functionality in connection to XCSoar depends on 
-  last not least e.g. the vario's firmware revision. }
 
 While most Windows CE based devices have a serial port, such legacy
 hardware is not present in modern Android devices.  Those can either
@@ -217,7 +213,6 @@ to your attached vario (to shut it down, to cut the volume, etc...).
 Choose one of the targets:
 
 \begin{description}
-\item[\texttt{PPC2000}] Pocket PC 2000/2002, Windows CE 3.0
 \item[\texttt{PPC2003}] Pocket PC 2003, Windows CE 4.0
 \item[\texttt{WM5}] Windows Mobile 5 or newer
 \item[\texttt{WM5X}] Windows Mobile 5 or newer with XScale CPU or
@@ -312,7 +307,8 @@ internal storage is used.
 XCSoar will generate a number of additional files at run time.  These
 will be placed in the  \texttt{XCSoarData} directory (Windows PC, 
 Windows and Android mobile devices), or the \texttt{.xcsoar} directory (Unix/Linux
-PC).  From the first run, XCSoar will create and maintain the files 
+PC).  From the first run, XCSoar will create and maintain the files
+\texttt{user.cup} (user-edited waypoints),
 \texttt{Default.tsk} (Default Task),  
 \texttt{default.prf} 
 (configuration settings),

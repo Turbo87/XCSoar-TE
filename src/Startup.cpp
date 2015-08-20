@@ -48,8 +48,6 @@ Copyright_License {
 #include "Waypoint/WaypointDetailsReader.hpp"
 #include "Blackboard/DeviceBlackboard.hpp"
 #include "MapWindow/GlueMapWindow.hpp"
-#include "Markers/Markers.hpp"
-#include "Markers/ProtectedMarkers.hpp"
 #include "Device/device.hpp"
 #include "Device/MultipleDevices.hpp"
 #include "Topography/TopographyStore.hpp"
@@ -83,6 +81,7 @@ Copyright_License {
 
 #include "Task/TaskManager.hpp"
 #include "Task/ProtectedTaskManager.hpp"
+#include "Task/DefaultTask.hpp"
 #include "Engine/Task/Ordered/OrderedTask.hpp"
 #include "Operation/VerboseOperationEnvironment.hpp"
 #include "PageActions.hpp"
@@ -103,7 +102,6 @@ Copyright_License {
 #include "DrawThread.hpp"
 #endif
 
-static Markers *marks;
 static TaskManager *task_manager;
 static GlideComputerEvents *glide_computer_events;
 static AllMonitors *all_monitors;
@@ -140,10 +138,8 @@ AfterStartup()
     InputEvents::processGlideComputer(GCE_STARTUP_REAL);
   }
 
-  const TaskFactoryType task_type_default =
-    CommonInterface::GetComputerSettings().task.task_type_default;
-  OrderedTask *defaultTask =
-    protected_task_manager->TaskCreateDefault(&way_points, task_type_default);
+  OrderedTask *defaultTask = LoadDefaultTask(CommonInterface::GetComputerSettings().task,
+                                             &way_points);
   if (defaultTask) {
     {
       ScopeSuspendAllThreads suspend;
@@ -287,10 +283,6 @@ Startup()
   devices = new MultipleDevices();
   device_blackboard->SetDevices(*devices);
 
-  // Initialize Markers
-  marks = new Markers();
-  protected_marks = new ProtectedMarkers(*marks);
-
 #ifdef HAVE_AYGSHELL_DLL
   const AYGShellDLL &ayg = main_window->ayg_shell_dll;
   ayg.SHSetAppKeyWndAssoc(VK_APP1, *main_window);
@@ -331,6 +323,12 @@ Startup()
   glide_computer->Initialise();
 
   replay = new Replay(logger, *protected_task_manager);
+
+#ifdef HAVE_CMDLINE_REPLAY
+  if (CommandLine::replay_path != nullptr)
+    replay->Start(CommandLine::replay_path);
+#endif
+
 
   GlidePolar &gp = CommonInterface::SetComputerSettings().polar.glide_polar_task;
   gp = GlidePolar(fixed(0));
@@ -411,7 +409,6 @@ Startup()
     map_window->SetTopography(topography);
     map_window->SetTerrain(terrain);
     map_window->SetWeather(rasp);
-    map_window->SetMarks(protected_marks);
 
 #ifdef HAVE_NOAA
     map_window->SetNOAAStore(noaa_store);
@@ -609,11 +606,6 @@ Shutdown()
   terrain = nullptr;
   delete topography;
   topography = nullptr;
-
-  delete protected_marks;
-  protected_marks = nullptr;
-  delete marks;
-  marks = nullptr;
 
   // Close any device connections
   devShutdown();

@@ -47,6 +47,10 @@ namespace CommandLine {
 #ifdef HAVE_CMDLINE_FULLSCREEN
   bool full_screen = false;
 #endif
+
+#ifdef HAVE_CMDLINE_REPLAY
+  const char *replay_path;
+#endif
 }
 
 void
@@ -75,19 +79,20 @@ CommandLine::Parse(Args &args)
       s += 10;
       PathName convert(s);
       SetPrimaryDataPath(convert);
-    }
+#ifdef HAVE_CMDLINE_REPLAY
+    } else if (StringIsEqual(s, "-replay=", 8)) {
+      replay_path = s + 8;
+#endif
 #ifdef SIMULATOR_AVAILABLE
-    else if (StringIsEqual(s, "-simulator")) {
+    } else if (StringIsEqual(s, "-simulator")) {
       global_simulator_flag = true;
       sim_set_in_cmd_line_flag = true;
-    }
-    else if (StringIsEqual(s, "-fly")) {
+    } else if (StringIsEqual(s, "-fly")) {
       global_simulator_flag=false;
       sim_set_in_cmd_line_flag=true;
-    }
 #endif
 #if !defined(_WIN32_WCE)
-    else if (isdigit(s[1])) {
+    } else if (isdigit(s[1])) {
       char *p;
       width = ParseUnsigned(s + 1, &p);
       if (*p != 'x' && *p != 'X')
@@ -96,33 +101,27 @@ CommandLine::Parse(Args &args)
       height = ParseUnsigned(s + 1, &p);
       if (*p != '\0')
         args.UsageError();
-    }
-    else if (StringIsEqual(s, "-portrait")) {
+    } else if (StringIsEqual(s, "-portrait")) {
       width = 480;
       height = 640;
-    }
-    else if (StringIsEqual(s, "-square")) {
+    } else if (StringIsEqual(s, "-square")) {
       width = 480;
       height = 480;
-    }
-    else if (StringIsEqual(s, "-small")) {
+    } else if (StringIsEqual(s, "-small")) {
       width = 320;
       height = 240;
-    }
 #endif
 #ifdef HAVE_CMDLINE_FULLSCREEN
-    else if (StringIsEqual(s, "-fullscreen")) {
+    } else if (StringIsEqual(s, "-fullscreen")) {
       full_screen = true;
-    }
 #endif
 #if defined(_WIN32) && !defined(_WIN32_WCE) && !defined(__WINE__)
-    else if (StringIsEqual(s, "-console")) {
+    } else if (StringIsEqual(s, "-console")) {
       AllocConsole();
       freopen("CONOUT$", "wb", stdout);
-    }
 #endif
 #if !defined(ANDROID) && !defined(_WIN32_WCE)
-    else if (StringIsEqual(s, "-dpi=", 5)) {
+    } else if (StringIsEqual(s, "-dpi=", 5)) {
       unsigned x_dpi, y_dpi;
       char *p;
       x_dpi = ParseUnsigned(s + 5, &p);
@@ -138,19 +137,18 @@ CommandLine::Parse(Args &args)
         args.UsageError();
 
       Display::SetDPI(x_dpi, y_dpi);
-    }
 #endif
 #ifdef __APPLE__
-    else if (StringStartsWith(s, "-psn")) {
+    } else if (StringStartsWith(s, "-psn")) {
       /* The OS X launcher always supplies some process number argument.
          Just ignore it.
       */
-    }
 #endif
+    } else {
 #ifndef _WIN32
-    else
       args.UsageError();
 #endif
+    }
   }
 
 #if !defined(_WIN32_WCE)

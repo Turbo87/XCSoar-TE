@@ -161,7 +161,7 @@ WaypointReaderCompeGPS::ParseLine(const TCHAR* line, const unsigned linenum,
     return true;
 
   // Check for format: UTM or LatLon
-  if (*line == _T('U') && _tcsstr(line, _T("U  0")) == line) {
+  if (StringStartsWith(line, _T("U  0"))) {
     is_utm = true;
     return true;
   }
@@ -214,14 +214,12 @@ WaypointReaderCompeGPS::ParseLine(const TCHAR* line, const unsigned linenum,
   line++;
 
   // Create new waypoint instance
-  Waypoint waypoint(location);
-  waypoint.file_num = file_num;
-  waypoint.original_id = 0;
+  Waypoint waypoint = factory.Create(location);
   waypoint.name.assign(name, name_length);
 
   // Parse altitude
   if (!ParseAltitude(line, waypoint.elevation) &&
-      !CheckAltitude(waypoint))
+      !factory.FallbackElevation(waypoint))
     return false;
 
   // Skip whitespace

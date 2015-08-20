@@ -30,9 +30,8 @@ class WaypointReaderZander:
   public WaypointReaderBase 
 {
 public:
-  WaypointReaderZander(const int _file_num,
-                     bool _compressed = false)
-    :WaypointReaderBase(_file_num, _compressed) {}
+  explicit WaypointReaderZander(WaypointFactory _factory)
+    :WaypointReaderBase(_factory) {}
 
 protected:
   bool ParseLine(const TCHAR* line, const unsigned linenum,

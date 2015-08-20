@@ -30,7 +30,7 @@
 #ifndef XCSOAR_SOCKET_DESCRIPTOR_HPP
 #define XCSOAR_SOCKET_DESCRIPTOR_HPP
 
-#include "OS/FileDescriptor.hpp"
+#include "OS/FileDescriptor.hxx"
 
 #include <type_traits>
 
@@ -171,7 +171,7 @@ public:
    * Send a datagram to the specified address.
    */
   ssize_t Write(const void *buffer, size_t length,
-                const StaticSocketAddress &address);
+                SocketAddress address);
 };
 
 static_assert(std::is_trivial<SocketDescriptor>::value, "type is not trivial");

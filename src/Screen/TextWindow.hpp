@@ -24,7 +24,7 @@ Copyright_License {
 #ifndef XCSOAR_SCREEN_TEXT_WINDOW_HXX
 #define XCSOAR_SCREEN_TEXT_WINDOW_HXX
 
-#include "Screen/Window.hpp"
+#include "NativeWindow.hpp"
 
 #ifndef USE_GDI
 #include "Util/tstring.hpp"
@@ -66,14 +66,36 @@ public:
 /**
  * A window which renders static text.
  */
-class TextWindow : public Window {
+class TextWindow : public NativeWindow {
 #ifndef USE_GDI
+  const Font *font;
+
   tstring text;
 #endif
 
 public:
+#if !defined(USE_GDI) && !defined(NDEBUG)
+  TextWindow():font(nullptr) {}
+#endif
+
   void Create(ContainerWindow &parent, const TCHAR *text, PixelRect rc,
               const TextWindowStyle style=TextWindowStyle());
+
+#ifndef USE_GDI
+  void SetFont(const Font &_font) {
+    AssertNoneLocked();
+    AssertThread();
+
+    font = &_font;
+  }
+
+  const Font &GetFont() const {
+    AssertThread();
+    assert(font != nullptr);
+
+    return *font;
+  }
+#endif
 
   void set_text(const TCHAR *_text) {
     AssertNoneLocked();

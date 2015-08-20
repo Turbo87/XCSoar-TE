@@ -40,27 +40,27 @@
 void
 Replay::Stop()
 {
-  if (replay == NULL)
+  if (replay == nullptr)
     return;
 
   Timer::Cancel();
 
   delete replay;
-  replay = NULL;
+  replay = nullptr;
 
   delete cli;
   cli = nullptr;
 
   device_blackboard->StopReplay();
 
-  if (logger != NULL)
+  if (logger != nullptr)
     logger->ClearBuffer();
 }
 
 bool
 Replay::Start(const TCHAR *_path)
 {
-  assert(_path != NULL);
+  assert(_path != nullptr);
 
   /* make sure the old AbstractReplay instance has cleaned up before
      creating a new one */
@@ -92,7 +92,7 @@ Replay::Start(const TCHAR *_path)
                             CommonInterface::GetSystemSettings().devices[0]);
   }
 
-  if (logger != NULL)
+  if (logger != nullptr)
     logger->ClearBuffer();
 
   virtual_time = fixed(-1);
@@ -162,6 +162,8 @@ Replay::Update()
       if (next_data.time_available) {
         if (negative(virtual_time)) {
           virtual_time = next_data.time;
+          if (!negative(fast_forward))
+            fast_forward += virtual_time;
           clock.Update();
           break;
         }
@@ -194,6 +196,8 @@ Replay::Update()
 
     if (negative(virtual_time)) {
       virtual_time = cli->GetMaxTime();
+      if (!negative(fast_forward))
+        fast_forward += virtual_time;
       clock.Update();
     }
 

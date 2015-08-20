@@ -311,6 +311,9 @@ GlueMapWindow::OnMouseWheel(PixelScalar x, PixelScalar y, int delta)
 bool
 GlueMapWindow::OnMultiTouchDown()
 {
+  if (!visible_projection.IsValid())
+    return false;
+
   if (drag_mode == DRAG_GESTURE)
     gestures.Finish();
   else if (follow_mode != FOLLOW_SELF)

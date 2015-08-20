@@ -51,7 +51,6 @@ MapWindow::MapWindow(const MapLook &_look,
    airspace_label_renderer(look.airspace),
    trail_renderer(look.trail),
    task(nullptr), route_planner(nullptr), glide_computer(nullptr),
-   marks(nullptr),
 #ifdef HAVE_NOAA
    noaa_store(nullptr),
 #endif
@@ -144,7 +143,7 @@ MapWindow::UpdateTerrain()
   GeoPoint location = visible_projection.GetGeoScreenCenter();
   fixed radius = visible_projection.GetScreenWidthMeters() / 2;
   if (terrain_radius >= radius && terrain_center.IsValid() &&
-      terrain_center.Distance(location) < fixed(1000))
+      terrain_center.DistanceS(location) < fixed(1000))
     return false;
 
   // always service terrain even if it's not used by the map,

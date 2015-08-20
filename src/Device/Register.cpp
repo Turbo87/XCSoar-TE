@@ -47,7 +47,6 @@ Copyright_License {
 #include "Device/Driver/Flytec.hpp"
 #include "Device/Driver/ILEC.hpp"
 #include "Device/Driver/Westerboer.hpp"
-#include "Device/Driver/WesterboerVW921.hpp"
 #include "Device/Driver/FLARM.hpp"
 #include "Device/Driver/FlyNet.hpp"
 #include "Device/Driver/CProbe.hpp"
@@ -55,7 +54,7 @@ Copyright_License {
 #include "Device/Driver/BlueFlyVario.hpp"
 #include "Device/Driver/OpenVario.hpp"
 #include "Device/Driver/Vaulter.hpp"
-#include "Device/Driver/KRT2.hpp"
+//#include "Device/Driver/KRT2.hpp"
 #include "Device/Driver/ATR833.hpp"
 #include "Util/Macros.hpp"
 #include "Util/StringAPI.hpp"
@@ -88,7 +87,6 @@ static const struct DeviceRegister *const driver_list[] = {
   &westerboer_driver,
   &imi_driver,
   &flarm_driver,
-  &westerboer_vw921_driver,
   &flynet_driver,
   &gt_altimeter_driver,
   &c_probe_driver,
@@ -98,7 +96,9 @@ static const struct DeviceRegister *const driver_list[] = {
   &cai_lnav_driver,
   &open_vario_driver,
   &vaulter_driver,
-  &krt2_driver,
+  /* disabled due to http://bugs.xcsoar.org/ticket/3585 and
+     http://bugs.xcsoar.org/ticket/3586 - scheduled for deletion */
+  //&krt2_driver,
   &atr833_driver,
   nullptr
 };

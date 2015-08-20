@@ -158,12 +158,16 @@ XCSOAR_SOURCES := \
 	$(SRC)/Airspace/ActivePredicate.cpp \
 	$(SRC)/Task/Serialiser.cpp \
 	$(SRC)/Task/Deserialiser.cpp \
+	$(SRC)/Task/SaveFile.cpp \
+	$(SRC)/Task/LoadFile.cpp \
 	$(SRC)/Task/TaskFile.cpp \
 	$(SRC)/Task/TaskFileXCSoar.cpp \
 	$(SRC)/Task/TaskFileIGC.cpp \
 	$(SRC)/Task/TaskFileSeeYou.cpp \
+	$(SRC)/Task/DefaultTask.cpp \
 	$(SRC)/Task/MapTaskManager.cpp \
 	$(SRC)/Task/ProtectedTaskManager.cpp \
+	$(SRC)/Task/FileProtectedTaskManager.cpp \
 	$(SRC)/Task/RoutePlannerGlue.cpp \
 	$(SRC)/Task/ProtectedRoutePlanner.cpp \
 	$(SRC)/Task/TaskStore.cpp \
@@ -190,7 +194,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Renderer/TraceHistoryRenderer.cpp \
 	$(SRC)/Renderer/ThermalBandRenderer.cpp \
 	$(SRC)/Renderer/TaskProgressRenderer.cpp \
-	$(SRC)/Renderer/MarkerRenderer.cpp \
 	\
 	$(SRC)/Airspace/AirspaceGlue.cpp \
 	$(SRC)/Airspace/AirspaceParser.cpp \
@@ -215,7 +218,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Computer/ConditionMonitor/ConditionMonitorFinalGlide.cpp \
 	$(SRC)/Computer/ConditionMonitor/ConditionMonitorGlideTerrain.cpp \
 	$(SRC)/Computer/ConditionMonitor/ConditionMonitorLandableReachable.cpp \
-	$(SRC)/Computer/ConditionMonitor/ConditionMonitorStartRules.cpp \
 	$(SRC)/Computer/ConditionMonitor/ConditionMonitorSunset.cpp \
 	$(SRC)/Computer/ConditionMonitor/ConditionMonitorWind.cpp \
 	$(SRC)/Computer/ConditionMonitor/ConditionMonitors.cpp \
@@ -317,7 +319,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/Waypoint/WaypointReaderSeeYou.cpp \
 	$(SRC)/Waypoint/WaypointReaderZander.cpp \
 	$(SRC)/Waypoint/WaypointReaderCompeGPS.cpp \
-	$(SRC)/Waypoint/WaypointWriter.cpp \
+	$(SRC)/Waypoint/CupWriter.cpp \
+	$(SRC)/Waypoint/Factory.cpp \
 	$(SRC)/Computer/Wind/CirclingWind.cpp \
 	$(SRC)/Computer/Wind/MeasurementList.cpp \
 	$(SRC)/Computer/Wind/Store.cpp \
@@ -449,6 +452,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Renderer/WaypointRendererSettings.cpp \
 	$(SRC)/Renderer/WaypointLabelList.cpp \
 	$(SRC)/Renderer/WindArrowRenderer.cpp \
+	$(SRC)/Renderer/NextArrowRenderer.cpp \
 	$(SRC)/Renderer/WaveRenderer.cpp \
 	$(SRC)/Projection/ChartProjection.cpp \
 	$(SRC)/MapWindow/Items/MapItem.cpp \
@@ -516,7 +520,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Topography/XShape.cpp \
 	$(SRC)/Topography/CachedTopographyRenderer.cpp \
 	$(SRC)/Markers/Markers.cpp \
-	$(SRC)/Markers/ProtectedMarkers.cpp \
 	\
 	$(SRC)/FlightStatistics.cpp \
 	$(SRC)/FlightInfo.cpp \
@@ -533,6 +536,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Hardware/Display.cpp \
 	$(SRC)/Hardware/RotateDisplay.cpp \
 	$(SRC)/Hardware/DisplayDPI.cpp \
+	$(SRC)/Hardware/DisplaySize.cpp \
 	$(SRC)/Hardware/BlankDisplay.cpp \
 	$(SRC)/Hardware/DisplayGlue.cpp \
 	$(SRC)/Hardware/Vibrator.cpp \
@@ -641,9 +645,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Startup.cpp \
 	$(SRC)/Components.cpp \
 	\
-	$(SRC)/Device/Driver.cpp \
 	$(SRC)/Device/Declaration.cpp \
-	$(SRC)/Device/Register.cpp \
 	$(SRC)/Device/MultipleDevices.cpp \
 	$(SRC)/Device/device.cpp \
 	$(SRC)/Device/Port/ConfiguredPort.cpp \
@@ -659,6 +661,7 @@ XCSOAR_SOURCES := \
 	\
 	$(SRC)/Monitor/WindMonitor.cpp \
 	$(SRC)/Monitor/AirspaceWarningMonitor.cpp \
+	$(SRC)/Monitor/TaskConstraintsMonitor.cpp \
 	$(SRC)/Monitor/TaskAdvanceMonitor.cpp \
 	$(SRC)/Monitor/MatTaskMonitor.cpp \
 	$(SRC)/Monitor/AllMonitors.cpp \

@@ -26,8 +26,9 @@ build_path = os.path.join(arch_path, 'build')
 root_path = os.path.join(arch_path, 'root')
 
 target_arch = '-march=armv7-a -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=hard'
-cflags = '-Os -g ' + target_arch
-cxxflags = '-Os -g ' + target_arch
+common_flags = '-Os -g -ffunction-sections -fdata-sections -fvisibility=hidden ' + target_arch
+cflags = common_flags
+cxxflags = common_flags
 cppflags = '--sysroot=' + target_root + ' -isystem ' + os.path.join(root_path, 'include' + ' -DNDEBUG')
 ldflags = '--sysroot=' + target_root + ' -L' + os.path.join(root_path, 'lib')
 libs = ''
@@ -244,8 +245,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'http://curl.haxx.se/download/curl-7.42.1.tar.lzma',
-        'f1e460020a99da039b153e4bf0cd8600',
+        'http://curl.haxx.se/download/curl-7.43.0.tar.lzma',
+        '95df6d1ce9c970289d2997e603d6fd79',
         'lib/libcurl.a',
         [
             '--disable-shared', '--enable-static',
@@ -266,8 +267,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.17.tar.xz',
-        '430a9b76b78533235cd4b9b26ce75c7e',
+        'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.18.tar.xz',
+        '6a57c8e0f5469b9c9949a4b43d57b3a1',
         'lib/libpng.a',
         [
             '--disable-shared', '--enable-static',

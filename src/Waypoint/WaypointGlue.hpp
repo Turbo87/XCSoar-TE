@@ -24,6 +24,8 @@ Copyright_License {
 #ifndef XCSOAR_WAY_POINT_GLUE_HPP
 #define XCSOAR_WAY_POINT_GLUE_HPP
 
+#include "Engine/Waypoint/Origin.hpp"
+
 struct Waypoint;
 class Waypoints;
 class RasterTerrain;
@@ -106,9 +108,6 @@ namespace WaypointGlue {
                      OperationEnvironment &operation);
 
   bool SaveWaypoints(const Waypoints &way_points);
-  bool SaveWaypointFile(const Waypoints &way_points, int num);
-
-  bool IsWritable();
 };
 
 #endif

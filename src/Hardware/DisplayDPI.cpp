@@ -28,16 +28,23 @@ Copyright_License {
 #include "Android/NativeView.hpp"
 #endif
 
-#ifdef KOBO
-#include "OS/FileUtil.hpp"
-#endif
-
 #ifdef WIN32
 #include "Screen/GDI/RootDC.hpp"
-#include "Config/Registry.hpp"
-#include "OS/GlobalEvent.hpp"
 
 #include <windows.h>
+#endif
+
+#ifdef USE_X11
+#include "Event/Globals.hpp"
+#include "Event/Queue.hpp"
+
+#define Font X11Font
+#define Window X11Window
+#define Display X11Display
+#include <X11/Xlib.h>
+#undef Font
+#undef Window
+#undef Display
 #endif
 
 #ifdef __APPLE__
@@ -54,7 +61,16 @@ Copyright_License {
   static unsigned forced_y_dpi = 0;
 #endif
 
-#if !defined(WIN32) && !defined(ANDROID)
+#ifdef USE_X11
+
+static constexpr unsigned
+MMToDPI(unsigned pixels, unsigned mm)
+{
+  /* 1 inch = 25.4 mm */
+  return pixels * 254 / (mm * 10);
+}
+
+#elif !defined(WIN32) && !defined(ANDROID)
 #ifndef __APPLE__
 gcc_const
 #endif
@@ -96,11 +112,19 @@ Display::GetXDPI()
   if (forced_x_dpi > 0)
     return forced_x_dpi;
 #endif
+
 #ifdef WIN32
   RootDC dc;
   return GetDeviceCaps(dc, LOGPIXELSX);
 #elif defined(ANDROID)
   return native_view->GetXDPI();
+#elif defined(USE_X11)
+  assert(event_queue != nullptr);
+
+  auto display = event_queue->GetDisplay();
+  assert(display != nullptr);
+
+  return MMToDPI(DisplayWidth(display, 0), DisplayWidthMM(display, 0));
 #else
   return GetDPI();
 #endif
@@ -113,11 +137,19 @@ Display::GetYDPI()
   if (forced_y_dpi > 0)
     return forced_y_dpi;
 #endif
+
 #ifdef WIN32
   RootDC dc;
   return GetDeviceCaps(dc, LOGPIXELSY);
 #elif defined(ANDROID)
   return native_view->GetYDPI();
+#elif defined(USE_X11)
+  assert(event_queue != nullptr);
+
+  auto display = event_queue->GetDisplay();
+  assert(display != nullptr);
+
+  return MMToDPI(DisplayHeight(display, 0), DisplayHeightMM(display, 0));
 #else
   return GetDPI();
 #endif

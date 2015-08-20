@@ -22,21 +22,11 @@ Copyright_License {
 */
 
 #include "WaypointReaderBase.hpp"
-
-#include "Terrain/RasterTerrain.hpp"
 #include "Waypoint/Waypoint.hpp"
 #include "Operation/Operation.hpp"
 #include "IO/LineReader.hpp"
 
 #include <assert.h>
-
-WaypointReaderBase::WaypointReaderBase(const int _file_num,
-                           bool _compressed):
-  file_num(_file_num),
-  terrain(nullptr),
-  compressed(_compressed)
-{
-}
 
 static bool is_closing_quote_char(TCHAR const *s) {
   // Perform look-ahead to check if the detected quote_char terminates
@@ -134,28 +124,6 @@ WaypointReaderBase::ExtractParameters(const TCHAR *src, TCHAR *dst,
   } while (*s++ != _T('\0') && i < sz);
 
   return i;
-}
-
-bool
-WaypointReaderBase::CheckAltitude(Waypoint &new_waypoint,
-                                  const RasterTerrain *terrain)
-{
-  if (terrain == nullptr)
-    return false;
-
-  // Load waypoint altitude from terrain
-  const short t_alt = terrain->GetTerrainHeight(new_waypoint.location);
-  if (RasterBuffer::IsSpecial(t_alt))
-    return false;
-
-  new_waypoint.elevation = (fixed)t_alt;
-  return true;
-}
-
-bool
-WaypointReaderBase::CheckAltitude(Waypoint &new_waypoint) const
-{
-  return CheckAltitude(new_waypoint, terrain);
 }
 
 void

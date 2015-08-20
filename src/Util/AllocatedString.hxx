@@ -42,6 +42,7 @@
 template<typename T=char>
 class AllocatedString {
 public:
+	typedef typename StringPointer<T>::value_type value_type;
 	typedef typename StringPointer<T>::pointer pointer;
 	typedef typename StringPointer<T>::const_pointer const_pointer;
 
@@ -69,8 +70,13 @@ public:
 		return nullptr;
 	}
 
+	static AllocatedString Empty() {
+		auto p = new value_type[1];
+		p[0] = value_type(0);
+		return Donate(p);
+	}
+
 	AllocatedString &operator=(AllocatedString &&src) {
-		*(StringPointer<T> *)this = std::move(src);
 		std::swap(value, src.value);
 		return *this;
 	}

@@ -24,7 +24,7 @@ Copyright_License {
 #ifndef XCSOAR_SCREEN_PROGRESS_BAR_HXX
 #define XCSOAR_SCREEN_PROGRESS_BAR_HXX
 
-#include "Window.hpp"
+#include "NativeWindow.hpp"
 
 class ProgressBarStyle : public WindowStyle {
 public:
@@ -35,7 +35,7 @@ public:
   void Smooth();
 };
 
-class ProgressBar : public Window {
+class ProgressBar : public NativeWindow {
 #ifndef USE_GDI
   unsigned min_value, max_value, value, step_size;
 

@@ -302,6 +302,40 @@ GetPressureUnit(const ProfileMap &map, const char *key, Unit &value)
   return true;
 }
 
+static constexpr bool
+ValidWingLoadingUnit(Unit unit)
+{
+  return unit == Unit::KG_PER_M2 || unit == Unit::LB_PER_FT2;
+}
+
+static bool
+GetWingLoadingUnit(const ProfileMap &map, const char *key, Unit &value)
+{
+  Unit tmp;
+  if (!map.GetEnum(key, tmp) || !ValidWingLoadingUnit(tmp))
+    return false;
+
+  value = tmp;
+  return true;
+}
+
+static constexpr bool
+ValidMassUnit(Unit unit)
+{
+  return unit == Unit::KG || unit == Unit::LB;
+}
+
+static bool
+GetMassUnit(const ProfileMap &map, const char *key, Unit &value)
+{
+  Unit tmp;
+  if (!map.GetEnum(key, tmp) || !ValidMassUnit(tmp))
+    return false;
+
+  value = tmp;
+  return true;
+}
+
 void
 Profile::LoadUnits(const ProfileMap &map, UnitSetting &config)
 {
@@ -320,4 +354,7 @@ Profile::LoadUnits(const ProfileMap &map, UnitSetting &config)
   GetVerticalSpeedUnit(map, ProfileKeys::LiftUnitsValue, "Lift",
                        config.vertical_speed_unit);
   GetPressureUnit(map, ProfileKeys::PressureUnitsValue, config.pressure_unit);
+  GetWingLoadingUnit(map, ProfileKeys::WingLoadingUnitValue,
+                     config.wing_loading_unit);
+  GetMassUnit(map, ProfileKeys::MassUnitValue, config.mass_unit);
 }

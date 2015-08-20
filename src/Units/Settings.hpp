@@ -46,6 +46,10 @@ struct UnitSetting
   Unit task_speed_unit;
   /** Unit for pressures */
   Unit pressure_unit;
+  /** Unit for wing loading */
+  Unit wing_loading_unit;
+  /** Unit for mass */
+  Unit mass_unit;
 
   void SetDefaults();
 

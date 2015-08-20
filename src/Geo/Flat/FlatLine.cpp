@@ -22,24 +22,10 @@
 
 #include "FlatLine.hpp"
 
-#define sgn(x,y) (negative(x) ? -y : y)
-
-FlatPoint
-FlatLine::ave() const
+static constexpr fixed
+sgn(fixed x, fixed y)
 {
-  return (p1 + p2).Half();
-}
-
-fixed
-FlatLine::dx() const
-{
-  return p2.x - p1.x;
-}
-
-fixed
-FlatLine::dy() const
-{
-  return p2.y - p1.y;
+  return negative(x) ? -y : y;
 }
 
 fixed
@@ -70,15 +56,15 @@ FlatLine::dsq() const
 void
 FlatLine::sub(const FlatPoint&p)
 {
-  p1.Subtract(p);
-  p2.Subtract(p);
+  p1 -= p;
+  p2 -= p;
 }
 
 void
 FlatLine::add(const FlatPoint&p)
 {
-  p1.Add(p);
-  p2.Add(p);
+  p1 += p;
+  p2 += p;
 }
 
 Angle

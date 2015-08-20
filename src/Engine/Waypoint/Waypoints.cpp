@@ -147,7 +147,7 @@ Waypoints::Append(Waypoint &&wp)
   } else if (IsEmpty())
     task_projection.Reset(wp.location);
 
-  wp.flags.watched = (wp.file_num == 3);
+  wp.flags.watched = wp.origin == WaypointOrigin::WATCHED;
 
   task_projection.Scan(wp.location);
   wp.id = next_id++;
@@ -323,6 +323,23 @@ Waypoints::Erase(const Waypoint& wp)
 }
 
 void
+Waypoints::EraseUserMarkers()
+{
+  waypoint_tree.EraseIf([this](const Waypoint &wp){
+      if (wp.origin == WaypointOrigin::USER &&
+          wp.type == Waypoint::Type::MARKER) {
+        if (home == &wp)
+          home = nullptr;
+
+        name_tree.Remove(wp);
+        ++serial;
+        return true;
+      } else
+        return false;
+    });
+}
+
+void
 Waypoints::Replace(const Waypoint &orig, const Waypoint &replacement)
 {
   assert(!waypoint_tree.IsEmpty());
@@ -352,7 +369,7 @@ Waypoints::Create(const GeoPoint &location)
   Waypoint edit_waypoint(location);
 
   // first waypoint, put into primary file (this will be auto-generated)
-  edit_waypoint.file_num = 1;
+  edit_waypoint.origin = WaypointOrigin::USER;
   edit_waypoint.original_id = 0;
   return edit_waypoint;
 }
@@ -375,7 +392,6 @@ Waypoints::GenerateTakeoffPoint(const GeoPoint& location,
   // fallback: create a takeoff point
   Waypoint to_point(location);
   to_point.elevation = terrain_alt;
-  to_point.file_num = -1;
   to_point.name = _T("(takeoff)");
   to_point.type = Waypoint::Type::OUTLANDING;
   return to_point;

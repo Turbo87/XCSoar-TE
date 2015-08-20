@@ -393,6 +393,13 @@ ifeq ($(TARGET),UNIX)
 
   ifeq ($(ARMV6),y)
     TARGET_ARCH += -march=armv6
+
+    ifneq ($(CLANG),y)
+      # Force-disable thumb just in case the gcc binary was built with
+      # thumb enabled by default.  This fixes the dreaded gcc error
+      # "sorry, unimplemented: Thumb-1 hard-float VFP ABI".
+      TARGET_ARCH += -marm
+    endif
   endif
 
   ifeq ($(ARMV7),y)
@@ -653,7 +660,7 @@ ifeq ($(TARGET),WINE)
 endif
 
 ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)
-  TARGET_CPPFLAGS += --sysroot=$(PI) -isystem $(PI)/usr/include/arm-linux-gnueabihf
+  TARGET_CPPFLAGS += --sysroot=$(PI) -isystem $(PI)/usr/include/arm-linux-gnueabihf -isystem $(PI)/usr/include
 endif
 
 ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)

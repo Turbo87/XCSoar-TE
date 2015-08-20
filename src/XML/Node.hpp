@@ -41,9 +41,7 @@
 
 class TextWriter;
 
-struct XMLNode {
-//  friend class XMLNode;
-protected:
+class XMLNode {
   /**
    * To allow shallow copy and "intelligent/smart" pointers (automatic
    * delete).
@@ -79,24 +77,13 @@ protected:
     /** Array of attributes */
     std::forward_list<Attribute> attributes;
 
-    unsigned ref_count;
-
     Data(const TCHAR *_name, bool _is_declaration)
       :name(_name),
-       is_declaration(_is_declaration),
-       ref_count(1) {}
+       is_declaration(_is_declaration) {}
 
     Data(const TCHAR *_name, size_t name_length, bool _is_declaration)
       :name(_name, name_length),
-       is_declaration(_is_declaration),
-       ref_count(1) {}
-
-    ~Data() {
-      assert(ref_count == 0);
-    }
-
-    void Ref();
-    void Unref();
+       is_declaration(_is_declaration) {}
 
     bool HasChildren() const {
       return !children.empty() || !text.empty();
@@ -217,14 +204,10 @@ public:
 
   // to allow shallow copy:
   ~XMLNode() {
-    if (d != nullptr)
-      d->Unref();
+    delete d;
   }
 
-  /**
-   * Shallow copy.
-   */
-  XMLNode(const XMLNode &A);
+  XMLNode(const XMLNode &A) = delete;
 
   XMLNode(XMLNode &&other)
     :d(other.d) {
@@ -234,15 +217,14 @@ public:
   /**
    * Shallow copy.
    */
-  XMLNode &operator=(const XMLNode& A);
+  XMLNode &operator=(const XMLNode& A) = delete;
 
   XMLNode &operator=(XMLNode &&other) {
     Data *old = d;
     d = other.d;
     other.d = nullptr;
 
-    if (old != nullptr)
-      old->Unref();
+    delete old;
 
     return *this;
   }

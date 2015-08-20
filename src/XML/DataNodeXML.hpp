@@ -27,14 +27,12 @@
 #include "XML/Node.hpp"
 
 /**
- * DataNode implementation for XML files
+ * ConstDataNode implementation for XML files
  */
-class DataNodeXML:
-  public DataNode
-{
-  XMLNode node;
+class ConstDataNodeXML final : public ConstDataNode {
+  const XMLNode &node;
 
-protected:
+public:
   /**
    * Construct a node from an XMLNode
    *
@@ -42,37 +40,33 @@ protected:
    *
    * @return Initialised object
    */
-  explicit DataNodeXML(const XMLNode &_node)
+  explicit ConstDataNodeXML(const XMLNode &_node)
     :node(_node) {}
 
-  explicit DataNodeXML(const XMLNode &&_node)
-    :node(std::move(_node)) {}
+  /* virtual methods from ConstDataNode */
+  const TCHAR *GetName() const override;
+  ConstDataNode *GetChildNamed(const TCHAR *name) const override;
+  List ListChildren() const override;
+  List ListChildrenNamed(const TCHAR *name) const override;
+  const TCHAR *GetAttribute(const TCHAR *name) const override;
+};
+
+/**
+ * WritableDataNode implementation for XML files
+ */
+class WritableDataNodeXML final : public WritableDataNode {
+  XMLNode &node;
 
 public:
-  DataNodeXML(DataNodeXML &&other)
-    :node(std::move(other.node)) {
-  }
-
   /**
-   * Create a DataNode tree from an XML file
+   * Construct a node from an XMLNode
    *
-   * @param path Path to file to load
+   * @param the_node XML node reflecting this node
    *
-   * @return Root node (or nullptr on failure)
+   * @return Initialised object
    */
-  static DataNode *Load(const TCHAR* path);
-
-  /**
-   * Create root node
-   *
-   * @param node_name Name of root node
-   *
-   * @return Pointer to root node
-   */
-  gcc_pure
-  static DataNodeXML CreateRoot(const TCHAR *node_name) {
-    return DataNodeXML(XMLNode::CreateRoot(node_name));
-  }
+  explicit WritableDataNodeXML(XMLNode &_node)
+    :node(_node) {}
 
   /**
    * Save tree canonically to file
@@ -83,15 +77,9 @@ public:
    */
   bool Save(const TCHAR* path);
 
-  /* virtual methods from DataNode */
-  virtual const TCHAR *GetName() const;
-  virtual DataNode *AppendChild(const TCHAR *name);
-  virtual DataNode *GetChildNamed(const TCHAR *name) const;
-  virtual List ListChildren() const;
-  virtual List ListChildrenNamed(const TCHAR *name) const;
-  virtual void Serialise(TextWriter &writer) const;
-  virtual void SetAttribute(const TCHAR *name, const TCHAR *value);
-  virtual const TCHAR *GetAttribute(const TCHAR *name) const;
+  /* virtual methods from WritableDataNode */
+  WritableDataNode *AppendChild(const TCHAR *name) override;
+  void SetAttribute(const TCHAR *name, const TCHAR *value) override;
 };
 
 #endif

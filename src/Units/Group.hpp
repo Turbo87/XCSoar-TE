@@ -37,6 +37,8 @@ enum class UnitGroup: uint8_t
   WIND_SPEED,
   TASK_SPEED,
   PRESSURE,
+  WING_LOADING,
+  MASS,
 };
 
 #endif
