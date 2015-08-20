@@ -1,7 +1,3 @@
-============================================================================
-SUMMARY OF NEW FEATURES AND BUG FIXES SINCE V4.0
-============================================================================
-
 XCSoar TE
 * user interface
   - new logo
@@ -54,7 +50,22 @@ XCSoar TE
     (2 min threshold instead of 10 sec)
 * development
   - vagrant support
-  - TravisCI support
+ - TravisCI support
+
+Version 6.7.9 - 2015/07/03
+* user interface
+  - fix crash in task editor
+  - fix crash while panning the map
+  - improved font renderer
+* data files
+  - fix comments in TNP files
+* calculations
+  - faster triangle score calculation
+  - fix crash in triangle score calculation (#3576)
+* Android
+  - timeout for the HTTP client (e.g. LiveTrack24)
+* Kobo
+  - enable crash dumps in XCSoarData/crash/
 
 Version 6.7.8 - 2015-05-22
 * user interface

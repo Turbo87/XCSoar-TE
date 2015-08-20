@@ -30,7 +30,13 @@ Copyright_License {
  * Class for GPS-time based time intervals
  */
 class GPSClock {
-private:
+  /**
+   * A large negative value which ensure that first CheckAdvance()
+   * call after Reset() returns true, even if starting XCSoar right
+   * after midnight.
+   */
+  static constexpr int RESET_VALUE = -99999;
+
   fixed last;
   fixed dt;
 
@@ -41,13 +47,13 @@ public:
    * default behaviour, call update() immediately after creating the
    * object.
    */
-  GPSClock(const fixed _minstep):last(fixed(0)), dt(_minstep) {}
+  GPSClock(const fixed _minstep):last(RESET_VALUE), dt(_minstep) {}
 
   /**
    * Resets the clock.
    */
   void Reset() {
-    last = fixed(0);
+    last = fixed(RESET_VALUE);
   }
 
   /**

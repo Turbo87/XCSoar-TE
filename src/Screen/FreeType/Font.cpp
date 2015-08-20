@@ -288,6 +288,14 @@ Font::TextSize(const TCHAR *text) const
 }
 
 static void
+MixLine(uint8_t *dest, const uint8_t *src, size_t n)
+{
+  for (size_t i = 0; i != n; ++i)
+    /* bit-wise "OR" should be good enough for kerning */
+    dest[i] = dest[i] | src[i];
+}
+
+static void
 RenderGlyph(uint8_t *buffer, unsigned buffer_width, unsigned buffer_height,
             const FT_Bitmap &bitmap, int x, int y)
 {
@@ -296,8 +304,8 @@ RenderGlyph(uint8_t *buffer, unsigned buffer_width, unsigned buffer_height,
   int pitch = bitmap.pitch;
 
   if (x < 0) {
-    src -= x;
-    width += x;
+    src += x;
+    width -= x;
     x = 0;
   }
 
@@ -308,8 +316,8 @@ RenderGlyph(uint8_t *buffer, unsigned buffer_width, unsigned buffer_height,
     width = buffer_width - x;
 
   if (y < 0) {
-    src -= y * pitch;
-    height += y;
+    src += y * pitch;
+    height -= y;
     y = 0;
   }
 
@@ -322,8 +330,7 @@ RenderGlyph(uint8_t *buffer, unsigned buffer_width, unsigned buffer_height,
   buffer += unsigned(y) * buffer_width + unsigned(x);
   for (const uint8_t *end = src + height * pitch;
        src != end; src += pitch, buffer += buffer_width)
-    // TODO: mix with previous character?
-    std::copy(src, src + width, buffer);
+    MixLine(buffer, src, width);
 }
 
 static void
@@ -384,7 +391,7 @@ Font::Render(const TCHAR *text, const PixelSize size, void *_buffer) const
   const FT_Face face = this->face;
   const bool use_kerning = FT_HAS_KERNING(face);
 
-  int x = 0, minx = 0;
+  int x = 0;
   unsigned prev_index = 0;
 
 #ifndef ENABLE_OPENGL
@@ -424,14 +431,10 @@ Font::Render(const TCHAR *text, const PixelSize size, void *_buffer) const
       prev_index = i;
     }
 
-    int z = x + glyph_minx;
-    if (z < minx)
-      minx = z;
-
     const int glyph_maxy = FT_FLOOR(metrics.horiBearingY);
 
     RenderGlyph((uint8_t *)buffer, size.cx, size.cy,
-                glyph, x - minx, ascent_height - glyph_maxy);
+                glyph, x + glyph_minx, ascent_height - glyph_maxy);
 
     x += glyph_advance;
   }

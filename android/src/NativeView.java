@@ -185,7 +185,7 @@ class NativeView extends SurfaceView
       initGL(getHolder());
       return true;
     } catch (Exception e) {
-      Log.e(TAG, "initGL error: " + e);
+      Log.e(TAG, "initGL error", e);
       deinitSurface();
       return false;
     }
@@ -351,7 +351,7 @@ class NativeView extends SurfaceView
       intent.setDataAndType(Uri.fromFile(file), mimeType);
       getContext().startActivity(intent);
     } catch (Exception e) {
-      Log.e(TAG, "NativeView.openFile('" + pathName + "') error: " + e);
+      Log.e(TAG, "NativeView.openFile('" + pathName + "') error", e);
     }
   }
 
