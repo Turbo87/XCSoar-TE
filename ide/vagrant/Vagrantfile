@@ -61,11 +61,6 @@ tar -xf /vagrant/tmp/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz -C ~/opt
 echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools
 echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL
 
-# install Windows Mobile dependencies
-wget -N -nv http://spekje.snt.utwente.nl/~roel/cegcc/mingw32ce-mk-2013-04-03-amd64.tar.xz -P /vagrant/tmp
-tar -xf /vagrant/tmp/mingw32ce-mk-2013-04-03-amd64.tar.xz -C ~/opt
-echo "PATH=\"\$HOME/opt/mingw32ce-mk-2013-04-03-amd64/bin:\$PATH\"" >> ~/.profile
-
 # install Manual dependencies
 sudo apt-get install --no-install-recommends -y \
     texlive texlive-latex-extra latex-xcolor pgf liblocale-po-perl \
