@@ -81,9 +81,8 @@ before_install:
 
 install:
   # Unix
-  - if [ "$TARGET" = "UNIX" ]; then
-      export LOCAL_TCSUFFIX=-4.9;
-    fi
+
+  - export LOCAL_TCSUFFIX=-4.9;
 
   # Android
 
