@@ -25,12 +25,11 @@ Copyright_License {
 #define UTM_HPP
 
 #include "Math/fixed.hpp"
+#include "Compiler.h"
 
 struct GeoPoint;
-class Angle;
 
-struct UTM
-{
+struct UTM {
   unsigned char zone_number;
   char zone_letter;
 
@@ -38,19 +37,15 @@ struct UTM
 
   UTM() = default;
   constexpr UTM(unsigned char _zone_number, char _zone_letter,
-      fixed _easting, fixed _northing)
+                fixed _easting, fixed _northing)
     :zone_number(_zone_number), zone_letter(_zone_letter),
      easting(_easting), northing(_northing) {}
 
-  static UTM FromGeoPoint(const GeoPoint &p);
+  gcc_const
+  static UTM FromGeoPoint(GeoPoint p);
 
+  gcc_pure
   GeoPoint ToGeoPoint() const;
-
-private:
-  static unsigned char CalculateZoneNumber(const GeoPoint &p);
-  static char CalculateZoneLetter(const Angle latitude);
-
-  static Angle GetCentralMeridian(unsigned char zone_number);
 };
 
 #endif

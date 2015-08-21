@@ -175,7 +175,6 @@ SCREEN_SOURCES += \
 	$(SCREEN_SRC_DIR)/GDI/VirtualCanvas.cpp \
 	$(SCREEN_SRC_DIR)/GDI/Init.cpp \
 	$(SCREEN_SRC_DIR)/GDI/Font.cpp \
-	$(SCREEN_SRC_DIR)/GDI/AlphaBlend.cpp \
 	$(SCREEN_SRC_DIR)/GDI/Timer.cpp \
 	$(SCREEN_SRC_DIR)/GDI/Window.cpp \
 	$(SCREEN_SRC_DIR)/GDI/PaintWindow.cpp \
@@ -193,12 +192,7 @@ SCREEN_SOURCES += \
 	$(SCREEN_SRC_DIR)/GDI/BufferCanvas.cpp \
 	$(SCREEN_SRC_DIR)/GDI/PaintCanvas.cpp
 GDI_CPPFLAGS = -DUSE_GDI
-
-ifeq ($(HAVE_CE),y)
-GDI_LDLIBS = -lcommctrl
-else
 GDI_LDLIBS = -lcomctl32 -luser32 -lgdi32 -lmsimg32
-endif
 
 ifeq ($(TARGET),PC)
 GDI_LDLIBS += -Wl,-subsystem,windows

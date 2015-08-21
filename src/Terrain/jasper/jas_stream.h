@@ -256,7 +256,6 @@ typedef struct {
 	int flags;
 	//char pathname[L_tmpnam + 1];
 	char pathname[DIM_MAX_FILE_NAME]; // dima
-	struct zzip_file *zfile;
 } jas_stream_fileobj_t;
 
 #define	JAS_STREAM_FILEOBJ_DELONCLOSE	0x01
@@ -291,6 +290,10 @@ typedef struct {
 /******************************************************************************\
 * Macros/functions for opening and closing streams.
 \******************************************************************************/
+
+jas_stream_t *jas_stream_create(void);
+
+void jas_stream_initbuf(jas_stream_t *stream, int bufmode, char *buf, int bufsize);
 
 /* Open a file as a stream. */
 gcc_malloc

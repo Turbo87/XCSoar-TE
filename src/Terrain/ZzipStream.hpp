@@ -21,30 +21,12 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_IMGDECMP_HPP
-#define XCSOAR_IMGDECMP_HPP
+#ifndef XCSOAR_TERRAIN_ZZIP_STREAM_HPP
+#define XCSOAR_TERRAIN_ZZIP_STREAM_HPP
 
-#include "DynamicLibrary.hpp"
+#include "jasper/jas_stream.h"
 
-#include "imgdecmp.h"
-
-class ImgDeCmpDLL : public DynamicLibrary {
-protected:
-  typedef HRESULT (*DecompressImageIndirect_t)(DecompressImageInfo *pParams);
-
-  DecompressImageIndirect_t DecompressImageIndirect_p;
-
-public:
-  ImgDeCmpDLL()
-    :DynamicLibrary(_T("imgdecmp")),
-     DecompressImageIndirect_p((DecompressImageIndirect_t)
-                               Lookup(_T("DecompressImageIndirect"))) {}
-
-  HRESULT DecompressImageIndirect(DecompressImageInfo *pParams) const {
-    return DecompressImageIndirect_p != nullptr
-      ? DecompressImageIndirect_p(pParams)
-      : E_NOTIMPL;
-  }
-};
+jas_stream_t *
+OpenJasperZzipStream(const char *path);
 
 #endif

@@ -91,38 +91,51 @@
 #include "jasper/jas_malloc.h"
 #include "jasper/jas_math.h"
 
-#include <zzip/lib.h>
-
 /******************************************************************************\
 * Local function prototypes.
 \******************************************************************************/
 
+#ifdef JASPER_DISABLED
 static int jas_strtoopenmode(const char *s);
+#endif /* JASPER_DISABLED */
 static void jas_stream_destroy(jas_stream_t *stream);
-static jas_stream_t *jas_stream_create(void);
-static void jas_stream_initbuf(jas_stream_t *stream, int bufmode, char *buf,
-  int bufsize);
 
 static int mem_read(jas_stream_obj_t *obj, char *buf, int cnt);
 static int mem_write(jas_stream_obj_t *obj, char *buf, int cnt);
 static long mem_seek(jas_stream_obj_t *obj, long offset, int origin);
 static int mem_close(jas_stream_obj_t *obj);
 
+#ifdef JASPER_DISABLED
+static int sfile_read(jas_stream_obj_t *obj, char *buf, int cnt);
+static int sfile_write(jas_stream_obj_t *obj, char *buf, int cnt);
+static long sfile_seek(jas_stream_obj_t *obj, long offset, int origin);
+static int sfile_close(jas_stream_obj_t *obj);
+
 static int file_read(jas_stream_obj_t *obj, char *buf, int cnt);
 static int file_write(jas_stream_obj_t *obj, char *buf, int cnt);
 static long file_seek(jas_stream_obj_t *obj, long offset, int origin);
 static int file_close(jas_stream_obj_t *obj);
+#endif /* JASPER_DISABLED */
 
 /******************************************************************************\
 * Local data.
 \******************************************************************************/
 
+#ifdef JASPER_DISABLED
 static jas_stream_ops_t jas_stream_fileops = {
 	file_read,
 	file_write,
 	file_seek,
 	file_close
 };
+
+static jas_stream_ops_t jas_stream_sfileops = {
+	sfile_read,
+	sfile_write,
+	sfile_seek,
+	sfile_close
+};
+#endif /* JASPER_DISABLED */
 
 static jas_stream_ops_t jas_stream_memops = {
 	mem_read,
@@ -135,7 +148,7 @@ static jas_stream_ops_t jas_stream_memops = {
 * Code for opening and closing streams.
 \******************************************************************************/
 
-static jas_stream_t *jas_stream_create()
+jas_stream_t *jas_stream_create(void)
 {
 	jas_stream_t *stream;
 
@@ -223,6 +236,8 @@ jas_stream_t *jas_stream_memopen(char *buf, int bufsize)
 	return stream;
 }
 
+#ifdef JASPER_DISABLED
+
 jas_stream_t *jas_stream_fopen(const char *filename, const char *mode)
 {
 	jas_stream_t *stream;
@@ -274,15 +289,8 @@ jas_stream_t *jas_stream_fopen(const char *filename, const char *mode)
 	stream->ops_ = &jas_stream_fileops;
 
 	/* Open the underlying file. */
-	/*
 	if ((obj->fd = open(filename, openflags, JAS_STREAM_PERMS)) < 0) {
 		jas_stream_destroy(stream);
-		return 0;
-	}
-        */
-	// JMW quick hack!
-	if ((obj->zfile = zzip_fopen(filename, "rb")) == NULL) {
-		jas_stream_close(stream);
 		return 0;
 	}
 
@@ -292,22 +300,57 @@ jas_stream_t *jas_stream_fopen(const char *filename, const char *mode)
 	return stream;
 }
 
-#if defined(WIN32) || defined(WIN32)
-/* For these platforms, the default jasper approach using tmpnam() and
- * the alternative approach using mkstemp() fail anyway. */
-#define JAS_STREAM_TMPFILE_DISABLED
-#elif defined(__APPLE__) || defined(__linux__)
-/* These plattforms suppport temporary files in "/tmp/" and the
- * the mkstemp() API, JAS_STREAM_USE_MKSTEMP can be used. */
-#define JAS_STREAM_USE_MKSTEMP
-#endif
+jas_stream_t *jas_stream_freopen(const char *path, const char *mode, FILE *fp)
+{
+	jas_stream_t *stream;
+	int openflags;
+
+	/* Eliminate compiler warning about unused variable. */
+	path = 0;
+
+	/* Allocate a stream object. */
+	if (!(stream = jas_stream_create())) {
+		return 0;
+	}
+
+	/* Parse the mode string. */
+	stream->openmode_ = jas_strtoopenmode(mode);
+
+	/* Determine the correct flags to use for opening the file. */
+	if ((stream->openmode_ & JAS_STREAM_READ) &&
+	  (stream->openmode_ & JAS_STREAM_WRITE)) {
+		openflags = O_RDWR;
+	} else if (stream->openmode_ & JAS_STREAM_READ) {
+		openflags = O_RDONLY;
+	} else if (stream->openmode_ & JAS_STREAM_WRITE) {
+		openflags = O_WRONLY;
+	} else {
+		openflags = 0;
+	}
+	if (stream->openmode_ & JAS_STREAM_APPEND) {
+		openflags |= O_APPEND;
+	}
+	if (stream->openmode_ & JAS_STREAM_BINARY) {
+		openflags |= O_BINARY;
+	}
+	if (stream->openmode_ & JAS_STREAM_CREATE) {
+		openflags |= O_CREAT | O_TRUNC;
+	}
+
+	stream->obj_ = JAS_CAST(void *, fp);
+
+	/* Select the operations for a file stream object. */
+	stream->ops_ = &jas_stream_sfileops;
+
+	/* By default, use full buffering for this type of stream. */
+	jas_stream_initbuf(stream, JAS_STREAM_FULLBUF, 0, 0);
+
+	return stream;
+}
 
 jas_stream_t *jas_stream_tmpfile()
 {
-#ifdef JAS_STREAM_TMPFILE_DISABLED
-  return 0;
-#else
-  jas_stream_t *stream;
+	jas_stream_t *stream;
 	jas_stream_fileobj_t *obj;
 
 	if (!(stream = jas_stream_create())) {
@@ -328,17 +371,12 @@ jas_stream_t *jas_stream_tmpfile()
 	obj->pathname[0] = '\0';
 	stream->obj_ = obj;
 
-#ifdef JAS_STREAM_USE_MKSTEMP
-	/* Choose a file name and open it. */
-	strcpy(obj->pathname, "/tmp/jasperXXXXXX");
-	if (mkstemp(obj->pathname) < 0) {
-#else
 	/* Choose a file name. */
 	tmpnam(obj->pathname);
+
 	/* Open the underlying file. */
 	if ((obj->fd = open(obj->pathname, O_CREAT | O_EXCL | O_RDWR | O_TRUNC | O_BINARY,
 	  JAS_STREAM_PERMS)) < 0) {
-#endif
 		jas_stream_destroy(stream);
 		return 0;
 	}
@@ -360,7 +398,6 @@ jas_stream_t *jas_stream_tmpfile()
 	stream->ops_ = &jas_stream_fileops;
 
 	return stream;
-#endif
 }
 
 jas_stream_t *jas_stream_fdopen(int fd, const char *mode)
@@ -376,7 +413,7 @@ jas_stream_t *jas_stream_fdopen(int fd, const char *mode)
 	/* Parse the mode string. */
 	stream->openmode_ = jas_strtoopenmode(mode);
 
-#if defined(HAVE_MSVCRT) && !defined(_WIN32_WCE)
+#if defined(WIN32)
 	/* Argh!!!  Someone ought to banish text mode (i.e., O_TEXT) to the
 	  greatest depths of purgatory! */
 	/* Ensure that the file descriptor is in binary mode, if the caller
@@ -415,6 +452,8 @@ jas_stream_t *jas_stream_fdopen(int fd, const char *mode)
 
 	return stream;
 }
+
+#endif /* JASPER_DISABLED */
 
 static void jas_stream_destroy(jas_stream_t *stream)
 {
@@ -588,6 +627,7 @@ int jas_stream_pad(jas_stream_t *stream, int n, int c)
 * Code for getting and setting the stream position.
 \******************************************************************************/
 
+#ifdef JASPER_DISABLED
 int jas_stream_isseekable(jas_stream_t *stream)
 {
 	if (stream->ops_ == &jas_stream_memops) {
@@ -601,6 +641,7 @@ int jas_stream_isseekable(jas_stream_t *stream)
 		return 0;
 	}
 }
+#endif /* JASPER_DISABLED */
 
 int jas_stream_rewind(jas_stream_t *stream)
 {
@@ -663,7 +704,7 @@ long jas_stream_tell(jas_stream_t *stream)
 * Buffer initialization code.
 \******************************************************************************/
 
-static void jas_stream_initbuf(jas_stream_t *stream, int bufmode, char *buf,
+void jas_stream_initbuf(jas_stream_t *stream, int bufmode, char *buf,
   int bufsize)
 {
 	/* If this function is being called, the buffer should not have been
@@ -810,6 +851,8 @@ int jas_stream_flushbuf(jas_stream_t *stream, int c)
 * Miscellaneous code.
 \******************************************************************************/
 
+#ifdef JASPER_DISABLED
+
 static int jas_strtoopenmode(const char *s)
 {
 	int openmode = 0;
@@ -837,6 +880,8 @@ static int jas_strtoopenmode(const char *s)
 	}
 	return openmode;
 }
+
+#endif /* JASPER_DISABLED */
 
 int jas_stream_copy(jas_stream_t *out, jas_stream_t *in, int n)
 {
@@ -1006,42 +1051,68 @@ static int mem_close(jas_stream_obj_t *obj)
 * File stream object.
 \******************************************************************************/
 
+#ifdef JASPER_DISABLED
+
 static int file_read(jas_stream_obj_t *obj, char *buf, int cnt)
 {
 	jas_stream_fileobj_t *fileobj = JAS_CAST(jas_stream_fileobj_t *, obj);
-	// return read(fileobj->fd, buf, cnt);
-	// JMW zzlib
-	return zzip_fread(buf, 1, cnt, fileobj->zfile);
-
+	return read(fileobj->fd, buf, cnt);
 }
 
 static int file_write(jas_stream_obj_t *obj, char *buf, int cnt)
 {
 	jas_stream_fileobj_t *fileobj = JAS_CAST(jas_stream_fileobj_t *, obj);
-	// JMW not used!!
 	return write(fileobj->fd, buf, cnt);
 }
 
 static long file_seek(jas_stream_obj_t *obj, long offset, int origin)
 {
 	jas_stream_fileobj_t *fileobj = JAS_CAST(jas_stream_fileobj_t *, obj);
-	// return lseek(fileobj->fd, offset, origin);
-	// JMW zzlib
-	return zzip_seek(fileobj->zfile, offset, origin);
+	return lseek(fileobj->fd, offset, origin);
 }
 
 static int file_close(jas_stream_obj_t *obj)
 {
 	jas_stream_fileobj_t *fileobj = JAS_CAST(jas_stream_fileobj_t *, obj);
 	int ret;
-
-	// ret = close(fileobj->fd);
-	// JMW zzlib
-	ret = zzip_fclose(fileobj->zfile);
-
+	ret = close(fileobj->fd);
 	if (fileobj->flags & JAS_STREAM_FILEOBJ_DELONCLOSE) {
 		unlink(fileobj->pathname);
 	}
 	jas_free(fileobj);
 	return ret;
 }
+
+/******************************************************************************\
+* Stdio file stream object.
+\******************************************************************************/
+
+static int sfile_read(jas_stream_obj_t *obj, char *buf, int cnt)
+{
+	FILE *fp;
+	fp = JAS_CAST(FILE *, obj);
+	return fread(buf, 1, cnt, fp);
+}
+
+static int sfile_write(jas_stream_obj_t *obj, char *buf, int cnt)
+{
+	FILE *fp;
+	fp = JAS_CAST(FILE *, obj);
+	return fwrite(buf, 1, cnt, fp);
+}
+
+static long sfile_seek(jas_stream_obj_t *obj, long offset, int origin)
+{
+	FILE *fp;
+	fp = JAS_CAST(FILE *, obj);
+	return fseek(fp, offset, origin);
+}
+
+static int sfile_close(jas_stream_obj_t *obj)
+{
+	FILE *fp;
+	fp = JAS_CAST(FILE *, obj);
+	return fclose(fp);
+}
+
+#endif /* JASPER_DISABLED */

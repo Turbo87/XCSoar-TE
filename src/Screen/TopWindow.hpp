@@ -26,10 +26,6 @@ Copyright_License {
 
 #include "Screen/ContainerWindow.hpp"
 
-#ifdef HAVE_AYGSHELL_DLL
-#include "OS/AYGShellDLL.hpp"
-#endif
-
 #ifndef USE_GDI
 #include "Screen/Custom/DoubleClick.hpp"
 #endif
@@ -161,7 +157,7 @@ class TopWindow : public ContainerWindow {
 #endif
 
 #ifndef USE_GDI
-  TopCanvas *screen;
+  TopCanvas *screen = nullptr;
 
   bool invalidated;
 
@@ -174,19 +170,19 @@ class TopWindow : public ContainerWindow {
    * OpenGL operations are allowed, because the OpenGL surface does
    * not exist.
    */
-  bool paused;
+  bool paused = false;
 
   /**
    * Has the application been resumed?  When this flag is set,
    * TopWindow::Expose() attempts to reinitialize the OpenGL surface.
    */
-  bool resumed;
+  bool resumed = false;
 
   /**
    * Was the application view resized while paused?  If true, then
    * new_width and new_height contain the new display dimensions.
    */
-  bool resized;
+  bool resized = false;
 
   UPixelScalar new_width, new_height;
 #endif
@@ -195,22 +191,11 @@ class TopWindow : public ContainerWindow {
 
 #else /* USE_GDI */
 
-#ifdef _WIN32_WCE
-  /**
-   * A handle to the task bar that was manually hidden.  This is a
-   * hack when aygshell.dll is not available (Windows CE Core).
-   */
-  HWND task_bar;
-#endif
-
   /**
    * On WM_ACTIVATE, the focus is returned to this window.
    */
   HWND hSavedFocus;
 
-#ifdef HAVE_AYGSHELL_DLL
-  SHACTIVATEINFO s_sai;
-#endif
 #endif /* USE_GDI */
 
 #ifdef HAVE_HIGHDPI_SUPPORT
@@ -218,17 +203,6 @@ class TopWindow : public ContainerWindow {
 #endif
 
 public:
-#ifdef HAVE_AYGSHELL_DLL
-  const AYGShellDLL ayg_shell_dll;
-#endif
-
-public:
-#ifdef ANDROID
-  TopWindow():screen(nullptr), paused(false), resumed(false), resized(false) {}
-#elif !defined(USE_GDI)
-  TopWindow():screen(nullptr) {}
-#endif
-
 #ifndef USE_GDI
   virtual ~TopWindow();
 #endif
@@ -248,10 +222,6 @@ private:
   void CreateNative(const TCHAR *text, PixelSize size, TopWindowStyle style);
 
 public:
-#endif
-
-#ifdef _WIN32_WCE
-  void Destroy();
 #endif
 
   /**
@@ -277,7 +247,7 @@ public:
    */
   void CancelMode();
 
-#if defined(USE_GDI) && !defined(_WIN32_WCE)
+#if defined(USE_GDI)
   gcc_pure
   const PixelRect GetClientRect() const {
     if (::IsIconic(hWnd)) {

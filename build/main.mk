@@ -52,7 +52,6 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Traffic/FlarmTrafficDetails.cpp \
 	$(SRC)/Dialogs/Traffic/TeamCodeDialog.cpp \
 	$(SRC)/Dialogs/dlgAnalysis.cpp \
-	$(SRC)/Dialogs/dlgBrightness.cpp \
 	$(SRC)/Dialogs/dlgChecklist.cpp \
 	$(SRC)/Dialogs/ProfileListDialog.cpp \
 	$(SRC)/Dialogs/Plane/PlaneListDialog.cpp \
@@ -87,7 +86,6 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Waypoint/NearestWaypoint.cpp \
 	\
 	$(SRC)/Dialogs/Settings/Panels/AirspaceConfigPanel.cpp \
-	$(SRC)/Dialogs/Settings/Panels/ExperimentalConfigPanel.cpp \
 	$(SRC)/Dialogs/Settings/Panels/GaugesConfigPanel.cpp \
 	$(SRC)/Dialogs/Settings/Panels/VarioConfigPanel.cpp \
 	$(SRC)/Dialogs/Settings/Panels/GlideComputerConfigPanel.cpp \
@@ -534,11 +532,9 @@ XCSOAR_SOURCES := \
 	$(SRC)/Simulator.cpp \
 	$(SRC)/Asset.cpp \
 	$(SRC)/Hardware/CPU.cpp \
-	$(SRC)/Hardware/Display.cpp \
 	$(SRC)/Hardware/RotateDisplay.cpp \
 	$(SRC)/Hardware/DisplayDPI.cpp \
 	$(SRC)/Hardware/DisplaySize.cpp \
-	$(SRC)/Hardware/BlankDisplay.cpp \
 	$(SRC)/Hardware/DisplayGlue.cpp \
 	$(SRC)/Hardware/Vibrator.cpp \
 	$(SRC)/Language/MOFile.cpp \
@@ -619,7 +615,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Math/Screen.cpp \
 	$(SRC)/Math/SunEphemeris.cpp \
 	\
-	$(SRC)/Screen/Blank.cpp \
 	$(SRC)/Screen/Layout.cpp \
 	$(SRC)/Screen/UnitSymbol.cpp \
 	$(SRC)/Screen/Ramp.cpp \
@@ -670,11 +665,6 @@ XCSOAR_SOURCES := \
 	$(SRC)/Hardware/Battery.cpp
 
 $(call SRC_TO_OBJ,$(SRC)/Dialogs/Inflate.cpp): CPPFLAGS += $(ZLIB_CPPFLAGS)
-
-ifeq ($(HAVE_CE),y)
-XCSOAR_SOURCES += \
-	$(SRC)/Device/Windows/Enumerator.cpp
-endif
 
 ifeq ($(TARGET_IS_DARWIN),y)
 XCSOAR_SOURCES += \
@@ -736,10 +726,6 @@ endif
 ifeq ($(TARGET_IS_KOBO),y)
 XCSOAR_SOURCES += \
 	$(SRC)/Kobo/Model.cpp
-endif
-
-ifeq ($(TARGET),ALTAIR)
-XCSOAR_SOURCES += $(SRC)/Hardware/AltairControl.cpp
 endif
 
 ifeq ($(HAVE_HTTP),y)

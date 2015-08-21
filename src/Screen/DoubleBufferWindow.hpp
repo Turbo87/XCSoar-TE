@@ -28,10 +28,9 @@ Copyright_License {
 
 #include "BufferWindow.hpp"
 
-class DoubleBufferWindow : public BufferWindow {
-  /* there's no DrawThread on OpenGL, so this is just a normal
-     BufferWindow */
-};
+/* there's no DrawThread on OpenGL, so this is just a normal
+   BufferWindow */
+using DoubleBufferWindow = BufferWindow;
 
 #else
 
@@ -54,17 +53,13 @@ class DoubleBufferWindow : public PaintWindow {
    * accessed by the drawing thread.  The other buffer (current^1) may
    * only be accessed by the main thread.
    */
-  unsigned current;
+  unsigned current = 0;
 
 protected:
   /**
    * This mutex protects the variable "current".
    */
   Mutex mutex;
-
-public:
-  DoubleBufferWindow()
-    :current(0) {}
 
 private:
   /**

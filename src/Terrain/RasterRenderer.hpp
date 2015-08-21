@@ -25,7 +25,6 @@ Copyright_License {
 #define XCSOAR_RASTER_RENDERER_HPP
 
 #include "Terrain/HeightMatrix.hpp"
-#include "Screen/RawBitmap.hpp"
 #include "Math/fixed.hpp"
 #include "Util/NonCopyable.hpp"
 
@@ -39,18 +38,24 @@ class Angle;
 class Canvas;
 class RasterMap;
 class WindowProjection;
+class RawBitmap;
+struct RawColor;
 struct ColorRamp;
+
+#ifdef ENABLE_OPENGL
+class GLTexture;
+#endif
 
 class RasterRenderer : private NonCopyable {
   /** screen dimensions in coarse pixels */
-  unsigned quantisation_pixels;
+  unsigned quantisation_pixels = 2;
 
 #ifdef ENABLE_OPENGL
   /**
    * The value of #quantisation_pixels that was used in the last
    * ScanMap() call.
    */
-  unsigned last_quantisation_pixels;
+  unsigned last_quantisation_pixels = -1;
 #endif
 
   /**
@@ -65,17 +70,17 @@ class RasterRenderer : private NonCopyable {
    * the #RawBitmap.  This attribute is used to decide whether the
    * texture has to be redrawn.
    */
-  GeoBounds bounds;
+  GeoBounds bounds = GeoBounds::Invalid();
 #endif
 
   HeightMatrix height_matrix;
-  RawBitmap *image;
+  RawBitmap *image = nullptr;
 
-  unsigned char *contour_column_base;
+  unsigned char *contour_column_base = nullptr;
 
   fixed pixel_size;
 
-  BGRColor color_table[256 * 128];
+  RawColor *color_table = nullptr;
 
 public:
   RasterRenderer();
@@ -110,9 +115,7 @@ public:
     return bounds;
   }
 
-  const GLTexture &BindAndGetTexture() const {
-    return image->BindAndGetTexture();
-  }
+  const GLTexture &BindAndGetTexture() const;
 #endif
 
   /**

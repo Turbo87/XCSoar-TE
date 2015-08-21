@@ -48,8 +48,8 @@ CorrectedWidth(unsigned nWidth)
 RawBitmap::RawBitmap(unsigned nWidth, unsigned nHeight)
   :width(nWidth), height(nHeight),
    corrected_width(CorrectedWidth(nWidth)),
-   texture(new GLTexture(CorrectedWidth(nWidth), nHeight)),
-   dirty(true)
+   buffer(new RawColor[corrected_width * height]),
+   texture(new GLTexture(corrected_width, nHeight))
 {
   assert(nWidth > 0);
   assert(nHeight > 0);
@@ -57,8 +57,6 @@ RawBitmap::RawBitmap(unsigned nWidth, unsigned nHeight)
   texture->EnableInterpolation();
 
   AddSurfaceListener(*this);
-
-  buffer = new BGRColor[corrected_width * height];
 }
 
 RawBitmap::~RawBitmap()
@@ -66,7 +64,6 @@ RawBitmap::~RawBitmap()
   RemoveSurfaceListener(*this);
 
   delete texture;
-  delete[] buffer;
 }
 
 void
@@ -96,11 +93,11 @@ RawBitmap::BindAndGetTexture() const
 #ifdef HAVE_GLES
     /* 16 bit 5/6/5 on Android */
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, corrected_width, this->height,
-                    GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer);
+                    GL_RGB, GL_UNSIGNED_SHORT_5_6_5, GetBuffer());
 #else
     /* 32 bit R/G/B/A on full OpenGL */
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, corrected_width, this->height,
-                    GL_BGRA, GL_UNSIGNED_BYTE, buffer);
+                    GL_BGRA, GL_UNSIGNED_BYTE, GetBuffer());
 #endif
 
     dirty = false;

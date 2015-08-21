@@ -30,18 +30,12 @@
 #ifndef MANUAL_HPP
 #define MANUAL_HPP
 
-#include "Compiler.h"
-
 #include <new>
 #include <utility>
 
-#if GCC_OLDER_THAN(4,8)
-#include <type_traits>
-#endif
-
 #include <assert.h>
 
-#if CLANG_OR_GCC_VERSION(4,7)
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
@@ -54,7 +48,7 @@
  */
 template<class T>
 class Manual {
-  gcc_alignas(T, 8)
+  alignas(T)
   char data[sizeof(T)];
 
 #ifndef NDEBUG
@@ -123,7 +117,7 @@ public:
   }
 };
 
-#if CLANG_OR_GCC_VERSION(4,7)
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 

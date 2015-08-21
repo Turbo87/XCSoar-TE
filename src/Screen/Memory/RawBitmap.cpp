@@ -39,13 +39,8 @@ CorrectedWidth(unsigned nWidth)
 RawBitmap::RawBitmap(unsigned nWidth, unsigned nHeight)
   :width(nWidth), height(nHeight),
    corrected_width(CorrectedWidth(nWidth)),
-   buffer(new BGRColor[corrected_width * height])
+   buffer(new RawColor[corrected_width * height])
 {
-}
-
-RawBitmap::~RawBitmap()
-{
-  delete[] buffer;
 }
 
 void
@@ -53,8 +48,8 @@ RawBitmap::StretchTo(unsigned width, unsigned height,
                      Canvas &dest_canvas,
                      unsigned dest_width, unsigned dest_height) const
 {
-  ConstImageBuffer<ActivePixelTraits> src(ActivePixelTraits::const_pointer_type(buffer),
-                                          corrected_width * sizeof(*buffer),
+  ConstImageBuffer<ActivePixelTraits> src(ActivePixelTraits::const_pointer_type(GetBuffer()),
+                                          corrected_width * sizeof(*GetBuffer()),
                                           width, height);
 
   dest_canvas.Stretch(0, 0, dest_width, dest_height,

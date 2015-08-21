@@ -34,47 +34,51 @@ static constexpr double e_p2 = e / (1.0 - e);
 
 static constexpr double r = 6378137;
 
-char
-UTM::CalculateZoneLetter(const Angle latitude)
+gcc_const
+static char
+CalculateZoneLetter(const Angle latitude)
 {
   static constexpr char letters[] = "CDEFGHJKLMNPQRSTUVWXX";
   unsigned index = (unsigned)((latitude.Degrees() + fixed(80)) / 8);
   return (index < ARRAY_SIZE(letters)) ? letters[index] : '\0';
 }
 
-unsigned char
-UTM::CalculateZoneNumber(const GeoPoint &p)
+gcc_const
+static unsigned
+CalculateZoneNumber(const GeoPoint &p)
 {
-  if (p.latitude.Degrees() <= fixed(64) &&
-      p.latitude.Degrees() >= fixed(56) &&
-      p.longitude.Degrees() <= fixed(12) &&
-      p.longitude.Degrees() >= fixed(3))
+  if (p.latitude <= Angle::Degrees(64) &&
+      p.latitude >= Angle::Degrees(56) &&
+      p.longitude <= Angle::Degrees(12) &&
+      p.longitude >= Angle::Degrees(3))
     return 32;
 
-  if (p.latitude.Degrees() <= fixed(84) &&
-      p.latitude.Degrees() >= fixed(72) &&
-      p.longitude.Degrees() >= fixed(0)) {
-    if (p.longitude.Degrees() <= fixed(9))
+  if (p.latitude <= Angle::Degrees(84) &&
+      p.latitude >= Angle::Degrees(72) &&
+      p.longitude >= Angle::Degrees(0)) {
+    if (p.longitude <= Angle::Degrees(9))
       return 31;
-    if (p.longitude.Degrees() <= fixed(21))
+    if (p.longitude <= Angle::Degrees(21))
       return 33;
-    if (p.longitude.Degrees() <= fixed(33))
+    if (p.longitude <= Angle::Degrees(33))
       return 35;
-    if (p.longitude.Degrees() <= fixed(42))
+    if (p.longitude <= Angle::Degrees(42))
       return 37;
   }
 
   return (int)floor((p.longitude.Degrees() + fixed(180)) / 6) + 1;
 }
 
-Angle
-UTM::GetCentralMeridian(unsigned char zone_number)
+gcc_const
+static Angle
+GetCentralMeridian(unsigned zone_number)
 {
-  return Angle::Degrees(fixed((zone_number - 1) * 6 - 180 + 3));
+  return Angle::Degrees(fixed(int(zone_number - 1) * 6 - 180 + 3));
 }
 
 UTM
-UTM::FromGeoPoint(const GeoPoint &p) {
+UTM::FromGeoPoint(GeoPoint p)
+{
   double lat = (double)p.latitude.Radians();
   double _sin = (double)p.latitude.sin();
   double _cos = (double)p.latitude.cos();
