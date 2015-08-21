@@ -13,11 +13,11 @@ env:
     - ANDROID_KEY_ALIAS=xcsoar-release
 
   matrix:
-    - TARGET=ANDROID
-    - TARGET=UNIX
-    #- TARGET=PC
+    #- TARGET=ANDROID
+    #- TARGET=UNIX
+    - TARGET=PC
     #- TARGET=WIN64
-    - TARGET=MANUAL
+    #- TARGET=MANUAL
 
 addons:
   apt:
