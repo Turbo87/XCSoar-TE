@@ -139,7 +139,7 @@ class NativeView extends SurfaceView
     egl.eglChooseConfig(display, configSpec, null, 0, num_config);
     if (num_config[0] == 0) {
       /* fallback in case stencil buffer is not available */
-      configSpec[0] = 0;
+      configSpec[1] = 0;
       egl.eglChooseConfig(display, configSpec, null, 0, num_config);
     }
 
@@ -376,7 +376,7 @@ class NativeView extends SurfaceView
   private boolean bitmapToTexture(Bitmap bmp, boolean alpha, int[] result) {
     /* pass a copy because bitmapToOpenGL() recycles the given
        Bitmap */
-    return BitmapUtil.bitmapToOpenGL(bmp.copy(bmp.getConfig(), false),
+    return BitmapUtil.bitmapToOpenGL(BitmapUtil.copy(bmp, alpha),
                                      alpha, result);
   }
 

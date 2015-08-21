@@ -21,10 +21,44 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_DEVICE_DRIVER_KRT2_HPP
-#define XCSOAR_DEVICE_DRIVER_KRT2_HPP
+#include "WaypointGlue.hpp"
+#include "CupWriter.hpp"
+#include "LogFile.hpp"
+#include "IO/TextWriter.hpp"
+#include "LocalPath.hpp"
 
-extern const struct DeviceRegister krt2_driver;
+#include <windef.h> /* for MAX_PATH */
 
-#endif
+bool
+WaypointGlue::SaveWaypoints(const Waypoints &way_points)
+{
+  TCHAR path[MAX_PATH];
+  LocalPath(path, _T("user.cup"));
 
+  TextWriter writer(path);
+  if (!writer.IsOpen()) {
+    LogFormat(_T("Waypoint file '%s' can not be written"), path);
+    return false;
+  }
+
+  WriteCup(writer, way_points, WaypointOrigin::USER);
+
+  LogFormat(_T("Waypoint file '%s' saved"), path);
+  return true;
+}
+
+bool
+WaypointGlue::SaveWaypoint(const Waypoint &wp)
+{
+  TCHAR path[MAX_PATH];
+  LocalPath(path, _T("user.cup"));
+
+  TextWriter writer(path, true);
+  if (!writer.IsOpen()) {
+    LogFormat(_T("Waypoint file '%s' can not be written"), path);
+    return false;
+  }
+
+  WriteCup(writer, wp);
+  return true;
+}

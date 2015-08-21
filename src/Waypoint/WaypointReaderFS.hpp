@@ -26,9 +26,7 @@ Copyright_License {
 
 #include "WaypointReaderBase.hpp"
 
-class WaypointReaderFS:
-  public WaypointReaderBase 
-{
+class WaypointReaderFS final : public WaypointReaderBase {
   bool is_utm;
 
 public:
@@ -38,8 +36,8 @@ public:
   static bool VerifyFormat(TLineReader &reader);
 
 protected:
-  bool ParseLine(const TCHAR* line, const unsigned linenum,
-                 Waypoints &way_points);
+  /* virtual methods from class WaypointReaderBase */
+  bool ParseLine(const TCHAR *line, Waypoints &way_points) override;
 };
 
 #endif

@@ -27,23 +27,27 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_EXCEPTION_HPP
-#define XCSOAR_JAVA_EXCEPTION_HPP
+#ifndef JAVA_FILE_HXX
+#define JAVA_FILE_HXX
+
+#include "Object.hxx"
 
 #include <jni.h>
 
 namespace Java {
-  /**
-   * Check if an exception has occurred, and discard it.
-   *
-   * @return true if an exception was found (and discarded)
-   */
-  static inline bool DiscardException(JNIEnv *env) {
-    bool result = env->ExceptionCheck();
-    if (result)
-      env->ExceptionClear();
-    return result;
-  }
+	/**
+	 * Wrapper for a java.io.File object.
+	 */
+	class File : public LocalObject {
+		static jmethodID getAbsolutePath_method;
+
+	public:
+		static void Initialise(JNIEnv *env);
+
+		static jstring getAbsolutePath(JNIEnv *env, jobject file) {
+			return (jstring)env->CallObjectMethod(file, getAbsolutePath_method);
+		}
+	};
 }
 
 #endif

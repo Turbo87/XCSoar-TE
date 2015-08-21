@@ -26,6 +26,7 @@ Copyright_License {
 #include "Widget/ListWidget.hpp"
 #include "Widget/TwoWidgets.hpp"
 #include "Widget/RowFormWidget.hpp"
+#include "Renderer/TwoTextRowsRenderer.hpp"
 #include "Screen/Canvas.hpp"
 #include "Screen/Layout.hpp"
 #include "Form/DataField/Prefix.hpp"
@@ -46,6 +47,7 @@ Copyright_License {
 #include "Blackboard/BlackboardListener.hpp"
 #include "Tracking/SkyLines/Data.hpp"
 #include "Tracking/TrackingGlue.hpp"
+#include "Engine/Waypoint/Waypoints.hpp"
 #include "Components.hpp"
 #include "Pan.hpp"
 
@@ -110,6 +112,13 @@ class TrafficListWidget : public ListWidget, public DataFieldListener,
      */
     std::string name;
 
+#ifdef HAVE_SKYLINES_TRACKING_HANDLER
+    StaticString<20> near_name;
+    fixed near_distance;
+
+    int altitude;
+#endif
+
     explicit Item(FlarmId _id)
       :id(_id),
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
@@ -121,19 +130,26 @@ class TrafficListWidget : public ListWidget, public DataFieldListener,
        vector(GeoVector::Invalid()) {
       assert(id.IsDefined());
       assert(IsFlarm());
+
+#ifdef HAVE_SKYLINES_TRACKING_HANDLER
+      near_name.clear();
+#endif
     }
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
     explicit Item(uint32_t _id, uint32_t _time_of_day_ms,
-                  const GeoPoint &_location,
+                  const GeoPoint &_location, int _altitude,
                   std::string &&_name)
       :id(FlarmId::Undefined()), skylines_id(_id),
        time_of_day_ms(_time_of_day_ms),
        color(FlarmColor::COUNT),
        loaded(false),
        location(_location),
-       vector(GeoVector::Invalid()), name(std::move(_name)) {
+       vector(GeoVector::Invalid()), name(std::move(_name)),
+       altitude(_altitude) {
       assert(IsSkyLines());
+
+      near_name.clear();
     }
 #endif
 
@@ -193,6 +209,8 @@ class TrafficListWidget : public ListWidget, public DataFieldListener,
    * to check whether the list needs to be redrawn.
    */
   Validity last_update;
+
+  TwoTextRowsRenderer row_renderer;
 
 public:
   TrafficListWidget(ActionListener &_action_listener,
@@ -350,14 +368,6 @@ public:
   }
 };
 
-gcc_pure
-static UPixelScalar
-GetRowHeight(const DialogLook &look)
-{
-  return look.list.font_bold->GetHeight() + 3 * Layout::GetTextPadding()
-    + look.small_font.GetHeight();
-}
-
 void
 TrafficListWidget::UpdateList()
 {
@@ -406,13 +416,22 @@ TrafficListWidget::UpdateList()
           : std::string();
 
         items.emplace_back(i.first, i.second.time_of_day_ms,
-                           i.second.location, std::move(name));
+                           i.second.location, i.second.altitude,
+                           std::move(name));
         Item &item = items.back();
 
-        if (i.second.location.IsValid() &&
-            CommonInterface::Basic().location_available)
-          item.vector = GeoVector(CommonInterface::Basic().location,
-                                  i.second.location);
+        if (i.second.location.IsValid()) {
+          if (CommonInterface::Basic().location_available)
+            item.vector = GeoVector(CommonInterface::Basic().location,
+                                    i.second.location);
+
+          const auto *wp = way_points.GetNearestLandable(i.second.location,
+                                                         fixed(20000));
+          if (wp != nullptr) {
+            item.near_name = wp->name.c_str();
+            item.near_distance = wp->location.DistanceS(i.second.location);
+          }
+        }
       }
     }
 #endif
@@ -517,7 +536,8 @@ TrafficListWidget::Prepare(ContainerWindow &parent,
 {
   const DialogLook &look = UIGlobals::GetDialogLook();
   ListControl &list = CreateList(parent, look, rc,
-                                 GetRowHeight(look));
+                                 row_renderer.CalculateLayout(*look.list.font_bold,
+                                                              look.small_font));
 
   if (filter_widget != nullptr)
     UpdateList();
@@ -611,8 +631,6 @@ TrafficListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
     tmp = _T("?");
   }
 
-  const int name_x = rc.left + text_padding, name_y = rc.top + text_padding;
-
   if (item.color != FlarmColor::NONE) {
     const TrafficLook &traffic_look = UIGlobals::GetLook().traffic;
 
@@ -638,13 +656,15 @@ TrafficListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
     canvas.SelectHollowBrush();
 
     const PixelSize size = canvas.CalcTextSize(tmp);
-    canvas.Rectangle(name_x - frame_padding,
-                     name_y - frame_padding,
-                     name_x + size.cx + frame_padding,
-                     name_y + size.cy + frame_padding);
+    canvas.Rectangle(rc.left + row_renderer.GetX() - frame_padding,
+                     rc.top + row_renderer.GetFirstY() - frame_padding,
+                     rc.left + row_renderer.GetX() + size.cx + frame_padding,
+                     rc.top + row_renderer.GetFirstY() + size.cy + frame_padding);
   }
 
-  canvas.DrawText(name_x, name_y, tmp);
+  row_renderer.DrawFirstRow(canvas, rc, tmp);
+
+  canvas.Select(small_font);
 
   if (record != nullptr) {
     tmp.clear();
@@ -666,36 +686,40 @@ TrafficListWidget::OnPaintItem(Canvas &canvas, const PixelRect rc,
       tmp.append(record->airfield);
     }
 
-    if (!tmp.empty()) {
-      canvas.Select(small_font);
-      canvas.DrawText(rc.left + text_padding,
-                      rc.bottom - small_font.GetHeight() - text_padding,
-                      tmp);
-    }
+    if (!tmp.empty())
+      row_renderer.DrawSecondRow(canvas, rc, tmp);
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
-  } else if (item.IsSkyLines() && CommonInterface::Basic().time_available) {
-    canvas.Select(small_font);
+  } else if (item.IsSkyLines()) {
+    if (CommonInterface::Basic().time_available) {
+      tmp.UnsafeFormat(_("%u minutes ago"),
+                       SinceInMinutes(CommonInterface::Basic().time,
+                                      item.time_of_day_ms));
+    } else
+      tmp.clear();
 
-    tmp.UnsafeFormat(_("%u minutes ago"),
-                     SinceInMinutes(CommonInterface::Basic().time,
-                                    item.time_of_day_ms));
-    canvas.Select(small_font);
-    canvas.DrawText(rc.left + text_padding,
-                    rc.bottom - small_font.GetHeight() - text_padding,
-                    tmp);
+    if (!item.near_name.empty())
+      tmp.AppendFormat(_T(" near %s (%s)"),
+                       item.near_name.c_str(),
+                       FormatUserDistanceSmart(item.near_distance).c_str());
+
+    if (!tmp.empty())
+      tmp.append(_T("; "));
+    tmp.append(FormatUserAltitude(fixed(item.altitude)));
+
+    if (!tmp.empty())
+      row_renderer.DrawSecondRow(canvas, rc, tmp);
 #endif
   }
 
   /* draw bearing and distance on the right */
   if (item.vector.IsValid()) {
     DrawTextRight(canvas, rc.right - text_padding,
-                  name_y +
-                  (name_font.GetHeight() - small_font.GetHeight()) / 2,
+                  rc.top + row_renderer.GetFirstY(),
                   FormatUserDistanceSmart(item.vector.distance).c_str());
 
     // Draw leg bearing
     DrawTextRight(canvas, rc.right - text_padding,
-                  rc.bottom - small_font.GetHeight() - text_padding,
+                  rc.top + row_renderer.GetSecondY(),
                   FormatBearing(item.vector.bearing).c_str());
   }
 }

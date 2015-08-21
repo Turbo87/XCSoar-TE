@@ -113,13 +113,16 @@ SkyLinesTracking::Client::SendPing(uint16_t id)
   return SendPacket(MakePing(key, id));
 }
 
+#ifdef HAVE_SKYLINES_TRACKING_HANDLER
+
 bool
-SkyLinesTracking::Client::SendTrafficRequest(bool followees, bool club)
+SkyLinesTracking::Client::SendTrafficRequest(bool followees, bool club,
+                                             bool near)
 {
   assert(socket.IsDefined());
   assert(key != 0);
 
-  return SendPacket(MakeTrafficRequest(key, followees, club));
+  return SendPacket(MakeTrafficRequest(key, followees, club, near));
 }
 
 bool
@@ -130,8 +133,6 @@ SkyLinesTracking::Client::SendUserNameRequest(uint32_t user_id)
 
   return SendPacket(MakeUserNameRequest(key, user_id));
 }
-
-#ifdef HAVE_SKYLINES_TRACKING_HANDLER
 
 static constexpr Angle
 ImportAngle(int32_t src)

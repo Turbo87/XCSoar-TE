@@ -118,6 +118,10 @@ Version 6.8 - not yet released
   - new option disables tracking while roaming on the cell network
   - queue SkyLines tracking fixes while data connection is unavailable
   - fix SkyLines traffic display on southern hemisphere (#3601)
+  - show SkyLines traffic even if we have no GPS fix yet
+  - show nearby waypoint in SkyLines traffic list
+  - show altitude in list (#3606)
+  - show all nearby traffic (#2814)
   - pass vehicle name to LiveTrack24
 * Linux
   - Wayland support
@@ -134,6 +138,7 @@ Version 6.8 - not yet released
   - support open Wifi networks (#3391)
   - support USB-OTG
   - export data partition via USB storage
+  - support the Kobo Aura screen (#3490)
 
 Version 6.7.9 - 2015/07/03
 * user interface

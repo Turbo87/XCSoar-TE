@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2011 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2010-2012 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,57 +27,23 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_CLASS_HPP
-#define XCSOAR_JAVA_CLASS_HPP
+#ifndef JAVA_EXCEPTION_HXX
+#define JAVA_EXCEPTION_HXX
 
-#include "Java/Ref.hpp"
-
-#include <assert.h>
+#include <jni.h>
 
 namespace Java {
-  /**
-   * Wrapper for a local "jclass" reference.
-   */
-  class Class : public Java::LocalRef<jclass> {
-  public:
-    Class(JNIEnv *env, jclass cls)
-      :LocalRef<jclass>(env, cls) {}
-
-    Class(JNIEnv *env, const char *name)
-      :LocalRef<jclass>(env, env->FindClass(name)) {}
-  };
-
-  /**
-   * Wrapper for a global "jclass" reference.
-   */
-  class TrivialClass : public TrivialRef<jclass> {
-  public:
-    void Find(JNIEnv *env, const char *name) {
-      assert(env != nullptr);
-      assert(name != nullptr);
-
-      jclass cls = env->FindClass(name);
-      assert(cls != nullptr);
-
-      Set(env, cls);
-      env->DeleteLocalRef(cls);
-    }
-
-    bool FindOptional(JNIEnv *env, const char *name) {
-      assert(env != nullptr);
-      assert(name != nullptr);
-
-      jclass cls = env->FindClass(name);
-      if (cls == nullptr) {
-        env->ExceptionClear();
-        return false;
-      }
-
-      Set(env, cls);
-      env->DeleteLocalRef(cls);
-      return true;
-    }
-  };
+	/**
+	 * Check if an exception has occurred, and discard it.
+	 *
+	 * @return true if an exception was found (and discarded)
+	 */
+	static inline bool DiscardException(JNIEnv *env) {
+		bool result = env->ExceptionCheck();
+		if (result)
+			env->ExceptionClear();
+		return result;
+	}
 }
 
 #endif

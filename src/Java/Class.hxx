@@ -27,45 +27,56 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_STRING_HPP
-#define XCSOAR_JAVA_STRING_HPP
+#ifndef JAVA_CLASS_HXX
+#define JAVA_CLASS_HXX
 
-#include "Java/Ref.hpp"
+#include "Ref.hxx"
+#include "Exception.hxx"
 
 #include <assert.h>
-#include <jni.h>
 
 namespace Java {
-  /**
-   * Wrapper for a local "jstring" reference.
-   */
-  class String : public LocalRef<jstring> {
-  public:
-    String(JNIEnv *env, jstring value)
-      :LocalRef<jstring>(env, value) {}
+	/**
+	 * Wrapper for a local "jclass" reference.
+	 */
+	class Class : public LocalRef<jclass> {
+	public:
+		Class(JNIEnv *env, jclass cls)
+			:LocalRef<jclass>(env, cls) {}
 
-    String(JNIEnv *_env, const char *_value)
-      :LocalRef<jstring>(_env, _env->NewStringUTF(_value)) {}
+		Class(JNIEnv *env, const char *name)
+			:LocalRef<jclass>(env, env->FindClass(name)) {}
+	};
 
-    /**
-     * Copy the value to the specified buffer.  Truncates the value if
-     * it does not fit into the buffer.
-     *
-     * @return a pointer to the terminating null byte, nullptr on error
-     */
-    static char *CopyTo(JNIEnv *env, jstring value,
-                        char *buffer, size_t max_size);
+	/**
+	 * Wrapper for a global "jclass" reference.
+	 */
+	class TrivialClass : public TrivialRef<jclass> {
+	public:
+		void Find(JNIEnv *env, const char *name) {
+			assert(env != nullptr);
+			assert(name != nullptr);
 
-    /**
-     * Copy the value to the specified buffer.  Truncates the value if
-     * it does not fit into the buffer.
-     *
-     * @return a pointer to the terminating null byte, nullptr on error
-     */
-    char *CopyTo(JNIEnv *env, char *buffer, size_t max_size) {
-      return CopyTo(env, Get(), buffer, max_size);
-    }
-  };
+			jclass cls = env->FindClass(name);
+			assert(cls != nullptr);
+
+			Set(env, cls);
+			env->DeleteLocalRef(cls);
+		}
+
+		bool FindOptional(JNIEnv *env, const char *name) {
+			assert(env != nullptr);
+			assert(name != nullptr);
+
+			jclass cls = env->FindClass(name);
+			if (DiscardException(env))
+				return false;
+
+			Set(env, cls);
+			env->DeleteLocalRef(cls);
+			return true;
+		}
+	};
 }
 
 #endif

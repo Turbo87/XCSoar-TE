@@ -52,10 +52,8 @@ public:
     GEOPOINT,
   };
 
+private:
   DataFieldListener *listener;
-
-  typedef void (*DataAccessCallback)(DataField *sender);
-  DataAccessCallback data_access_callback;
 
   // all Types dataField support combolist except DataFieldString.
   const bool supports_combolist;
@@ -69,31 +67,24 @@ protected:
   DataField(Type type, bool supports_combolist,
             DataFieldListener *listener);
 
-  DataField(Type type, bool supports_combolist,
-            DataAccessCallback data_access_callback = nullptr);
-
 public:
   virtual ~DataField() {}
 
   void SetListener(DataFieldListener *_listener) {
-    assert(data_access_callback == nullptr);
     assert(listener == nullptr);
     assert(_listener != nullptr);
 
     listener = _listener;
   }
 
-  void SetDataAccessCallback(DataAccessCallback _data_access_callback) {
-    assert(listener == nullptr);
-
-    data_access_callback = _data_access_callback;
-  }
-
   Type GetType() const {
     return type;
   }
 
-  void Special();
+  bool SupportsCombolist() const {
+    return supports_combolist;
+  }
+
   virtual void Inc();
   virtual void Dec();
 

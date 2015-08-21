@@ -21,10 +21,10 @@ Copyright_License {
 }
 */
 
-#include "Android/Environment.hpp"
-#include "Java/Class.hpp"
-#include "Java/String.hpp"
-#include "Java/File.hpp"
+#include "Environment.hpp"
+#include "Java/Class.hxx"
+#include "Java/String.hxx"
+#include "Java/File.hxx"
 #include "Util/StringUtil.hpp"
 
 namespace Environment {

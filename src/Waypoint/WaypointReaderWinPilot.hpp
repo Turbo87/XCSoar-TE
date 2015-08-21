@@ -27,19 +27,21 @@ Copyright_License {
 
 #include "WaypointReaderBase.hpp"
 
-/** 
+/**
  * Waypoint file read/writer for WinPilot format
  */
-class WaypointReaderWinPilot: 
-  public WaypointReaderBase 
-{
+class WaypointReaderWinPilot final : public WaypointReaderBase {
+  bool first;
+  bool welt2000_format;
+
 public:
   explicit WaypointReaderWinPilot(WaypointFactory _factory)
-    :WaypointReaderBase(_factory) {}
+    :WaypointReaderBase(_factory),
+     first(true), welt2000_format(false) {}
 
 protected:
-  bool ParseLine(const TCHAR* line, const unsigned linenum,
-                 Waypoints &way_points);
+  /* virtual methods from class WaypointReaderBase */
+  bool ParseLine(const TCHAR *line, Waypoints &way_points) override;
 };
 
 #endif

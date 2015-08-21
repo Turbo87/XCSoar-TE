@@ -27,33 +27,32 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_GLOBAL_HPP
-#define XCSOAR_JAVA_GLOBAL_HPP
+#ifndef JAVA_GLOBAL_HXX
+#define JAVA_GLOBAL_HXX
 
 #include "Compiler.h"
 
 #include <jni.h>
-#include <stddef.h>
 
 namespace Java {
-  extern JavaVM *jvm;
+	extern JavaVM *jvm;
 
-  void Init(JNIEnv *env);
+	void Init(JNIEnv *env);
 
-  static inline void
-  DetachCurrentThread()
-  {
-    if (jvm != nullptr)
-      jvm->DetachCurrentThread();
-  }
+	static inline void
+	DetachCurrentThread()
+	{
+		if (jvm != nullptr)
+			jvm->DetachCurrentThread();
+	}
 
-  static inline gcc_pure
-  JNIEnv *GetEnv()
-  {
-    JNIEnv *env;
-    jvm->AttachCurrentThread(&env, nullptr);
-    return env;
-  }
+	static inline gcc_pure
+	JNIEnv *GetEnv()
+	{
+		JNIEnv *env;
+		jvm->AttachCurrentThread(&env, nullptr);
+		return env;
+	}
 }
 
 #endif

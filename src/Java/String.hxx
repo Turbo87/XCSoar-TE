@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2012 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2010-2011 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,40 +27,46 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_INPUT_STREAM_HPP
-#define XCSOAR_JAVA_INPUT_STREAM_HPP
+#ifndef JAVA_STRING_HXX
+#define JAVA_STRING_HXX
+
+#include "Ref.hxx"
 
 #include <jni.h>
-#include <assert.h>
+
 #include <stddef.h>
 
 namespace Java {
-  /**
-   * Wrapper for a java.io.InputStream object.
-   */
-  class InputStream {
-    static jmethodID close_method, read_method;
+	/**
+	 * Wrapper for a local "jstring" reference.
+	 */
+	class String : public LocalRef<jstring> {
+	public:
+		String(JNIEnv *env, jstring value)
+			:LocalRef<jstring>(env, value) {}
 
-  public:
-    static void Initialise(JNIEnv *env);
+		String(JNIEnv *_env, const char *_value)
+			:LocalRef<jstring>(_env, _env->NewStringUTF(_value)) {}
 
-    static void close(JNIEnv *env, jobject is) {
-      assert(env != nullptr);
-      assert(is != nullptr);
-      assert(close_method != nullptr);
+		/**
+		 * Copy the value to the specified buffer.  Truncates the value if
+		 * it does not fit into the buffer.
+		 *
+		 * @return a pointer to the terminating null byte, nullptr on error
+		 */
+		static char *CopyTo(JNIEnv *env, jstring value,
+				    char *buffer, size_t max_size);
 
-      env->CallVoidMethod(is, close_method);
-    }
-
-    static int read(JNIEnv *env, jobject is, jbyteArray buffer) {
-      assert(env != nullptr);
-      assert(is != nullptr);
-      assert(buffer != nullptr);
-      assert(read_method != nullptr);
-
-      return env->CallIntMethod(is, read_method, buffer);
-    }
-  };
+		/**
+		 * Copy the value to the specified buffer.  Truncates the value if
+		 * it does not fit into the buffer.
+		 *
+		 * @return a pointer to the terminating null byte, nullptr on error
+		 */
+		char *CopyTo(JNIEnv *env, char *buffer, size_t max_size) {
+			return CopyTo(env, Get(), buffer, max_size);
+		}
+	};
 }
 
 #endif

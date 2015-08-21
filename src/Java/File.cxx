@@ -27,27 +27,16 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_FILE_HPP
-#define XCSOAR_JAVA_FILE_HPP
+#include "File.hxx"
+#include "Class.hxx"
 
-#include "Java/Object.hpp"
+jmethodID Java::File::getAbsolutePath_method;
 
-#include <jni.h>
+void
+Java::File::Initialise(JNIEnv *env)
+{
+	Class cls(env, "java/io/File");
 
-namespace Java {
-  /**
-   * Wrapper for a java.io.File object.
-   */
-  class File : public LocalObject {
-    static jmethodID getAbsolutePath_method;
-
-  public:
-    static void Initialise(JNIEnv *env);
-
-    static jstring getAbsolutePath(JNIEnv *env, jobject file) {
-      return (jstring)env->CallObjectMethod(file, getAbsolutePath_method);
-    }
-  };
+	getAbsolutePath_method = env->GetMethodID(cls, "getAbsolutePath",
+						  "()Ljava/lang/String;");
 }
-
-#endif

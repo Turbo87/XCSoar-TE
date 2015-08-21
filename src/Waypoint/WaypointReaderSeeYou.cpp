@@ -24,6 +24,7 @@ Copyright_License {
 #include "WaypointReaderSeeYou.hpp"
 #include "Units/System.hpp"
 #include "Waypoint/Waypoints.hpp"
+#include "Util/ExtractParameters.hpp"
 #include "Util/Macros.hpp"
 
 #include <stdlib.h>
@@ -159,8 +160,7 @@ ParseStyle(const TCHAR* src, Waypoint::Type &type)
 }
 
 bool
-WaypointReaderSeeYou::ParseLine(const TCHAR* line, const unsigned linenum,
-                              Waypoints &waypoints)
+WaypointReaderSeeYou::ParseLine(const TCHAR* line, Waypoints &waypoints)
 {
   enum {
     iName = 0,
@@ -174,12 +174,17 @@ WaypointReaderSeeYou::ParseLine(const TCHAR* line, const unsigned linenum,
     iDescription = 10,
   };
 
-  if (linenum == 0)
-    ignore_following = false;
+  if (first) {
+    first = false;
+
+    /* skip first line if it doesn't begin with a quotation character
+       (usually the field order line) */
+    if (line[0] != _T('\"'))
+      return true;
+  }
 
   // If (end-of-file or comment)
   if (StringIsEmpty(line) ||
-      StringStartsWith(line, _T("**")) ||
       StringStartsWith(line, _T("*")))
     // -> return without error condition
     return true;
@@ -188,11 +193,6 @@ WaypointReaderSeeYou::ParseLine(const TCHAR* line, const unsigned linenum,
   if (_tcslen(line) >= ARRAY_SIZE(ctemp))
     /* line too long for buffer */
     return false;
-
-  // Skip first line if it doesn't begin with a quotation character
-  // (usually the field order line)
-  if (linenum == 0 && line[0] != _T('\"'))
-    return true;
 
   // If task marker is reached ignore all following lines
   if (StringStartsWith(line, _T("-----Related Tasks-----")))

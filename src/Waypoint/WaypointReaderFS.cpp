@@ -145,8 +145,7 @@ ParseString(const TCHAR *src, tstring &dest, unsigned len = 0)
 }
 
 bool
-WaypointReaderFS::ParseLine(const TCHAR* line, const unsigned linenum,
-                              Waypoints &way_points)
+WaypointReaderFS::ParseLine(const TCHAR *line, Waypoints &way_points)
 {
   //$FormatGEO
   //ACONCAGU  S 32 39 12.00    W 070 00 42.00  6962  Aconcagua
@@ -165,13 +164,11 @@ WaypointReaderFS::ParseLine(const TCHAR* line, const unsigned linenum,
   if (line[0] == '\0')
     return true;
 
-  if (linenum == 0 && StringStartsWith(line, _T("$FormatUTM"))) {
-    is_utm = true;
+  if (line[0] == _T('$')) {
+    if (StringStartsWith(line, _T("$FormatUTM")))
+      is_utm = true;
     return true;
   }
-
-  if (line[0] == _T('$'))
-    return true;
 
   // Determine the length of the line
   size_t len = _tcslen(line);
@@ -180,8 +177,9 @@ WaypointReaderFS::ParseLine(const TCHAR* line, const unsigned linenum,
     return false;
 
   GeoPoint location;
-  if ((!is_utm && !ParseLocation(line + 10, location)) ||
-      (is_utm && !ParseLocationUTM(line + 9, location)))
+  if (!(is_utm
+        ? ParseLocationUTM(line + 9, location)
+        : ParseLocation(line + 10, location)))
     return false;
 
   Waypoint new_waypoint = factory.Create(location);

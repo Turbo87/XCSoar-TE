@@ -26,6 +26,7 @@ Copyright_License {
 #include "IO/LineReader.hpp"
 #include "Units/System.hpp"
 #include "Util/Macros.hpp"
+#include "Util/ExtractParameters.hpp"
 
 #include <stdlib.h>
 
@@ -66,15 +67,16 @@ ParseString(const TCHAR *src, tstring &dest)
 }
 
 bool
-WaypointReaderOzi::ParseLine(const TCHAR* line, const unsigned linenum,
-                              Waypoints &way_points)
+WaypointReaderOzi::ParseLine(const TCHAR *line, Waypoints &way_points)
 {
   if (line[0] == '\0')
     return true;
 
   // Ignore first four header lines
-  if (linenum < 4)
+  if (ignore_lines > 0) {
+    --ignore_lines;
     return true;
+  }
 
   TCHAR ctemp[255];
   const TCHAR *params[20];

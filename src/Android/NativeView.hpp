@@ -24,9 +24,9 @@ Copyright_License {
 #ifndef XCSOAR_ANDROID_NATIVE_VIEW_HPP
 #define XCSOAR_ANDROID_NATIVE_VIEW_HPP
 
-#include "Java/Object.hpp"
-#include "Java/Class.hpp"
-#include "Java/String.hpp"
+#include "Java/Object.hxx"
+#include "Java/Class.hxx"
+#include "Java/String.hxx"
 
 #ifndef NO_SCREEN
 #include "Screen/Point.hpp"
@@ -40,7 +40,6 @@ class NativeView {
 
   unsigned width, height;
   unsigned xdpi, ydpi;
-  unsigned sdk_version;
   char product[20];
 
   static Java::TrivialClass cls;
@@ -81,11 +80,10 @@ public:
 
   NativeView(JNIEnv *_env, jobject _obj, unsigned _width, unsigned _height,
              unsigned _xdpi, unsigned _ydpi,
-             unsigned _sdk_version, jstring _product)
+             jstring _product)
     :env(_env), obj(env, _obj),
      width(_width), height(_height),
-     xdpi(_xdpi), ydpi(_ydpi),
-     sdk_version(_sdk_version) {
+     xdpi(_xdpi), ydpi(_ydpi) {
     Java::String::CopyTo(env, _product, product, sizeof(product));
   }
 
@@ -109,10 +107,6 @@ public:
   void SetSize(unsigned _width, unsigned _height) {
     width = _width;
     height = _height;
-  }
-
-  int GetAPILevel() {
-    return sdk_version;
   }
 
   const char *GetProduct() {

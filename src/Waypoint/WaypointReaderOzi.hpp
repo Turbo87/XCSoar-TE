@@ -26,18 +26,20 @@ Copyright_License {
 
 #include "WaypointReaderBase.hpp"
 
-class WaypointReaderOzi:
-  public WaypointReaderBase 
-{
+class WaypointReaderOzi final : public WaypointReaderBase {
+  unsigned ignore_lines;
+
 public:
   explicit WaypointReaderOzi(WaypointFactory _factory)
-    :WaypointReaderBase(_factory) {}
+    :WaypointReaderBase(_factory),
+     /* ignore the first 4 lines */
+     ignore_lines(4) {}
 
   static bool VerifyFormat(TLineReader &reader);
 
 protected:
-  bool ParseLine(const TCHAR* line, const unsigned linenum,
-                 Waypoints &way_points);
+  /* virtual methods from class WaypointReaderBase */
+  bool ParseLine(const TCHAR *line, Waypoints &way_points) override;
 };
 
 #endif

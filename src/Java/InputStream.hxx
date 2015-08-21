@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2011 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2010-2012 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,13 +27,40 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "Java/Global.hpp"
+#ifndef JAVA_INPUT_STREAM_HXX
+#define JAVA_INPUT_STREAM_HXX
+
+#include <jni.h>
+#include <assert.h>
+#include <stddef.h>
 
 namespace Java {
-  JavaVM *jvm;
+	/**
+	 * Wrapper for a java.io.InputStream object.
+	 */
+	class InputStream {
+		static jmethodID close_method, read_method;
 
-  void Init(JNIEnv *env)
-  {
-    env->GetJavaVM(&jvm);
-  }
+	public:
+		static void Initialise(JNIEnv *env);
+
+		static void close(JNIEnv *env, jobject is) {
+			assert(env != nullptr);
+			assert(is != nullptr);
+			assert(close_method != nullptr);
+
+			env->CallVoidMethod(is, close_method);
+		}
+
+		static int read(JNIEnv *env, jobject is, jbyteArray buffer) {
+			assert(env != nullptr);
+			assert(is != nullptr);
+			assert(buffer != nullptr);
+			assert(read_method != nullptr);
+
+			return env->CallIntMethod(is, read_method, buffer);
+		}
+	};
 }
+
+#endif

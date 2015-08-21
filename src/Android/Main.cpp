@@ -21,23 +21,23 @@ Copyright_License {
 }
 */
 
-#include "Android/Main.hpp"
-#include "Android/Environment.hpp"
-#include "Android/Context.hpp"
-#include "Android/NativeView.hpp"
-#include "Android/Bitmap.hpp"
-#include "Android/SoundUtil.hpp"
-#include "Android/Vibrator.hpp"
-#include "Android/InternalSensors.hpp"
-#include "Android/PortBridge.hpp"
-#include "Android/BluetoothHelper.hpp"
-#include "Android/NativeLeScanCallback.hpp"
-#include "Android/NativePortListener.hpp"
-#include "Android/NativeInputListener.hpp"
-#include "Android/TextUtil.hpp"
-#include "Android/LogCat.hpp"
-#include "Android/Product.hpp"
-#include "Android/Nook.hpp"
+#include "Main.hpp"
+#include "Environment.hpp"
+#include "Context.hpp"
+#include "NativeView.hpp"
+#include "Bitmap.hpp"
+#include "SoundUtil.hpp"
+#include "Vibrator.hpp"
+#include "InternalSensors.hpp"
+#include "PortBridge.hpp"
+#include "BluetoothHelper.hpp"
+#include "NativeLeScanCallback.hpp"
+#include "NativePortListener.hpp"
+#include "NativeInputListener.hpp"
+#include "TextUtil.hpp"
+#include "LogCat.hpp"
+#include "Product.hpp"
+#include "Nook.hpp"
 #include "Language/Language.hpp"
 #include "Language/LanguageGlue.hpp"
 #include "LocalPath.hpp"
@@ -54,10 +54,10 @@ Copyright_License {
 #include "MainWindow.hpp"
 #include "Startup.hpp"
 #include "Interface.hpp"
-#include "Java/Global.hpp"
-#include "Java/File.hpp"
-#include "Java/InputStream.hpp"
-#include "Java/URL.hpp"
+#include "Java/Global.hxx"
+#include "Java/File.hxx"
+#include "Java/InputStream.hxx"
+#include "Java/URL.hxx"
 #include "Compiler.h"
 #include "org_xcsoar_NativeView.h"
 #include "IO/Async/GlobalIOThread.hpp"
@@ -80,6 +80,8 @@ Copyright_License {
 
 #include <assert.h>
 #include <stdlib.h>
+
+unsigned android_api_level;
 
 Context *context;
 
@@ -116,6 +118,8 @@ Java_org_xcsoar_NativeView_initializeNative(JNIEnv *env, jobject obj,
                                             jint xdpi, jint ydpi,
                                             jint sdk_version, jstring product)
 {
+  android_api_level = sdk_version;
+
   InitThreadDebug();
 
   InitialiseIOThread();
@@ -156,7 +160,7 @@ Java_org_xcsoar_NativeView_initializeNative(JNIEnv *env, jobject obj,
 
   assert(native_view == nullptr);
   native_view = new NativeView(env, obj, width, height, xdpi, ydpi,
-                               sdk_version, product);
+                               product);
 #ifdef __arm__
   is_nook = StringIsEqual(native_view->GetProduct(), "NOOK");
 #endif

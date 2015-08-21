@@ -67,7 +67,7 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/ReplayDialog.cpp \
 	$(SRC)/Dialogs/dlgSimulatorPrompt.cpp \
 	$(SRC)/Dialogs/SimulatorPromptWindow.cpp \
-	$(SRC)/Dialogs/dlgStartup.cpp \
+	$(SRC)/Dialogs/StartupDialog.cpp \
 	$(SRC)/Dialogs/ProfilePasswordDialog.cpp \
 	\
 	$(SRC)/Dialogs/dlgStatus.cpp \
@@ -308,6 +308,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Waypoint/WaypointListBuilder.cpp \
 	$(SRC)/Waypoint/WaypointFilter.cpp \
 	$(SRC)/Waypoint/WaypointGlue.cpp \
+	$(SRC)/Waypoint/SaveGlue.cpp \
 	$(SRC)/Waypoint/LastUsed.cpp \
 	$(SRC)/Waypoint/HomeGlue.cpp \
 	$(SRC)/Waypoint/WaypointFileType.cpp \
@@ -683,11 +684,11 @@ endif
 ifeq ($(TARGET),ANDROID)
 XCSOAR_SOURCES += \
 	$(SRC)/Dialogs/Device/ScanBluetoothLeDialog.cpp \
-	$(SRC)/Java/Global.cpp \
-	$(SRC)/Java/String.cpp \
-	$(SRC)/Java/File.cpp \
-	$(SRC)/Java/InputStream.cpp \
-	$(SRC)/Java/URL.cpp \
+	$(SRC)/Java/Global.cxx \
+	$(SRC)/Java/String.cxx \
+	$(SRC)/Java/File.cxx \
+	$(SRC)/Java/InputStream.cxx \
+	$(SRC)/Java/URL.cxx \
 	$(SRC)/Device/Port/AndroidPort.cpp \
 	$(SRC)/Device/Port/AndroidBluetoothPort.cpp \
 	$(SRC)/Device/Port/AndroidIOIOUartPort.cpp \
@@ -730,6 +731,11 @@ else
 XCSOAR_SOURCES += \
 	$(SRC)/CommandLine.cpp \
 	$(SRC)/XCSoar.cpp
+endif
+
+ifeq ($(TARGET_IS_KOBO),y)
+XCSOAR_SOURCES += \
+	$(SRC)/Kobo/Model.cpp
 endif
 
 ifeq ($(TARGET),ALTAIR)

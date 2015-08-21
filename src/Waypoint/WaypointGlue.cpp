@@ -23,17 +23,13 @@ Copyright_License {
 
 #include "WaypointGlue.hpp"
 #include "Factory.hpp"
-#include "CupWriter.hpp"
 #include "Profile/Profile.hpp"
 #include "LogFile.hpp"
 #include "Waypoint/Waypoints.hpp"
 #include "WaypointReader.hpp"
 #include "Language/Language.hpp"
-#include "IO/TextWriter.hpp"
-#include "OS/PathName.hpp"
 #include "LocalPath.hpp"
 #include "Operation/Operation.hpp"
-#include "WaypointFileType.hpp"
 
 #include <windef.h> /* for MAX_PATH */
 
@@ -67,8 +63,7 @@ WaypointGlue::LoadWaypoints(Waypoints &way_points,
   TCHAR path[MAX_PATH];
 
   LocalPath(path, _T("user.cup"));
-  found |= LoadWaypointFile(way_points, path, WaypointOrigin::USER,
-                            terrain, operation);
+  LoadWaypointFile(way_points, path, WaypointOrigin::USER, terrain, operation);
 
   // ### FIRST FILE ###
   if (Profile::GetPath(ProfileKeys::WaypointFile, path))
@@ -92,11 +87,11 @@ WaypointGlue::LoadWaypoints(Waypoints &way_points,
     TCHAR *tail = path + _tcslen(path);
 
     _tcscpy(tail, _T("/waypoints.xcw"));
-    found |= LoadWaypointFile(way_points, path, WaypointOrigin::NONE,
+    found |= LoadWaypointFile(way_points, path, WaypointOrigin::MAP,
                               terrain, operation);
 
     _tcscpy(tail, _T("/waypoints.cup"));
-    found |= LoadWaypointFile(way_points, path, WaypointOrigin::NONE,
+    found |= LoadWaypointFile(way_points, path, WaypointOrigin::MAP,
                               terrain, operation);
   }
 
@@ -105,22 +100,4 @@ WaypointGlue::LoadWaypoints(Waypoints &way_points,
 
   // Return whether waypoints have been loaded into the waypoint list
   return found;
-}
-
-bool
-WaypointGlue::SaveWaypoints(const Waypoints &way_points)
-{
-  TCHAR path[MAX_PATH];
-  LocalPath(path, _T("user.cup"));
-
-  TextWriter writer(path);
-  if (!writer.IsOpen()) {
-    LogFormat(_T("Waypoint file '%s' can not be written"), path);
-    return false;
-  }
-
-  WriteCup(writer, way_points, WaypointOrigin::USER);
-
-  LogFormat(_T("Waypoint file '%s' saved"), path);
-  return true;
 }

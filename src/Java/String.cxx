@@ -27,29 +27,18 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_JAVA_OBJECT_HPP
-#define XCSOAR_JAVA_OBJECT_HPP
+#include "String.hxx"
+#include "Util/StringUtil.hpp"
 
-#include "Java/Ref.hpp"
+char *
+Java::String::CopyTo(JNIEnv *env, jstring value,
+		     char *buffer, size_t max_size)
+{
+	const char *p = env->GetStringUTFChars(value, nullptr);
+	if (p == nullptr)
+		return nullptr;
 
-#include <jni.h>
-
-namespace Java {
-  /**
-   * Wrapper for a local "jobject" reference.
-   */
-  typedef LocalRef<jobject> LocalObject;
-
-  class Object : public GlobalRef<jobject> {
-  public:
-    /**
-     * Constructs an uninitialized object.  The method set() must be
-     * called before it is destructed.
-     */
-    Object() = default;
-
-    Object(JNIEnv *env, jobject obj):GlobalRef<jobject>(env, obj) {}
-  };
+	char *result = CopyString(buffer, p, max_size);
+	env->ReleaseStringUTFChars(value, p);
+	return result;
 }
-
-#endif

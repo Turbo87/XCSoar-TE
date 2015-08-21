@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2012 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2010-2011 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,16 +27,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "File.hpp"
-#include "Class.hpp"
+#include "Global.hxx"
 
-jmethodID Java::File::getAbsolutePath_method;
+namespace Java {
+	JavaVM *jvm;
 
-void
-Java::File::Initialise(JNIEnv *env)
-{
-  Class cls(env, "java/io/File");
-
-  getAbsolutePath_method = env->GetMethodID(cls, "getAbsolutePath",
-                                            "()Ljava/lang/String;");
+	void Init(JNIEnv *env)
+	{
+		env->GetJavaVM(&jvm);
+	}
 }

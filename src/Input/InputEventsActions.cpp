@@ -80,6 +80,7 @@ doc/html/advanced/input/ALL		http://xcsoar.sourceforge.net/advanced/input/
 #include "Logger/NMEALogger.hpp"
 #include "Waypoint/Waypoints.hpp"
 #include "Waypoint/Factory.hpp"
+#include "Waypoint/WaypointGlue.hpp"
 #include "Task/ProtectedTaskManager.hpp"
 #include "UtilsSettings.hpp"
 #include "PageActions.hpp"
@@ -123,6 +124,28 @@ trigger_redraw()
   TriggerMapUpdate();
 }
 
+/**
+ * Wrapper for #ScopeSuspendAllThreads and Waypoints::Append().
+ *
+ * @return a reference to the #Waypoint stored in #Waypoints
+ */
+static const Waypoint &
+SuspendAppendWaypoint(Waypoint &&wp)
+{
+  ScopeSuspendAllThreads suspend;
+  auto &result = way_points.Append(std::move(wp));
+  way_points.Optimise();
+  return result;
+}
+
+static const Waypoint &
+SuspendAppendSaveWaypoint(Waypoint &&wp)
+{
+  auto &wp2 = SuspendAppendWaypoint(std::move(wp));
+  WaypointGlue::SaveWaypoint(wp2);
+  return wp2;
+}
+
 // -----------------------------------------------------------------------
 // Execution - list of things you can do
 // -----------------------------------------------------------------------
@@ -157,11 +180,7 @@ InputEvents::eventMarkLocation(const TCHAR *misc)
     wp.name = name;
     wp.type = Waypoint::Type::MARKER;
 
-    {
-      ScopeSuspendAllThreads suspend;
-      way_points.Append(std::move(wp));
-      way_points.Optimise();
-    }
+    SuspendAppendSaveWaypoint(std::move(wp));
 
     if (CommonInterface::GetUISettings().sound.sound_modes_enabled)
       PlayResource(_T("IDR_WAV_CLEAR"));
@@ -313,6 +332,12 @@ InputEvents::eventWaypointDetails(const TCHAR *misc)
   }
   if (wp)
     dlgWaypointDetailsShowModal(*wp);
+}
+
+void
+InputEvents::eventWaypointEditor(const TCHAR *misc)
+{
+  dlgConfigWaypointsShowModal();
 }
 
 // StatusMessage
@@ -587,11 +612,8 @@ InputEvents::eventAddWaypoint(const TCHAR *misc)
       trigger_redraw();
       return;
     }
-    {
-      ScopeSuspendAllThreads suspend;
-      way_points.Append(std::move(edit_waypoint));
-      way_points.Optimise();
-    }
+
+    SuspendAppendSaveWaypoint(std::move(edit_waypoint));
   }
 
   trigger_redraw();

@@ -24,6 +24,7 @@ Copyright_License {
 #include "WaypointReaderWinPilot.hpp"
 #include "Units/System.hpp"
 #include "Waypoint/Waypoints.hpp"
+#include "Util/ExtractParameters.hpp"
 #include "Util/StringAPI.hpp"
 #include "Util/NumberParser.hpp"
 #include "Util/Macros.hpp"
@@ -187,17 +188,12 @@ ParseFlags(const TCHAR* src, Waypoint &dest)
 }
 
 bool
-WaypointReaderWinPilot::ParseLine(const TCHAR* line, const unsigned linenum,
-                                Waypoints &waypoints)
+WaypointReaderWinPilot::ParseLine(const TCHAR *line, Waypoints &waypoints)
 {
   TCHAR ctemp[4096];
   const TCHAR *params[20];
   static constexpr unsigned int max_params = ARRAY_SIZE(params);
-  static bool welt2000_format = false;
   size_t n_params;
-
-  if (linenum == 0)
-    welt2000_format = false;
 
   // If (end-of-file)
   if (line[0] == '\0')
@@ -206,8 +202,11 @@ WaypointReaderWinPilot::ParseLine(const TCHAR* line, const unsigned linenum,
 
   // If comment
   if (line[0] == _T('*')) {
-    if (linenum == 0)
+    if (first) {
+      first = false;
       welt2000_format = (_tcsstr(line, _T("WRITTEN BY WELT2000")) != nullptr);
+    }
+
     // -> return without error condition
     return true;
   }

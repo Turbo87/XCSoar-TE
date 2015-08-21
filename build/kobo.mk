@@ -57,6 +57,7 @@ KOBO_POWER_OFF_SOURCES = \
 	$(SRC)/Renderer/FlightListRenderer.cpp \
 	$(SRC)/Thread/Mutex.cpp \
 	$(SRC)/FlightInfo.cpp \
+	$(SRC)/Kobo/Model.cpp \
 	$(SRC)/Kobo/PowerOff.cpp
 KOBO_POWER_OFF_LDADD = $(FAKE_LIBS)
 KOBO_POWER_OFF_DEPENDS = SCREEN RESOURCE IO OS MATH UTIL TIME
@@ -73,8 +74,12 @@ fi)
 BITSTREAM_VERA_NAMES = Vera VeraBd VeraIt VeraBI VeraMono
 BITSTREAM_VERA_FILES = $(patsubst %,$(BITSTREAM_VERA_DIR)/%.ttf,$(BITSTREAM_VERA_NAMES))
 
-# from Debian package libc6-armhf-cross
-SYSROOT = /usr/arm-linux-gnueabihf
+ifeq ($(USE_CROSSTOOL_NG),y)
+  SYSROOT = $(shell $(CC) -print-sysroot)
+else
+  # from Debian package libc6-armhf-cross
+  SYSROOT = /usr/arm-linux-gnueabihf
+endif
 
 # install our version of the system libraries in /opt/xcsoar/lib; this
 # is necessary because:

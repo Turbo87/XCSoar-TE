@@ -21,13 +21,13 @@ Copyright_License {
 }
 */
 
-#include "Android/BluetoothHelper.hpp"
-#include "Android/Context.hpp"
-#include "Android/Main.hpp"
+#include "BluetoothHelper.hpp"
+#include "Context.hpp"
+#include "Main.hpp"
 #include "NativeLeScanCallback.hpp"
 #include "PortBridge.hpp"
-#include "Java/String.hpp"
-#include "Java/Class.hpp"
+#include "Java/String.hxx"
+#include "Java/Class.hxx"
 
 #include <map>
 #include <string>
@@ -49,7 +49,8 @@ BluetoothHelper::Initialise(JNIEnv *env)
   assert(!cls.IsDefined());
   assert(env != nullptr);
 
-  if (!cls.FindOptional(env, "org/xcsoar/BluetoothHelper"))
+  if (android_api_level < 5 ||
+      !cls.FindOptional(env, "org/xcsoar/BluetoothHelper"))
     /* Android < 2.0 doesn't have Bluetooth support */
     return false;
 

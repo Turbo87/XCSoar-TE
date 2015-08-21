@@ -27,18 +27,29 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "Java/String.hpp"
-#include "Util/StringUtil.hpp"
+#ifndef JAVA_OBJECT_HXX
+#define JAVA_OBJECT_HXX
 
-char *
-Java::String::CopyTo(JNIEnv *env, jstring value,
-                     char *buffer, size_t max_size)
-{
-  const char *p = env->GetStringUTFChars(value, nullptr);
-  if (p == nullptr)
-    return nullptr;
+#include "Ref.hxx"
 
-  char *result = CopyString(buffer, p, max_size);
-  env->ReleaseStringUTFChars(value, p);
-  return result;
+#include <jni.h>
+
+namespace Java {
+	/**
+	 * Wrapper for a local "jobject" reference.
+	 */
+	typedef LocalRef<jobject> LocalObject;
+
+	class Object : public GlobalRef<jobject> {
+	public:
+		/**
+		 * Constructs an uninitialized object.  The method set() must be
+		 * called before it is destructed.
+		 */
+		Object() = default;
+
+		Object(JNIEnv *env, jobject obj):GlobalRef<jobject>(env, obj) {}
+	};
 }
+
+#endif

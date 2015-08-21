@@ -27,8 +27,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "InputStream.hpp"
-#include "Class.hpp"
+#include "InputStream.hxx"
+#include "Class.hxx"
 
 jmethodID Java::InputStream::close_method;
 jmethodID Java::InputStream::read_method;
@@ -36,11 +36,11 @@ jmethodID Java::InputStream::read_method;
 void
 Java::InputStream::Initialise(JNIEnv *env)
 {
-  Class cls(env, "java/io/InputStream");
+	Class cls(env, "java/io/InputStream");
 
-  close_method = env->GetMethodID(cls, "close", "()V");
-  assert(close_method != nullptr);
+	close_method = env->GetMethodID(cls, "close", "()V");
+	assert(close_method != nullptr);
 
-  read_method = env->GetMethodID(cls, "read", "([B)I");
-  assert(read_method != nullptr);
+	read_method = env->GetMethodID(cls, "read", "([B)I");
+	assert(read_method != nullptr);
 }

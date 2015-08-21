@@ -33,13 +33,6 @@ void dlgChecklistShowModal();
 void dlgConfigurationShowModal();
 void dlgConfigFontsShowModal();
 
-/**
- * @return true on success, false if the user has pressed the "Quit"
- * button
- */
-bool
-dlgStartupShowModal();
-
 void ShowWindSettingsDialog();
 
 void dlgStatusShowModal(int page);

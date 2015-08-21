@@ -39,6 +39,7 @@ SkyLinesTracking::Glue::Glue()
   :interval(0),
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
    traffic_enabled(false),
+   near_traffic_enabled(false),
 #endif
    roaming(true),
    queue(nullptr)
@@ -54,40 +55,43 @@ SkyLinesTracking::Glue::~Glue()
   delete queue;
 }
 
-void
-SkyLinesTracking::Glue::Tick(const NMEAInfo &basic)
+inline bool
+SkyLinesTracking::Glue::IsConnected() const
 {
-  if (!client.IsDefined())
-    return;
-
-  if (!basic.time_available) {
-    clock.Reset();
-#ifdef HAVE_SKYLINES_TRACKING_HANDLER
-    traffic_clock.Reset();
-#endif
-    return;
-  }
-
-  bool connected = false;
   switch (GetNetState()) {
   case NetState::UNKNOWN:
   case NetState::DISCONNECTED:
-    break;
+    return false;
 
   case NetState::CONNECTED:
-    connected = true;
-    break;
+    return true;
 
   case NetState::ROAMING:
-    connected = roaming;
-    break;
+    return roaming;
   }
 
-  if (!connected) {
-    /* queue the packet, send it later */
-    if (queue == nullptr)
-      queue = new Queue();
-    queue->Push(ToFix(client.GetKey(), basic));
+  assert(false);
+  gcc_unreachable();
+}
+
+inline void
+SkyLinesTracking::Glue::SendFixes(const NMEAInfo &basic)
+{
+  assert(client.IsDefined());
+
+  if (!basic.time_available) {
+    clock.Reset();
+    return;
+  }
+
+  if (!IsConnected()) {
+    if (clock.CheckAdvance(basic.time, fixed(interval))) {
+      /* queue the packet, send it later */
+      if (queue == nullptr)
+        queue = new Queue();
+      queue->Push(ToFix(client.GetKey(), basic));
+    }
+
     return;
   }
 
@@ -110,10 +114,23 @@ SkyLinesTracking::Glue::Tick(const NMEAInfo &basic)
     return;
   } else if (clock.CheckAdvance(basic.time, fixed(interval)))
     client.SendFix(basic);
+}
+
+void
+SkyLinesTracking::Glue::Tick(const NMEAInfo &basic)
+{
+  if (!client.IsDefined())
+    return;
+
+  if (basic.location_available && !basic.gps.real)
+    /* disable in simulator/replay */
+    return;
+
+  SendFixes(basic);
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
-  if (traffic_enabled && traffic_clock.CheckAdvance(basic.time, fixed(60)))
-    client.SendTrafficRequest(true, true);
+  if (traffic_enabled && traffic_clock.CheckAdvance(basic.clock, fixed(60)))
+    client.SendTrafficRequest(true, true, near_traffic_enabled);
 #endif
 }
 
@@ -135,6 +152,7 @@ SkyLinesTracking::Glue::SetSettings(const Settings &settings)
 
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
   traffic_enabled = settings.traffic_enabled;
+  near_traffic_enabled = settings.near_traffic_enabled;
 #endif
 
   roaming = settings.roaming;

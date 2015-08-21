@@ -39,6 +39,7 @@ namespace SkyLinesTracking {
 #ifdef HAVE_SKYLINES_TRACKING_HANDLER
     GPSClock traffic_clock;
     bool traffic_enabled;
+    bool near_traffic_enabled;
 #endif
 
     bool roaming;
@@ -59,9 +60,17 @@ namespace SkyLinesTracking {
 
     void Tick(const NMEAInfo &basic);
 
+#ifdef HAVE_SKYLINES_TRACKING_HANDLER
     void RequestUserName(uint32_t user_id) {
       client.SendUserNameRequest(user_id);
     }
+#endif
+
+  private:
+    gcc_pure
+    bool IsConnected() const;
+
+    void SendFixes(const NMEAInfo &basic);
   };
 }
 
