@@ -45,9 +45,6 @@ addons:
       - libstdc++6:i386
       - zlib1g:i386
 
-      # Altair
-      - upx-ucl
-
       # Manual
       - texlive
       - texlive-latex-extra
@@ -73,12 +70,6 @@ env:
     - TARGET=UNIX
     #- TARGET=PC
     #- TARGET=WIN64
-    - TARGET=WM5
-    - TARGET=WM5X
-    - TARGET=PPC2000
-    - TARGET=PPC2003
-    - TARGET=PPC2003X
-    - TARGET=ALTAIR
     - TARGET=MANUAL
 
 before_install:
@@ -111,14 +102,6 @@ install:
       echo 'y' | ~/opt/android-sdk-linux/tools/android update sdk --no-ui --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION,android-$ANDROID_API_LEVEL;
     fi
 
-  # Windows Mobile
-
-  - if [[ "$TARGET" == "WM"* ]] || [[ "$TARGET" == "PPC"* ]] || [ "$TARGET" = "ALTAIR" ]; then
-      wget http://spekje.snt.utwente.nl/~roel/cegcc/mingw32ce-mk-2013-04-03-amd64.tar.xz;
-      tar -xJf mingw32ce-mk-2013-04-03-amd64.tar.xz -C ~/;
-      export PATH="/home/travis/mingw32ce-mk-2013-04-03-amd64/bin:$PATH";
-    fi
-
 before_script:
   - if [ "$TRAVIS_TAG" ]; then
       export DEBUG=n;
@@ -141,9 +124,6 @@ script:
         make -j8 TARGET=ANDROID;
       fi
 
-    elif [ "$TARGET" = "ALTAIR" ]; then
-      make -j8 TARGET=ALTAIR output/ALTAIR/XCSoarAltair.zip;
-
     else
       make -j8 TARGET=$TARGET everything;
     fi
@@ -164,10 +144,6 @@ before_deploy:
 
     elif [ "$TARGET" = "ANDROID" ]; then
       mv output/ANDROIDFAT/bin/XCSoar.apk output/deploy/;
-
-    elif [ "$TARGET" = "ALTAIR" ]; then
-      mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
-      mv output/$TARGET/XCSoarAltair.zip output/deploy/;
 
     elif [ "$TARGET" != "UNIX" ]; then
       mv output/$TARGET/bin/XCSoar.exe output/deploy/XCSoar-$TARGET.exe;
