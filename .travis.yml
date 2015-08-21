@@ -64,23 +64,23 @@ addons:
       - zlib1g:i386
 
       # Manual
-      - texlive
-      - texlive-base
-      - texlive-common
-      - texlive-pictures
-      - texlive-latex-base
-      - texlive-latex-recommended
-      - texlive-latex-extra
-      - texlive-fonts-recommended
-      - tex-common
-      - latex-xcolor
-      - preview-latex-style
-      - texlive-binaries
-      - pgf
-      - liblocale-po-perl
-      - texlive-lang-ukenglish
-      - texlive-lang-german
-      - texlive-lang-french
+      #- texlive
+      #- texlive-base
+      #- texlive-common
+      #- texlive-pictures
+      #- texlive-latex-base
+      #- texlive-latex-recommended
+      #- texlive-latex-extra
+      #- texlive-fonts-recommended
+      #- tex-common
+      #- latex-xcolor
+      #- preview-latex-style
+      #- texlive-binaries
+      #- pgf
+      #- liblocale-po-perl
+      #- texlive-lang-ukenglish
+      #- texlive-lang-german
+      #- texlive-lang-french
 
 before_install:
   - openssl aes-256-cbc
