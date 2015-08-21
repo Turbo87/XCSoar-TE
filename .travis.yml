@@ -65,6 +65,7 @@ addons:
 
       # Manual
       - texlive
+      - texlive-common
       - texlive-latex-extra
       - latex-xcolor
       - pgf
