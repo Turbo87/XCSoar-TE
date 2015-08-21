@@ -2,6 +2,23 @@ sudo: false
 
 language: cpp
 
+env:
+  global:
+    - secure: QXDgJN/ksHCyNXDcHjQ91FoBmJ4ECnaWHaB5eCfQ6yhVoop3jAXsMGZsY1cNLgahnTNgvEvOhZO8d0ri8ox80wKz9lASxZgRVPzB2jh2WS4k598epnvXA+MQcK+TTuEMYCwZdv/D8/Uj1o79KSnkQ4AlPcGh0Wha3nveoKN9PwI=
+    - ANDROID_API_LEVEL=22
+    - ANDROID_SDK_VERSION=24.0.2
+    - ANDROID_NDK_VERSION=10e
+    - ANDROID_BUILD_TOOLS_VERSION=20.0.0
+    - ANDROID_KEYSTORE=xcsoar-release.keystore
+    - ANDROID_KEY_ALIAS=xcsoar-release
+
+  matrix:
+    - TARGET=ANDROID
+    - TARGET=UNIX
+    #- TARGET=PC
+    #- TARGET=WIN64
+    - TARGET=MANUAL
+
 addons:
   apt:
     sources:
@@ -54,23 +71,6 @@ addons:
       - texlive-lang-ukenglish
       - texlive-lang-german
       - texlive-lang-french
-
-env:
-  global:
-    - secure: QXDgJN/ksHCyNXDcHjQ91FoBmJ4ECnaWHaB5eCfQ6yhVoop3jAXsMGZsY1cNLgahnTNgvEvOhZO8d0ri8ox80wKz9lASxZgRVPzB2jh2WS4k598epnvXA+MQcK+TTuEMYCwZdv/D8/Uj1o79KSnkQ4AlPcGh0Wha3nveoKN9PwI=
-    - ANDROID_API_LEVEL=22
-    - ANDROID_SDK_VERSION=24.0.2
-    - ANDROID_NDK_VERSION=10e
-    - ANDROID_BUILD_TOOLS_VERSION=20.0.0
-    - ANDROID_KEYSTORE=xcsoar-release.keystore
-    - ANDROID_KEY_ALIAS=xcsoar-release
-
-  matrix:
-    - TARGET=ANDROID
-    - TARGET=UNIX
-    #- TARGET=PC
-    #- TARGET=WIN64
-    - TARGET=MANUAL
 
 before_install:
   - openssl aes-256-cbc
