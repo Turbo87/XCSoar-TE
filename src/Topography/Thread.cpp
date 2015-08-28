@@ -39,6 +39,8 @@ TopographyThread::~TopographyThread()
 void
 TopographyThread::Trigger(const WindowProjection &_projection)
 {
+  assert(_projection.IsValid());
+
   const GeoBounds new_bounds = _projection.GetScreenBounds();
   if (last_bounds.IsValid() && last_bounds.IsInside(new_bounds)) {
     /* still inside cache bounds - now check if we crossed a scale
@@ -71,15 +73,13 @@ TopographyThread::Tick()
   while (next_projection.IsValid() && again && !IsStopped()) {
     const WindowProjection projection = next_projection;
 
-    mutex.Unlock();
+    const ScopeUnlock unlock(mutex);
     again = store.ScanVisibility(projection, 1) > 0;
-    mutex.Lock();
   }
 
   /* notify the client that we have updated the topography cache */
   if (callback) {
-    mutex.Unlock();
+    const ScopeUnlock unlock(mutex);
     callback();
-    mutex.Lock();
   }
 }

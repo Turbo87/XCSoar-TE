@@ -146,9 +146,11 @@ IOLoop::HandleReady(File *ready)
 
     const auto handler = ready->handler;
 
-    mutex.Unlock();
-    bool result = ready->handler->OnFileEvent(ready->fd, mask);
-    mutex.Lock();
+    bool result;
+    {
+      const ScopeUnlock unlock(mutex);
+      result = ready->handler->OnFileEvent(ready->fd, mask);
+    }
 
     if (!result && ready->mask != 0 && ready->handler == handler) {
       ready->mask = 0;
@@ -162,7 +164,7 @@ IOLoop::HandleReady(File *ready)
   /* clear the "running" flag and wake up threads waiting inside
      LockRemove() */
   running = false;
-  cond.Broadcast();
+  cond.broadcast();
 }
 
 void
@@ -173,9 +175,8 @@ IOLoop::Wait(int timeout_ms)
     Update();
   }
 
-  mutex.Unlock();
+  const ScopeUnlock unlock(mutex);
   poll.Wait(timeout_ms);
-  mutex.Lock();
 }
 
 void

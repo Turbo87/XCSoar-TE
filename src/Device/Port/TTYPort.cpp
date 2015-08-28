@@ -28,10 +28,6 @@ Copyright_License {
 #include "IO/Async/GlobalIOThread.hpp"
 #include "Util/StringAPI.hpp"
 
-#include <time.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/poll.h>
 #include <termios.h>
 
 #include <assert.h>
@@ -67,7 +63,7 @@ TTYPort::Drain()
 bool
 TTYPort::Open(const TCHAR *path, unsigned _baud_rate)
 {
-  if (IsAndroid() && StringIsEqual(path, _T("/dev/ttyUSB0")) == 0)
+  if (IsAndroid() && StringIsEqual(path, _T("/dev/ttyUSB0")))
     /* attempt to give the XCSoar process permissions to access the
        USB serial adapter; this is mostly relevant to the Nook */
     system("su -c 'chmod 666 /dev/ttyUSB0'");

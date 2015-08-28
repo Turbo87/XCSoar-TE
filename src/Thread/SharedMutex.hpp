@@ -21,37 +21,11 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_SOCKET_THREAD_HPP
-#define XCSOAR_SOCKET_THREAD_HPP
+#ifndef XCSOAR_THREAD_SHARED_MUTEX_HXX
+#define XCSOAR_THREAD_SHARED_MUTEX_HXX
 
-#include "Thread/StoppableThread.hpp"
-#include "Net/SocketDescriptor.hpp"
+#include "FastSharedMutex.hxx"
 
-#include <assert.h>
-
-class SocketEventHandler;
-
-/**
- * An adapter between a #SocketDescriptor and a #SocketEventHandler.
- */
-class SocketThread : public StoppableThread {
-  SocketDescriptor socket;
-  SocketEventHandler &handler;
-
-public:
-  SocketThread(SocketEventHandler &_handler)
-    :StoppableThread("SocketThread"), handler(_handler) {}
-
-  bool Start(SocketDescriptor _socket) {
-    assert(_socket.IsDefined());
-
-    socket = _socket;
-    return StoppableThread::Start();
-  }
-
-protected:
-  /* virtual methods from class Thread */
-  void Run() override;
-};
+using SharedMutex = FastSharedMutex;
 
 #endif

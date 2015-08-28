@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2009-2015 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,40 +27,60 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_THREAD_CRITICAL_SECTION_HXX
-#define XCSOAR_THREAD_CRITICAL_SECTION_HXX
+#ifndef THREAD_POSIX_SHARED_MUTEX_HXX
+#define THREAD_POSIX_SHARED_MUTEX_HXX
 
-#include <windows.h>
+#include <pthread.h>
 
 /**
- * Low-level wrapper for a CRITICAL_SECTION.
+ * Low-level wrapper for a pthread_rwlock_t.
  */
-class CriticalSection {
-  CRITICAL_SECTION critical_section;
+class PosixSharedMutex {
+	pthread_rwlock_t rwlock;
 
 public:
-  CriticalSection() {
-    ::InitializeCriticalSection(&critical_section);
-  }
+#ifdef __GLIBC__
+	/* optimized constexpr constructor for pthread implementations
+	   that support it */
+	constexpr PosixSharedMutex():rwlock(PTHREAD_RWLOCK_INITIALIZER) {}
+#else
+	/* slow fallback for pthread implementations that are not
+	   compatible with "constexpr" */
+	PosixSharedMutex() {
+		pthread_rwlock_init(&rwlock, nullptr);
+	}
 
-  ~CriticalSection() {
-    ::DeleteCriticalSection(&critical_section);
-  }
+	~PosixSharedMutex() {
+		pthread_rwlock_destroy(&rwlock);
+	}
+#endif
 
-  CriticalSection(const CriticalSection &other) = delete;
-  CriticalSection &operator=(const CriticalSection &other) = delete;
+	PosixSharedMutex(const PosixSharedMutex &other) = delete;
+	PosixSharedMutex &operator=(const PosixSharedMutex &other) = delete;
 
-  void Lock() {
-    ::EnterCriticalSection(&critical_section);
-  };
+	void lock() {
+		pthread_rwlock_wrlock(&rwlock);
+	}
 
-  bool TryLock() {
-    return TryEnterCriticalSection(&critical_section) != 0;
-  };
+	bool try_lock() {
+		return pthread_rwlock_trywrlock(&rwlock) == 0;
+	}
 
-  void Unlock() {
-    LeaveCriticalSection(&critical_section);
-  }
+	void unlock() {
+		pthread_rwlock_unlock(&rwlock);
+	}
+
+	void lock_shared() {
+		pthread_rwlock_rdlock(&rwlock);
+	}
+
+	bool try_lock_shared() {
+		return pthread_rwlock_tryrdlock(&rwlock) == 0;
+	}
+
+	void unlock_shared() {
+		pthread_rwlock_unlock(&rwlock);
+	}
 };
 
 #endif

@@ -36,7 +36,7 @@ Copyright_License {
 
 #ifdef ANDROID
 #include "Thread/Mutex.hpp"
-#include "Thread/Cond.hpp"
+#include "Thread/Cond.hxx"
 
 struct Event;
 
@@ -208,8 +208,6 @@ public:
 #endif
 
 #ifdef USE_GDI
-  static bool find(const TCHAR *cls, const TCHAR *text);
-
   void Create(const TCHAR *cls, const TCHAR *text, PixelSize size,
               TopWindowStyle style=TopWindowStyle());
 #else

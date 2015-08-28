@@ -78,9 +78,11 @@
 #include "jasper/jas_malloc.h"
 #include "jasper/jas_version.h"
 
+#ifdef ENABLE_JASPER_AUX_BUF
 // begin: dima
 //#include "../tiff/geotiff_buffer.h"
 // end: dima
+#endif /* ENABLE_JASPER_AUX_BUF */
 
 #include "jp2_cod.h"
 #include "jp2_dec.h"
@@ -130,8 +132,10 @@ jas_image_t *jp2_decode(jas_stream_t *in, const char *optstr)
 	jas_iccprof_t *iccprof;
 #endif /* ENABLE_JASPER_ICC */
 
+#ifdef ENABLE_JASPER_AUX_BUF
   jas_aux_buffer_t aux_buf;
   aux_buf.id = 0;
+#endif /* ENABLE_JASPER_AUX_BUF */
 
   dec = 0;
 	box = 0;
@@ -178,6 +182,7 @@ jas_image_t *jp2_decode(jas_stream_t *in, const char *optstr)
 		case JP2_BOX_JP2C:
 			found = 1;
 			break;
+#ifdef ENABLE_JASPER_IMAGE
 		case JP2_BOX_IHDR:
 			if (!dec->ihdr) {
 				dec->ihdr = box;
@@ -214,7 +219,9 @@ jas_image_t *jp2_decode(jas_stream_t *in, const char *optstr)
 				box = 0;
 			}
 			break;
+#endif /* ENABLE_JASPER_IMAGE */
     
+#ifdef ENABLE_JASPER_AUX_BUF
     //-------------------------------------------------------
     case JP2_BOX_UUID: // begin: dima
       if( memcmp( box->data.uuid.uuid, msi_uuid2, 16 ) == 0 )
@@ -225,6 +232,7 @@ jas_image_t *jp2_decode(jas_stream_t *in, const char *optstr)
         memcpy( aux_buf.buf, box->data.uuid.data, aux_buf.size );
       }
 			break;
+#endif /* ENABLE_JASPER_AUX_BUF */
     } // end: dima
     //-------------------------------------------------------
 
@@ -237,6 +245,7 @@ jas_image_t *jp2_decode(jas_stream_t *in, const char *optstr)
 		}
 	}
 
+#ifdef ENABLE_JASPER_AUX_BUF
   //-------------------------------------------------------
   // begin: dima
   // print geojpeg2000 if needed
@@ -264,6 +273,7 @@ jas_image_t *jp2_decode(jas_stream_t *in, const char *optstr)
   }
   // end: dima
   //-------------------------------------------------------
+#endif /* ENABLE_JASPER_AUX_BUF */
 
 	if (!found) {
 		jas_eprintf("error: no code stream found\n");
@@ -484,12 +494,14 @@ fprintf(stderr, "no of components is %d\n", jas_image_numcmpts(dec->image));
 
 	/* Prevent the image from being destroyed later. */
 
+#ifdef ENABLE_JASPER_AUX_BUF
   //dima
   if (aux_buf.id == -1)
   {
     dec->image->aux_buf = aux_buf;
     aux_buf.buf = 0;
   }
+#endif /* ENABLE_JASPER_AUX_BUF */
 
 	image = dec->image;
 	dec->image = 0;
@@ -500,9 +512,6 @@ fprintf(stderr, "no of components is %d\n", jas_image_numcmpts(dec->image));
 #endif /* ENABLE_JASPER_IMAGE */
 
 error:
-	// JMW memory leak fixed
-	if (aux_buf.id == -1)
-		jas_free(aux_buf.buf);
 	if (box) {
 		jp2_box_destroy(box);
 	}
@@ -560,19 +569,24 @@ static jp2_dec_t *jp2_dec_create(void)
 	if (!(dec = jas_malloc(sizeof(jp2_dec_t)))) {
 		return 0;
 	}
+#ifdef ENABLE_JASPER_IMAGE
 	dec->ihdr = 0;
 	dec->bpcc = 0;
 	dec->cdef = 0;
 	dec->pclr = 0;
+#endif /* ENABLE_JASPER_IMAGE */
 	dec->image = 0;
 	dec->chantocmptlut = 0;
+#ifdef ENABLE_JASPER_IMAGE
 	dec->cmap = 0;
 	dec->colr = 0;
+#endif /* ENABLE_JASPER_IMAGE */
 	return dec;
 }
 
 static void jp2_dec_destroy(jp2_dec_t *dec)
 {
+#ifdef ENABLE_JASPER_IMAGE
 	if (dec->ihdr) {
 		jp2_box_destroy(dec->ihdr);
 	}
@@ -585,17 +599,16 @@ static void jp2_dec_destroy(jp2_dec_t *dec)
 	if (dec->pclr) {
 		jp2_box_destroy(dec->pclr);
 	}
-#ifdef ENABLE_JASPER_IMAGE
 	if (dec->image) {
 		jas_image_destroy(dec->image);
 	}
-#endif /* ENABLE_JASPER_IMAGE */
 	if (dec->cmap) {
 		jp2_box_destroy(dec->cmap);
 	}
 	if (dec->colr) {
 		jp2_box_destroy(dec->colr);
 	}
+#endif /* ENABLE_JASPER_IMAGE */
 	if (dec->chantocmptlut) {
 		jas_free(dec->chantocmptlut);
 	}

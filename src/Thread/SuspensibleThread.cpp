@@ -28,19 +28,9 @@ Copyright_License {
 bool
 SuspensibleThread::Start(bool _suspended)
 {
-#ifdef HAVE_POSIX
   stop_received = false;
   suspend_received = _suspended;
   suspended = false;
-#else
-  if (_suspended)
-    suspend_trigger.Signal();
-  else
-    suspend_trigger.Reset();
-  stop_trigger.Reset();
-  command_trigger.Reset();
-  suspended.Reset();
-#endif
 
   return Thread::Start();
 }
@@ -48,15 +38,11 @@ SuspensibleThread::Start(bool _suspended)
 void
 SuspensibleThread::BeginStop()
 {
-#ifdef HAVE_POSIX
-  mutex.Lock();
+  assert(!Thread::IsInside());
+
+  const ScopeLock lock(mutex);
   stop_received = true;
-  command_trigger.Signal();
-  mutex.Unlock();
-#else
-  stop_trigger.Signal();
-  command_trigger.Signal();
-#endif
+  command_trigger.signal();
 }
 
 void
@@ -65,15 +51,9 @@ SuspensibleThread::BeginSuspend()
   assert(!Thread::IsInside());
   assert(Thread::IsDefined());
 
-#ifdef HAVE_POSIX
-  mutex.Lock();
+  const ScopeLock lock(mutex);
   suspend_received = true;
-  command_trigger.Signal();
-  mutex.Unlock();
-#else
-  suspend_trigger.Signal();
-  command_trigger.Signal();
-#endif
+  command_trigger.signal();
 }
 
 void
@@ -82,23 +62,18 @@ SuspensibleThread::WaitUntilSuspended()
   assert(!Thread::IsInside());
   assert(Thread::IsDefined());
 
-#ifdef HAVE_POSIX
-  mutex.Lock();
+  const ScopeLock lock(mutex);
   assert(suspend_received);
 
   while (!suspended)
-    client_trigger.Wait(mutex);
-  mutex.Unlock();
-#else
-  assert(suspend_trigger.Test());
-
-  suspended.Wait();
-#endif
+    client_trigger.wait(mutex);
 }
 
 void
 SuspensibleThread::Suspend()
 {
+  assert(!Thread::IsInside());
+
   BeginSuspend();
   WaitUntilSuspended();
 }
@@ -106,15 +81,11 @@ SuspensibleThread::Suspend()
 void
 SuspensibleThread::Resume()
 {
-#ifdef HAVE_POSIX
-  mutex.Lock();
+  assert(!Thread::IsInside());
+
+  const ScopeLock lock(mutex);
   suspend_received = false;
-  command_trigger.Signal();
-  mutex.Unlock();
-#else
-  suspend_trigger.Reset();
-  command_trigger.Signal();
-#endif
+  command_trigger.signal();
 }
 
 bool
@@ -122,14 +93,8 @@ SuspensibleThread::IsCommandPending()
 {
   assert(Thread::IsInside());
 
-#ifdef HAVE_POSIX
-  mutex.Lock();
-  bool result = stop_received || suspend_received;
-  mutex.Unlock();
-  return result;
-#else
-  return stop_trigger.Test() || suspend_trigger.Test();
-#endif
+  const ScopeLock lock(mutex);
+  return stop_received || suspend_received;
 }
 
 bool
@@ -137,36 +102,19 @@ SuspensibleThread::CheckStoppedOrSuspended()
 {
   assert(Thread::IsInside());
 
-#ifdef HAVE_POSIX
-  mutex.Lock();
+  const ScopeLock lock(mutex);
 
   assert(!suspended);
 
   if (!stop_received && suspend_received) {
     suspended = true;
-    client_trigger.Signal();
+    client_trigger.signal();
     while (!stop_received && suspend_received)
-      command_trigger.Wait(mutex);
+      command_trigger.wait(mutex);
     suspended = false;
   }
 
-  bool stop = stop_received;
-  mutex.Unlock();
-  return stop;
-#else
-  if (stop_trigger.Test())
-    return true;
-
-  if (suspend_trigger.Test()) {
-    suspended.Signal();
-    while (suspend_trigger.Test() && !stop_trigger.Test())
-      command_trigger.WaitAndReset();
-
-    suspended.Reset();
-  }
-
-  return stop_trigger.Test();
-#endif
+  return stop_received;
 }
 
 bool
@@ -174,37 +122,20 @@ SuspensibleThread::WaitForStopped(unsigned timeout_ms)
 {
   assert(Thread::IsInside());
 
-#ifdef HAVE_POSIX
-  mutex.Lock();
+  const ScopeLock lock(mutex);
 
   assert(!suspended);
   suspended = true;
 
   if (!stop_received)
-    command_trigger.Wait(mutex, timeout_ms);
+    command_trigger.timed_wait(mutex, timeout_ms);
 
   if (!stop_received && suspend_received) {
-    client_trigger.Signal();
+    client_trigger.signal();
     while (!stop_received && suspend_received)
-      command_trigger.Wait(mutex);
+      command_trigger.wait(mutex);
   }
 
   suspended = false;
-  bool stop = stop_received;
-  mutex.Unlock();
-  return stop;
-#else
-  if (stop_trigger.Test())
-    return true;
-
-  suspended.Signal();
-
-  command_trigger.WaitAndReset(timeout_ms);
-  while (suspend_trigger.Test() && !stop_trigger.Test())
-    command_trigger.WaitAndReset();
-
-  suspended.Reset();
-
-  return stop_trigger.Test();
-#endif
+  return stop_received;
 }

@@ -69,16 +69,8 @@ StandbyThread::WaitDone()
   assert(!IsInside());
   assert(mutex.IsLockedByCurrent());
 
-  while (alive && IsBusy()) {
-#ifdef HAVE_POSIX
-    cond.Wait(mutex);
-#else
-    done_trigger.Reset();
-    mutex.Unlock();
-    done_trigger.Wait();
-    mutex.Lock();
-#endif
-  }
+  while (alive && IsBusy())
+    cond.wait(mutex);
 }
 
 void
@@ -93,9 +85,8 @@ StandbyThread::WaitStopped()
     return;
 
   /* mutex must be unlocked because Thread::Join() blocks */
-  mutex.Unlock();
+  const ScopeUnlock unlock(mutex);
   Thread::Join();
-  mutex.Lock();
 }
 
 void
@@ -104,7 +95,8 @@ StandbyThread::Run()
   assert(!mutex.IsLockedByCurrent());
   assert(!busy);
 
-  mutex.Lock();
+  const ScopeLock lock(mutex);
+
   alive = true;
 
   while (!stop) {
@@ -112,14 +104,7 @@ StandbyThread::Run()
 
     if (!pending) {
       /* wait for a command */
-#ifdef HAVE_POSIX
-      cond.Wait(mutex);
-#else
-      command_trigger.Reset();
-      mutex.Unlock();
-      command_trigger.Wait();
-      mutex.Lock();
-#endif
+      cond.wait(mutex);
     }
 
     assert(!busy);
@@ -136,6 +121,5 @@ StandbyThread::Run()
 
   alive = false;
   TriggerDone();
-  mutex.Unlock();
 }
 

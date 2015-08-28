@@ -48,11 +48,7 @@ BufferedPort::BeginClose()
 {
   ScopeLock protect(mutex);
   closing = true;
-#ifdef HAVE_POSIX
-  cond.Signal();
-#else
-  data_trigger.Signal();
-#endif
+  cond.signal();
 }
 
 void
@@ -73,12 +69,7 @@ BufferedPort::StopRxThread()
   ScopeLock protect(mutex);
   running = false;
 
-#ifdef HAVE_POSIX
-  cond.Broadcast();
-#else
-  data_trigger.Signal();
-#endif
-
+  cond.broadcast();
   return true;
 }
 
@@ -91,12 +82,7 @@ BufferedPort::StartRxThread()
     buffer.Clear();
   }
 
-#ifdef HAVE_POSIX
-  cond.Broadcast();
-#else
-  data_trigger.Signal();
-#endif
-
+  cond.broadcast();
   return true;
 }
 
@@ -132,14 +118,7 @@ BufferedPort::WaitRead(unsigned timeout_ms)
     if (remaining_ms <= 0)
       return WaitResult::TIMEOUT;
 
-#ifdef HAVE_POSIX
-    cond.Wait(mutex, remaining_ms);
-#else
-    mutex.Unlock();
-    data_trigger.Wait(remaining_ms);
-    data_trigger.Reset();
-    mutex.Lock();
-#endif
+    cond.timed_wait(mutex, remaining_ms);
   }
 
   return WaitResult::READY;
@@ -167,10 +146,6 @@ BufferedPort::DataReceived(const void *data, size_t length)
     std::copy_n(p, nbytes, r.data);
     buffer.Append(nbytes);
 
-#ifdef HAVE_POSIX
-    cond.Broadcast();
-#else
-    data_trigger.Signal();
-#endif
+    cond.broadcast();
   }
 }

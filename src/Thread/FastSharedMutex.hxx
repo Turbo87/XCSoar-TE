@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2009-2015 Max Kellermann <max@duempel.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,42 +27,51 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef XCSOAR_THREAD_POSIX_MUTEX_HXX
-#define XCSOAR_THREAD_POSIX_MUTEX_HXX
+#ifndef XCSOAR_THREAD_FAST_SHARED_MUTEX_HXX
+#define XCSOAR_THREAD_FAST_SHARED_MUTEX_HXX
 
-#include <pthread.h>
+#ifdef WIN32
 
-/**
- * Low-level wrapper for a pthread_mutex_t.
- */
-class PosixMutex {
-  pthread_mutex_t mutex;
+#include "WindowsSharedMutex.hxx"
+using FastSharedMutex = WindowsSharedMutex;
 
-  friend class Cond;
+#else
+
+#include "PosixSharedMutex.hxx"
+using FastSharedMutex = PosixSharedMutex;
+
+#endif
+
+class ScopeExclusiveLock {
+  FastSharedMutex &mutex;
 
 public:
-  /**
-   * Create a "fast" mutex.
-   */
-#if !defined(__BIONIC__) || !defined(__clang__)
-  constexpr
-#endif
-  PosixMutex():mutex(PTHREAD_MUTEX_INITIALIZER) {}
+  ScopeExclusiveLock(FastSharedMutex &_mutex):mutex(_mutex) {
+    mutex.lock();
+  };
 
-  PosixMutex(const PosixMutex &other) = delete;
-  PosixMutex &operator=(const PosixMutex &other) = delete;
-
-  void Lock() {
-    pthread_mutex_lock(&mutex);
+  ~ScopeExclusiveLock() {
+    mutex.unlock();
   }
 
-  bool TryLock() {
-    return pthread_mutex_trylock(&mutex) == 0;
+  ScopeExclusiveLock(const ScopeExclusiveLock &other) = delete;
+  ScopeExclusiveLock &operator=(const ScopeExclusiveLock &other) = delete;
+};
+
+class ScopeSharedLock {
+  FastSharedMutex &mutex;
+
+public:
+  ScopeSharedLock(FastSharedMutex &_mutex):mutex(_mutex) {
+    mutex.lock_shared();
+  };
+
+  ~ScopeSharedLock() {
+    mutex.unlock_shared();
   }
 
-  void Unlock() {
-    pthread_mutex_unlock(&mutex);
-  }
+  ScopeSharedLock(const ScopeSharedLock &other) = delete;
+  ScopeSharedLock &operator=(const ScopeSharedLock &other) = delete;
 };
 
 #endif
