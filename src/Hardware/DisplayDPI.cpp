@@ -47,6 +47,10 @@ Copyright_License {
 #undef Display
 #endif
 
+#ifdef KOBO
+#include "Kobo/Model.hpp"
+#endif
+
 #ifdef __APPLE__
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
@@ -78,8 +82,17 @@ static unsigned
 GetDPI()
 {
 #ifdef KOBO
-  /* Kobo Mini 200 dpi; Kobo Glo 212 dpi (according to Wikipedia) */
-  return 200;
+  switch (DetectKoboModel()) {
+  case KoboModel::GLO_HD:
+    return 300;
+
+  case KoboModel::TOUCH2:
+    return 167;
+
+  default:
+    /* Kobo Mini 200 dpi; Kobo Glo 212 dpi (according to Wikipedia) */
+    return 200;
+  }
 #elif defined(__APPLE__)
 #if TARGET_OS_IPHONE
   UIScreen *screen = [UIScreen mainScreen];

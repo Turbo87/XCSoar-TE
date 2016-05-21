@@ -231,8 +231,8 @@ thirdparty_libs = [
     ),
 
     FreeTypeProject(
-        'http://download.savannah.gnu.org/releases/freetype/freetype-2.6.tar.bz2',
-        '5682890cb0267f6671dd3de6eabd3e69',
+        'http://download.savannah.gnu.org/releases/freetype/freetype-2.6.3.tar.bz2',
+        '0037b25a8c090bc8a1218e867b32beb1',
         'lib/libfreetype.a',
         [
             '--disable-shared', '--enable-static',
@@ -242,8 +242,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'http://curl.haxx.se/download/curl-7.44.0.tar.lzma',
-        '2f924c80bb7124dff1b39f54ffda3781',
+        'http://curl.haxx.se/download/curl-7.47.1.tar.lzma',
+        '8242c073d8e5fc1c2a1aa946f1e903a4',
         'lib/libcurl.a',
         [
             '--disable-shared', '--enable-static',
@@ -265,8 +265,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.18.tar.xz',
-        '6a57c8e0f5469b9c9949a4b43d57b3a1',
+        'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.21.tar.xz',
+        '3bacb4728f6694a64ad9052769d6a4ce',
         'lib/libpng.a',
         [
             '--disable-shared', '--enable-static',
@@ -275,8 +275,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'http://netcologne.dl.sourceforge.net/project/libjpeg-turbo/1.4.1/libjpeg-turbo-1.4.1.tar.gz',
-        'b1f6b84859a16b8ebdcda951fa07c3f2',
+        'http://downloads.sourceforge.net/project/libjpeg-turbo/1.4.2/libjpeg-turbo-1.4.2.tar.gz',
+        '86b0d5f7507c2e6c21c00219162c3c44',
         'lib/libjpeg.a',
         [
             '--disable-shared', '--enable-static',

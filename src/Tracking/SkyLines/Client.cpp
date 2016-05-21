@@ -154,6 +154,9 @@ inline void
 SkyLinesTracking::Client::OnTrafficReceived(const TrafficResponsePacket &packet,
                                             size_t length)
 {
+  if (length < sizeof(packet))
+    return;
+
   const unsigned n = packet.traffic_count;
   const TrafficResponsePacket::Traffic *traffic =
     (const TrafficResponsePacket::Traffic *)(&packet + 1);
@@ -166,7 +169,7 @@ SkyLinesTracking::Client::OnTrafficReceived(const TrafficResponsePacket &packet,
     handler->OnTraffic(FromBE32(traffic->pilot_id),
                        FromBE32(traffic->time),
                        ImportGeoPoint(traffic->location),
-                       FromBE16(traffic->altitude));
+                       (int16_t)FromBE16(traffic->altitude));
 }
 
 inline void

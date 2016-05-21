@@ -28,6 +28,7 @@
 
 #include "Node.hpp"
 #include "IO/TextWriter.hpp"
+#include "Util/CharUtil.hpp"
 #include "Util/StringUtil.hpp"
 
 #include <assert.h>
@@ -35,31 +36,38 @@
 #define INDENTCHAR '\t'
 
 static void
-WriteXMLString(TextWriter &writer, const TCHAR *source)
+WriteXMLChar(TextWriter &writer, TCHAR ch)
 {
-  while (*source) {
-    switch (*source) {
-    case '<':
-      writer.Write("&lt;");
-      break;
-    case '>':
-      writer.Write("&gt;");
-      break;
-    case '&':
-      writer.Write("&amp;");
-      break;
-    case '\'':
-      writer.Write("&apos;");
-      break;
-    case '"':
-      writer.Write("&quot;");
-      break;
-    default:
-      writer.Write(*source);
-      break;
-    }
-    source++;
+  switch (ch) {
+  case '<':
+    writer.Write("&lt;");
+    break;
+  case '>':
+    writer.Write("&gt;");
+    break;
+  case '&':
+    writer.Write("&amp;");
+    break;
+  case '\'':
+    writer.Write("&apos;");
+    break;
+  case '"':
+    writer.Write("&quot;");
+    break;
+  default:
+    if (IsWhitespaceOrNull(ch))
+      ch = ' ';
+
+    writer.Write(ch);
+    break;
   }
+}
+
+static void
+WriteXMLString(TextWriter &writer, const tstring &source)
+{
+  for (auto ch : source)
+    WriteXMLChar(writer, ch);
 }
 
 static void
@@ -93,7 +101,7 @@ XMLNode::Serialise(const Data &data, TextWriter &writer, int format)
       writer.Write(pAttr->name.c_str());
       writer.Write('=');
       writer.Write('"');
-      WriteXMLString(writer, pAttr->value.c_str());
+      WriteXMLString(writer, pAttr->value);
       writer.Write('"');
       pAttr++;
     }
@@ -131,10 +139,10 @@ XMLNode::Serialise(const Data &data, TextWriter &writer, int format)
   if (!data.text.empty()) {
     if (format != -1) {
       WriteIndent(writer, format + 1);
-      WriteXMLString(writer, data.text.c_str());
+      WriteXMLString(writer, data.text);
       writer.NewLine();
     } else {
-      WriteXMLString(writer, data.text.c_str());
+      WriteXMLString(writer, data.text);
     }
   }
 
