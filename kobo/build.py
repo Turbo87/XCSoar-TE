@@ -242,8 +242,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'http://curl.haxx.se/download/curl-7.47.1.tar.lzma',
-        '8242c073d8e5fc1c2a1aa946f1e903a4',
+        'http://curl.haxx.se/download/curl-7.49.1.tar.lzma',
+        'ae5e5e395da413d1fa0864e1d0a3fa57',
         'lib/libcurl.a',
         [
             '--disable-shared', '--enable-static',
@@ -265,8 +265,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.21.tar.xz',
-        '3bacb4728f6694a64ad9052769d6a4ce',
+        'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.22.tar.xz',
+        'f4ca54a3d945b8678fafed168c503f3b',
         'lib/libpng.a',
         [
             '--disable-shared', '--enable-static',
@@ -275,8 +275,8 @@ thirdparty_libs = [
     ),
 
     AutotoolsProject(
-        'http://downloads.sourceforge.net/project/libjpeg-turbo/1.4.2/libjpeg-turbo-1.4.2.tar.gz',
-        '86b0d5f7507c2e6c21c00219162c3c44',
+        'http://downloads.sourceforge.net/project/libjpeg-turbo/1.5.0/libjpeg-turbo-1.5.0.tar.gz',
+        '3fc5d9b6a8bce96161659ae7a9939257',
         'lib/libjpeg.a',
         [
             '--disable-shared', '--enable-static',
