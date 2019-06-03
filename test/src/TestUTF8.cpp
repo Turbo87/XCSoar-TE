@@ -107,14 +107,54 @@ MyValidateUTF8(const char *p)
   }
 }
 
-#include <stdio.h>
+#ifndef _UNICODE
+
+static constexpr struct {
+  const char *src;
+  size_t truncate, dest_size;
+  const char *expected_result;
+} truncate_string_tests[] = {
+  { "", 100, 100, "" },
+  { "a", 100, 100, "a" },
+  { "abc", 100, 100, "abc" },
+  { "abc", 100, 4, "abc" },
+  { "abc", 100, 3, "ab" },
+  { "abc", 100, 2, "a" },
+  { "abc", 100, 1, "" },
+  { "foo\xc3\xbc", 100, 100, "foo\xc3\xbc", },
+  { "foo\xc3\xbc", 4, 100, "foo\xc3\xbc", },
+  { "foo\xc3\xbc", 3, 100, "foo", },
+  { "foo\xc3\xbc", 100, 6, "foo\xc3\xbc", },
+  { "foo\xc3\xbc", 100, 5, "foo", },
+  { "foo\xc3\xbc", 100, 4, "foo", },
+  { "foo\xc3\xbc", 100, 3, "fo", },
+  { "foo\xe7\x9b\xae", 4, 7, "foo\xe7\x9b\xae", },
+  { "foo\xe7\x9b\xae", 3, 7, "foo", },
+  { "foo\xe7\x9b\xae", 4, 6, "foo", },
+};
+
+static void
+TestTruncateString()
+{
+  for (const auto &t : truncate_string_tests) {
+    char buffer[1024];
+    CopyTruncateStringUTF8(buffer, t.dest_size, t.src, t.truncate);
+    ok1(strcmp(buffer, t.expected_result) == 0);
+  }
+}
+
+#endif
+
 int main(int argc, char **argv)
 {
   plan_tests(2 * ARRAY_SIZE(valid) +
              2 * ARRAY_SIZE(invalid) +
              2 * ARRAY_SIZE(length) +
-             ARRAY_SIZE(crop) +
+             4 * ARRAY_SIZE(crop) +
              ARRAY_SIZE(latin1_chars) +
+#ifndef _UNICODE
+             ARRAY_SIZE(truncate_string_tests) +
+#endif
              9 + 27);
 
   for (auto i : valid) {
@@ -141,9 +181,16 @@ int main(int argc, char **argv)
 
   for (auto &c : crop) {
     strcpy(buffer, c.input);
-    CropIncompleteUTF8(buffer);
+    auto *end = CropIncompleteUTF8(buffer);
     ok1(strcmp(c.output, buffer) == 0);
+    ok1(end != nullptr);
+    ok1(*end == '\0');
+    ok1(end == buffer + strlen(buffer));
   }
+
+#ifndef _UNICODE
+  TestTruncateString();
+#endif
 
   {
     const char *p = "foo\xe7\x9b\xae";

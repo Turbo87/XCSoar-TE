@@ -137,7 +137,8 @@ class WaypointDetailsWidget final
   const DialogLook &look;
 
   const Waypoint &waypoint;
-  const bool allow_navigation;
+
+  ProtectedTaskManager *const task_manager;
 
   Button goto_button;
   Button magnify_button, shrink_button;
@@ -165,14 +166,13 @@ class WaypointDetailsWidget final
 
 public:
   WaypointDetailsWidget(WidgetDialog &_dialog, const Waypoint &_waypoint,
-                        bool _allow_navigation,
-                        ProtectedTaskManager *_task_manager)
+                        ProtectedTaskManager *_task_manager, bool allow_edit)
     :dialog(_dialog), look(dialog.GetLook()),
      waypoint(_waypoint),
-     allow_navigation(_allow_navigation),
+     task_manager(_task_manager),
      page(0), last_page(0),
      info_widget(look, _waypoint),
-     commands_widget(look, &_dialog, _waypoint, _task_manager),
+     commands_widget(look, &_dialog, _waypoint, task_manager, allow_edit),
 #ifdef HAVE_RUN_FILE
      file_list(look), file_list_handler(_waypoint),
 #endif
@@ -205,7 +205,7 @@ public:
   void Show(const PixelRect &rc) override {
     const Layout layout(rc, waypoint);
 
-    if (allow_navigation)
+    if (task_manager != nullptr)
       goto_button.MoveAndShow(layout.goto_button);
 
     if (!images.empty()) {
@@ -213,10 +213,8 @@ public:
       shrink_button.MoveAndShow(layout.shrink_button);
     }
 
-    if (allow_navigation) {
-      previous_button.MoveAndShow(layout.previous_button);
-      next_button.MoveAndShow(layout.next_button);
-    }
+    previous_button.MoveAndShow(layout.previous_button);
+    next_button.MoveAndShow(layout.next_button);
 
     close_button.MoveAndShow(layout.close_button);
 
@@ -237,7 +235,7 @@ public:
   }
 
   void Hide() override {
-    if (allow_navigation)
+    if (task_manager != nullptr)
       goto_button.Hide();
 
     if (!images.empty()) {
@@ -245,10 +243,8 @@ public:
       shrink_button.Hide();
     }
 
-    if (allow_navigation) {
-      previous_button.Hide();
-      next_button.Hide();
-    }
+    previous_button.Hide();
+    next_button.Hide();
 
     close_button.Hide();
 
@@ -263,7 +259,7 @@ public:
   void Move(const PixelRect &rc) override {
     const Layout layout(rc, waypoint);
 
-    if (allow_navigation)
+    if (task_manager != nullptr)
       goto_button.Move(layout.goto_button);
 
     if (!images.empty()) {
@@ -271,10 +267,8 @@ public:
       shrink_button.Move(layout.shrink_button);
     }
 
-    if (allow_navigation) {
-      previous_button.Move(layout.previous_button);
-      next_button.Move(layout.next_button);
-    }
+    previous_button.Move(layout.previous_button);
+    next_button.Move(layout.next_button);
 
     close_button.Move(layout.close_button);
 
@@ -292,9 +286,11 @@ public:
   }
 
   bool SetFocus() override {
-    if (allow_navigation)
+    if (task_manager != nullptr) {
       goto_button.SetFocus();
-    return true;
+      return true;
+    } else
+      return false;
   }
 
   bool KeyPress(unsigned key_code) override;
@@ -433,7 +429,7 @@ WaypointDetailsWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
   button_style.Hide();
   button_style.TabStop();
 
-  if (allow_navigation)
+  if (task_manager != nullptr)
     goto_button.Create(parent, look.button, _("GoTo"), layout.goto_button,
                        button_style, *this, GOTO);
 
@@ -446,14 +442,12 @@ WaypointDetailsWidget::Prepare(ContainerWindow &parent, const PixelRect &rc)
                          *this, SHRINK);
   }
 
-  if (allow_navigation) {
-    previous_button.Create(parent, layout.previous_button, button_style,
-                           new SymbolButtonRenderer(look.button, _T("<")),
-                           *this, PREVIOUS);
-    next_button.Create(parent, layout.next_button, button_style,
-                       new SymbolButtonRenderer(look.button, _T(">")),
-                       *this, NEXT);
-  }
+  previous_button.Create(parent, layout.previous_button, button_style,
+                         new SymbolButtonRenderer(look.button, _T("<")),
+                         *this, PREVIOUS);
+  next_button.Create(parent, layout.next_button, button_style,
+                     new SymbolButtonRenderer(look.button, _T(">")),
+                     *this, NEXT);
 
   close_button.Create(parent, look.button, _("Close"), layout.close_button,
                       button_style, dialog, mrOK);
@@ -595,10 +589,10 @@ WaypointDetailsWidget::KeyPress(unsigned key_code)
 void
 WaypointDetailsWidget::OnGotoClicked()
 {
-  if (protected_task_manager == nullptr)
+  if (task_manager == nullptr)
     return;
 
-  protected_task_manager->DoGoto(waypoint);
+  task_manager->DoGoto(waypoint);
   dialog.SetModalResult(mrOK);
 
   CommonInterface::main_window->FullRedraw();
@@ -695,14 +689,15 @@ UpdateCaption(WndForm *form, const Waypoint *waypoint)
 
 void 
 dlgWaypointDetailsShowModal(const Waypoint &_waypoint,
-                            bool allow_navigation)
+                            bool allow_navigation, bool allow_edit)
 {
   LastUsedWaypoints::Add(_waypoint);
 
   const DialogLook &look = UIGlobals::GetDialogLook();
   WidgetDialog dialog(look);
-  WaypointDetailsWidget widget(dialog, _waypoint, allow_navigation,
-                               protected_task_manager);
+  WaypointDetailsWidget widget(dialog, _waypoint,
+                               allow_navigation ? protected_task_manager : nullptr,
+                               allow_edit);
   dialog.CreateFull(UIGlobals::GetMainWindow(), _T(""), &widget);
 
   UpdateCaption(&dialog, &_waypoint);

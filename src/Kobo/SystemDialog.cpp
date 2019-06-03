@@ -70,13 +70,27 @@ inline void
 SystemWidget::SwitchKernel()
 {
 #ifdef KOBO
-  if (DetectKoboModel() != KoboModel::MINI &&
-      ShowMessageBox(_T("This feature was designed for the Kobo Mini, but this is not one.  Use at your own risk.  Continue?"),
+  KoboModel model = DetectKoboModel();
+  if (model != KoboModel::MINI &&
+      model != KoboModel::TOUCH2 &&
+      model != KoboModel::GLO_HD &&
+      ShowMessageBox(_T("This feature was designed for the Kobo Mini, Touch 2.0 and Glo HD, but this is not one.  Use at your own risk.  Continue?"),
                      _T("USB-OTG"), MB_YESNO) != IDYES)
     return;
 
-  const char *otg_kernel_image = "/opt/xcsoar/lib/kernel/uImage.otg";
-  const char *kobo_kernel_image = "/opt/xcsoar/lib/kernel/uImage.kobo";
+  const char *otg_kernel_image, *kobo_kernel_image;
+  switch (model)
+  {
+  case KoboModel::GLO_HD:
+  case KoboModel::TOUCH2:
+    otg_kernel_image = "/opt/xcsoar/lib/kernel/uImage.glohd.otg";
+    kobo_kernel_image = "/opt/xcsoar/lib/kernel/uImage.glohd";
+    break;
+
+  default:
+    otg_kernel_image = "/opt/xcsoar/lib/kernel/uImage.otg";
+    kobo_kernel_image = "/opt/xcsoar/lib/kernel/uImage.kobo";
+  }
 
   const char *kernel_image = IsKoboOTGKernel()
     ? kobo_kernel_image

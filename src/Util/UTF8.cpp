@@ -383,7 +383,7 @@ FindLeading(gcc_unused char *const begin, char *i)
   return i;
 }
 
-void
+char *
 CropIncompleteUTF8(char *const p)
 {
 #if !CLANG_CHECK_VERSION(3,6)
@@ -393,15 +393,18 @@ CropIncompleteUTF8(char *const p)
 
   char *const end = FindTerminator(p);
   if (end == p)
-    return;
+    return end;
 
   char *const last = end - 1;
   if (!IsContinuation(*last)) {
-    if (!IsASCII(*last))
+    char *result = end;
+    if (!IsASCII(*last)) {
       *last = 0;
+      result = last;
+    }
 
     assert(ValidateUTF8(p));
-    return;
+    return result;
   }
 
   char *const leading = FindLeading(p, last);
@@ -428,12 +431,57 @@ CropIncompleteUTF8(char *const p)
 
   assert(n_continuations <= expected_continuations);
 
-  if (n_continuations < expected_continuations)
+  char *result = end;
+
+  if (n_continuations < expected_continuations) {
     /* this continuation is incomplete: truncate here */
     *leading = 0;
+    result = leading;
+  }
 
   /* now the string must be completely valid */
   assert(ValidateUTF8(p));
+
+  return result;
+}
+
+size_t
+TruncateStringUTF8(const char *p, size_t max_chars, size_t max_bytes)
+{
+#if !CLANG_CHECK_VERSION(3,6)
+  /* disabled on clang due to -Wtautological-pointer-compare */
+  assert(p != nullptr);
+#endif
+  assert(ValidateUTF8(p));
+
+  size_t result = 0;
+  while (max_chars > 0 && *p != '\0') {
+    size_t sequence = SequenceLengthUTF8(*p);
+    if (sequence > max_bytes)
+      break;
+
+    result += sequence;
+    max_bytes -= sequence;
+    p += sequence;
+    --max_chars;
+  }
+
+  return result;
+}
+
+char *
+CopyTruncateStringUTF8(char *dest, size_t dest_size,
+                       const char *src, size_t truncate)
+{
+  assert(dest != nullptr);
+  assert(dest_size > 0);
+  assert(src != nullptr);
+  assert(ValidateUTF8(src));
+
+  size_t copy = TruncateStringUTF8(src, truncate, dest_size - 1);
+  auto *p = std::copy_n(src, copy, dest);
+  *p = '\0';
+  return p;
 }
 
 std::pair<unsigned, const char *>
