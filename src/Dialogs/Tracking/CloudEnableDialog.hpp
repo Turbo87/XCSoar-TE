@@ -21,36 +21,14 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_TRACKING_SKYLINES_HANDLER_HPP
-#define XCSOAR_TRACKING_SKYLINES_HANDLER_HPP
+#ifndef CLOUD_ENABLE_DIALOG_HPP
+#define CLOUD_ENABLE_DIALOG_HPP
 
-#include "Features.hpp"
-
-#ifdef HAVE_SKYLINES_TRACKING_HANDLER
-
-#include <stdint.h>
-#include <tchar.h>
-
-struct GeoPoint;
-struct AGeoPoint;
-
-namespace SkyLinesTracking {
-
-class Handler {
-public:
-  virtual void OnAck(unsigned id) {}
-  virtual void OnTraffic(uint32_t pilot_id, unsigned time_of_day_ms,
-                         const ::GeoPoint &location, int altitude) {}
-  virtual void OnUserName(uint32_t user_id, const TCHAR *name) {}
-  virtual void OnWave(unsigned time_of_day_ms,
-                      const ::GeoPoint &a, const ::GeoPoint &b) {}
-  virtual void OnThermal(unsigned time_of_day_ms,
-                         const AGeoPoint &bottom, const AGeoPoint &top,
-                         double lift) {}
-};
-
-} /* namespace SkyLinesTracking */
-
-#endif
+/**
+ * If the "XCSoar Cloud" has not been explicitly enabled or disabled,
+ * ask the user.
+ */
+void
+CloudEnableDialog();
 
 #endif

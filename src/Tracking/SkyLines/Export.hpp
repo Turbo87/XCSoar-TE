@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2015 The XCSoar Project
+  Copyright (C) 2000-2016 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -21,22 +21,28 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_ANDROID_LOGCAT_HPP
-#define XCSOAR_ANDROID_LOGCAT_HPP
+#ifndef XCSOAR_TRACKING_SKYLINES_EXPORT_HPP
+#define XCSOAR_TRACKING_SKYLINES_EXPORT_HPP
 
-class IOThread;
+#include "Protocol.hpp"
+#include "Geo/GeoPoint.hpp"
+#include "OS/ByteOrder.hpp"
 
-/**
- * Check the logcat for a XCSoar crash.  Save the logcat in
- * XCSoarData/crash/.
- */
-void
-CheckLogCat(IOThread &io_thread);
+namespace SkyLinesTracking {
 
-void
-StopLogCat();
+constexpr int32_t
+ExportAngle(Angle src)
+{
+  return ToBE32(int(src.Degrees() * 1000000));
+}
 
-void
-OnLogCatFinished(bool crash_found);
+inline GeoPoint
+ExportGeoPoint(::GeoPoint src)
+{
+    src.Normalize();
+    return { ExportAngle(src.latitude), ExportAngle(src.longitude) };
+}
+
+} /* namespace SkyLinesTracking */
 
 #endif

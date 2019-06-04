@@ -131,6 +131,8 @@ DIALOG_SOURCES = \
 	$(SRC)/Dialogs/Task/TargetDialog.cpp \
 	$(SRC)/Dialogs/Task/AlternatesListDialog.cpp \
 	\
+	$(SRC)/Dialogs/Tracking/CloudEnableDialog.cpp \
+	\
 	$(SRC)/Dialogs/NumberEntry.cpp \
 	$(SRC)/Dialogs/TextEntry.cpp \
 	$(SRC)/Dialogs/KnobTextEntry.cpp \
@@ -710,7 +712,6 @@ XCSOAR_SOURCES += \
 	$(SRC)/Android/DownloadManager.cpp \
 	$(SRC)/Android/Vibrator.cpp \
 	$(SRC)/Android/Context.cpp \
-	$(SRC)/Android/LogCat.cpp \
 	$(SRC)/Android/NativeBMP085Listener.cpp \
 	$(SRC)/Android/BMP085Device.cpp \
 	$(SRC)/Android/NativeI2CbaroListener.cpp \
@@ -761,6 +762,7 @@ endif
 XCSOAR_SOURCES += \
 	$(SRC)/Tracking/SkyLines/Client.cpp \
 	$(SRC)/Tracking/SkyLines/Assemble.cpp \
+	$(SRC)/Tracking/SkyLines/Key.cpp \
 	$(SRC)/Tracking/SkyLines/Glue.cpp \
 	$(SRC)/Tracking/TrackingGlue.cpp
 

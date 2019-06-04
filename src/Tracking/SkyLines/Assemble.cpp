@@ -22,6 +22,7 @@ Copyright_License {
 */
 
 #include "Assemble.hpp"
+#include "Export.hpp"
 #include "Protocol.hpp"
 #include "NMEA/Info.hpp"
 #include "OS/ByteOrder.hpp"
@@ -63,10 +64,7 @@ SkyLinesTracking::ToFix(uint64_t key, const NMEAInfo &basic)
 
   if (basic.location_available) {
     packet.flags |= ToBE32(FixPacket::FLAG_LOCATION);
-    ::GeoPoint location = basic.location;
-    location.Normalize();
-    packet.location.latitude = ToBE32(int(location.latitude.Degrees() * 1000000));
-    packet.location.longitude = ToBE32(int(location.longitude.Degrees() * 1000000));
+    packet.location = ExportGeoPoint(basic.location);
   } else
     packet.location.latitude = packet.location.longitude = 0;
 
@@ -115,6 +113,31 @@ SkyLinesTracking::ToFix(uint64_t key, const NMEAInfo &basic)
   } else
     packet.engine_noise_level = 0;
 
+  packet.header.crc = ToBE16(UpdateCRC16CCITT(&packet, sizeof(packet), 0));
+  return packet;
+}
+
+SkyLinesTracking::ThermalSubmitPacket
+SkyLinesTracking::MakeThermalSubmit(uint64_t key, uint32_t time,
+                                    ::GeoPoint bottom_location,
+                                    int bottom_altitude,
+                                    ::GeoPoint top_location,
+                                    int top_altitude,
+                                    double lift)
+{
+  ThermalSubmitPacket packet;
+  packet.header.magic = ToBE32(MAGIC);
+  packet.header.crc = 0;
+  packet.header.type = ToBE16(Type::THERMAL_SUBMIT);
+  packet.header.key = ToBE64(key);
+  packet.thermal.time = time;
+  packet.thermal.reserved1 = 0;
+  packet.thermal.bottom_location = ExportGeoPoint(bottom_location);
+  packet.thermal.top_location = ExportGeoPoint(top_location);
+  packet.thermal.bottom_altitude = ToBE16(bottom_altitude);
+  packet.thermal.top_altitude = ToBE16(top_altitude);
+  packet.thermal.lift = ToBE16(lround(lift * 256));
+  packet.thermal.reserved2 = 0;
   packet.header.crc = ToBE16(UpdateCRC16CCITT(&packet, sizeof(packet), 0));
   return packet;
 }

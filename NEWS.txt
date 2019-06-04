@@ -52,6 +52,17 @@ XCSoar TE
   - vagrant support
   - TravisCI support
 
+Version 6.8.7 - 2016/08/12
+* data files
+  - fix freeze after loading malformed topography file
+* tracking
+  - SkyLines: fix SkyLines tracking on non-Android
+  - SkyLines: fix two buffer overflow bugs
+  - new client for the experimental "XCSoar Cloud"
+* Android
+  - remove the deprecated crash dumper
+  - increase targetSdkVersion to 26 (required by Google Play)
+
 Version 6.8.6 - 2016/07/22
 * calculations
   - show takeoff time after landing (#3786)

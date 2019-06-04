@@ -2,7 +2,7 @@
 Copyright_License {
 
   XCSoar Glide Computer - http://www.xcsoar.org/
-  Copyright (C) 2000-2015 The XCSoar Project
+  Copyright (C) 2000-2016 The XCSoar Project
   A detailed list of copyright holders can be found in the file "AUTHORS".
 
   This program is free software; you can redistribute it and/or
@@ -21,49 +21,30 @@ Copyright_License {
 }
 */
 
-#ifndef XCSOAR_TRACKING_SKYLINES_QUEUE_HPP
-#define XCSOAR_TRACKING_SKYLINES_QUEUE_HPP
+#ifndef XCSOAR_TRACKING_SKYLINES_IMPORT_HPP
+#define XCSOAR_TRACKING_SKYLINES_IMPORT_HPP
 
 #include "Protocol.hpp"
-#include "Util/OverwritingRingBuffer.hpp"
-
-#include <stdint.h>
+#include "Geo/GeoPoint.hpp"
+#include "OS/ByteOrder.hpp"
 
 namespace SkyLinesTracking {
 
+static constexpr Angle
+ImportAngle(int32_t src)
+{
+  return Angle::Degrees(fixed(int32_t(FromBE32(src))) / 1000000);
+}
+
 /**
- * This class stores FixPacket elements while the data connection is
- * offline, so we can post it as soon as we're back online.
+ * Convert a SkyLines #SkyLinesTracking::GeoPoint to a XCSoar
+ * #::GeoPoint.
  */
-class Queue {
-  /**
-   * Don't queue any faster than this number of milliseconds.
-   */
-  static constexpr unsigned MIN_PERIOD_MS = 25000;
-
-  OverwritingRingBuffer<FixPacket, 256> queue;
-
-public:
-  bool IsEmpty() const {
-    return queue.empty();
-  }
-
-  void Push(const FixPacket &packet) {
-    if (!IsEmpty() && (packet.time > queue.last().time &&
-                       queue.last().time + MIN_PERIOD_MS < packet.time))
-      return;
-
-    queue.push(packet);
-  }
-
-  const FixPacket &Peek() {
-    return queue.peek();
-  }
-
-  const FixPacket &Pop() {
-    return queue.shift();
-  }
-};
+constexpr ::GeoPoint
+ImportGeoPoint(SkyLinesTracking::GeoPoint src)
+{
+  return ::GeoPoint(ImportAngle(src.longitude), ImportAngle(src.latitude));
+}
 
 } /* namespace SkyLinesTracking */
 
