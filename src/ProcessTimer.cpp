@@ -215,7 +215,6 @@ ProcessAutoBugs()
 static void
 SettingsProcessTimer()
 {
-  CloudEnableDialog();
   BallastDumpProcessTimer();
   ProcessAutoBugs();
 }
