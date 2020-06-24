@@ -253,7 +253,9 @@ endif
 ifeq ($(TARGET),PI)
   override TARGET = UNIX
   TCPREFIX := arm-linux-gnueabihf-
-  PI ?= /opt/pi/root
+  ifeq ($(HOST_IS_PI),n)
+    PI ?= /opt/pi/root
+  endif
   TARGET_IS_PI = y
   TARGET_IS_ARM = y
   TARGET_IS_ARMHF = y
@@ -262,7 +264,9 @@ endif
 
 ifeq ($(TARGET),PI2)
   override TARGET = NEON
-  PI ?= /opt/pi/root
+  ifeq ($(HOST_IS_PI),n)
+    PI ?= /opt/pi/root
+  endif
   TARGET_IS_PI = y
 endif
 
@@ -276,7 +280,6 @@ endif
 ifeq ($(TARGET),KOBO)
   # Experimental target for Kobo Mini
   override TARGET = NEON
-  KOBO = $(TARGET_OUTPUT_DIR)/lib/$(HOST_ARCH)/root
   TARGET_IS_KOBO = y
 endif
 
@@ -284,11 +287,11 @@ ifeq ($(TARGET),NEON)
   # Experimental target for generic ARMv7 with NEON
   override TARGET = UNIX
   ifeq ($(USE_CROSSTOOL_NG),y)
-    HOST_ARCH = arm-unknown-linux-gnueabihf
+    HOST_TRIPLET = arm-unknown-linux-gnueabihf
   else
-    HOST_ARCH = arm-linux-gnueabihf
+    HOST_TRIPLET = arm-linux-gnueabihf
   endif
-  TCPREFIX = $(HOST_ARCH)-
+  TCPREFIX = $(HOST_TRIPLET)-
   ifeq ($(CLANG),n)
     TARGET_ARCH += -mcpu=cortex-a8
   endif
@@ -435,7 +438,7 @@ ifeq ($(TARGET),UNIX)
 endif
 
 ifeq ($(TARGET),ANDROID)
-  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r10e
+  ANDROID_NDK ?= $(HOME)/opt/android-ndk-r15c
 
   ANDROID_SDK_PLATFORM = android-22
   ANDROID_NDK_PLATFORM = android-19
@@ -449,7 +452,7 @@ ifeq ($(TARGET),ANDROID)
   ANDROID_GCC_VERSION = 4.9
 
   ifeq ($(ARMV7),y)
-    ANDROID_ABI3 = armeabi-v7a-hard
+    ANDROID_ABI3 = armeabi-v7a
     ANDROID_ABI5 = armeabi-v7a
   endif
 
@@ -493,27 +496,11 @@ ifeq ($(TARGET),ANDROID)
 
   ANDROID_GCC_TOOLCHAIN_NAME = $(ANDROID_ABI2)-$(ANDROID_GCC_VERSION)
 
-  ifeq ($(ANDROID_ARCH),arm)
-    # on ARMv6, LLVM/clang generates the "movw" instruction which
-    # however requires ARMv7 and leads to a SIGILL crash
-    # (http://llvm.org/bugs/show_bug.cgi?id=18364 and
-    # http://bugs.xcsoar.org/ticket/3339); until this LLVM bug is
-    # fixed, we keep using gcc
-
-    # on ARM, LLVM/clang generates "str" opcodes with Rd=Rn and
-    # post-index (FlexOffset), which is illegal
-    # (http://llvm.org/bugs/show_bug.cgi?id=20323 and
-    # http://bugs.xcsoar.org/ticket/3356); until this LLVM bug is
-    # fixed, we keep using gcc
-
-    CLANG ?= n
-  endif
-
   # clang is the default compiler on Android
   CLANG ?= y
 
   ifeq ($(CLANG),y)
-    ANDROID_TOOLCHAIN_NAME = llvm-3.6
+    ANDROID_TOOLCHAIN_NAME = llvm
     LIBCXX = y
   else
     ANDROID_TOOLCHAIN_NAME = $(ANDROID_GCC_TOOLCHAIN_NAME)
@@ -563,8 +550,11 @@ ifeq ($(TARGET),ANDROID)
 
   ifeq ($(ARMV7),y)
     LLVM_TARGET = armv7a-none-linux-androideabi
-    TARGET_ARCH += -march=armv7-a -mfloat-abi=hard -mhard-float -D_NDK_MATH_NO_SOFTFP=1
+    TARGET_ARCH += -march=armv7-a -mfloat-abi=softfp
     HAVE_FPU := y
+
+    # workaround for "... uses VFP register arguments, output does not"
+    TARGET_ARCH += -Wl,--no-warn-mismatch
   endif
 
   ifeq ($(ARMV7)$(NEON),yy)
@@ -666,8 +656,10 @@ ifeq ($(TARGET),WINE)
   TARGET_INCLUDES += -I$(SRC)/wine
 endif
 
-ifeq ($(HOST_IS_PI)$(TARGET_IS_PI),ny)
-  TARGET_CPPFLAGS += --sysroot=$(PI) -isystem $(PI)/usr/include/arm-linux-gnueabihf -isystem $(PI)/usr/include
+ifeq ($(TARGET_IS_PI),y)
+  ifneq ($(PI),)
+    TARGET_CPPFLAGS += --sysroot=$(PI) -isystem $(PI)/usr/include/arm-linux-gnueabihf -isystem $(PI)/usr/include
+  endif
 endif
 
 ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)
@@ -678,7 +670,6 @@ endif
 
 ifeq ($(TARGET_IS_KOBO),y)
   TARGET_CPPFLAGS += -DKOBO
-  TARGET_CPPFLAGS += -isystem $(KOBO)/include
 endif
 
 ifeq ($(TARGET),ANDROID)
@@ -765,7 +756,6 @@ ifeq ($(HOST_IS_ARM)$(TARGET_HAS_MALI),ny)
 endif
 
 ifeq ($(TARGET_IS_KOBO),y)
-  TARGET_LDFLAGS += -L$(KOBO)/lib
   TARGET_LDFLAGS += -static-libstdc++
 
   # use our glibc version and its ld.so on the Kobo, not the one from
@@ -812,13 +802,7 @@ endif
 
 ifeq ($(TARGET),ANDROID)
   TARGET_LDLIBS += -lc
-
-  ifeq ($(ARMV7),y)
-    TARGET_LDLIBS += -lm_hard
-    TARGET_LDLIBS += -Wl,--no-warn-mismatch
-  else
-    TARGET_LDLIBS += -lm
-  endif
+  TARGET_LDLIBS += -lm
 
   TARGET_LDLIBS += -llog
   TARGET_LDLIBS += -lgcc

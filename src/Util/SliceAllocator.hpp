@@ -30,6 +30,8 @@
 #ifndef SLICE_ALLOCATOR_HPP
 #define SLICE_ALLOCATOR_HPP
 
+#include "Compiler.h"
+
 #include <utility>
 #include <cstddef>
 #include <assert.h>
@@ -207,6 +209,13 @@ public:
   }
 };
 
+#if CLANG_CHECK_VERSION(3,9)
+#pragma GCC diagnostic push
+/* suppress this warning, because GlobalSliceAllocator::allocator is
+   going to be instantiated in GlobalSliceAllocator.hpp */
+#pragma GCC diagnostic ignored "-Wundefined-var-template"
+#endif
+
 /**
  * This allocator refers to one global SliceAllocator, instead of
  * creating a new SliceAllocator for each container.
@@ -257,5 +266,9 @@ public:
     allocator.destroy(t);
   }
 };
+
+#if CLANG_CHECK_VERSION(3,9)
+#pragma GCC diagnostic pop
+#endif
 
 #endif

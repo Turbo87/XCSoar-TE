@@ -132,14 +132,17 @@ KoboExportUSBStorage()
   case KoboModel::GLO: // TODO: is this correct?
     InsMod("/drivers/ntx508/usb/gadget/arcotg_udc.ko");
     result = InsMod("/drivers/ntx508/usb/gadget/g_file_storage.ko",
-                    "file=/dev/mmcblk0p3", "stall=0");
+                    "file=/dev/mmcblk0p3", "stall=0", "removable=1",
+                    "product_id=Kobo");
     break;
 
   case KoboModel::TOUCH2:
   case KoboModel::GLO_HD:
+  case KoboModel::AURA2:
     InsMod("/drivers/mx6sl-ntx/usb/gadget/arcotg_udc.ko");
     result = InsMod("/drivers/mx6sl-ntx/usb/gadget/g_file_storage.ko",
-                    "file=/dev/mmcblk0p3", "stall=0");
+                    "file=/dev/mmcblk0p3", "stall=0", "removable=1",
+                    "product_id=Kobo");
     break;
   }
   return result;
@@ -189,6 +192,11 @@ KoboWifiOn()
     InsMod("/drivers/mx6sl-ntx/wifi/sdio_wifi_pwr.ko");
     InsMod("/drivers/mx6sl-ntx/wifi/dhd.ko");
     break;
+
+  case KoboModel::AURA2:
+    InsMod("/drivers/mx6sl-ntx/wifi/sdio_wifi_pwr.ko");
+    InsMod("/drivers/mx6sl-ntx/wifi/8189fs.ko");
+    break;
   }
 
   Sleep(2000);
@@ -198,7 +206,7 @@ KoboWifiOn()
   Run("/bin/wlarm_le", "-i", "eth0", "up");
   Run("/bin/wpa_supplicant", "-i", "eth0",
       "-c", "/etc/wpa_supplicant/wpa_supplicant.conf",
-      "-C", "/var/run/wpa_supplicant", "-B");
+      "-C", "/var/run/wpa_supplicant", "-B", "-D", "wext");
 
   Sleep(2000);
 
@@ -221,6 +229,7 @@ KoboWifiOff()
   Run("/sbin/ifconfig", "eth0", "down");
 
   RmMod("dhd");
+  RmMod("8189fs");
   RmMod("sdio_wifi_pwr");
 
   return true;
