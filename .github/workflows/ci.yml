@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - 'v*'
+  pull_request:
+  schedule:
+    - cron: '0 3 * * *' # daily, at 3am
+
+env:
+  DEBUG: n
+
+jobs:
+  unix:
+    name: Unix
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: apt-get update
+        run: sudo apt-get update -y -qq
+
+      - name: apt-get install
+        run: sudo apt-get install -y -qq libcurl4-openssl-dev gettext libegl1-mesa-dev xsltproc librsvg2-bin
+
+      - run: make TARGET=UNIX everything -j8
+      - run: make TARGET=UNIX check
+
+  android:
+    name: Android
+
+    runs-on: ubuntu-20.04
+
+    env:
+      ANDROID_REPO_URL: https://dl.google.com/android/repository
+      ANDROID_NDK_VERSION: r15c
+      ANDROID_BUILD_TOOLS_VERSION: 26.0.0
+      ANDROID_PLATFORM_VERSION: 26
+      ANDROID_SDK: ${ANDROID_SDK_ROOT}
+      ANDROID_KEYSTORE: xcsoar-release.keystore
+      ANDROID_KEY_ALIAS: xcsoar-release
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: apt-get update
+        run: sudo apt-get update -y -qq
+
+      - name: apt-get install
+        run: sudo apt-get install -y -qq libcurl4-openssl-dev gettext libegl1-mesa-dev xsltproc librsvg2-bin vorbis-tools
+
+      - name: Install Android SDK Platform and Build Tools
+        run: |
+          mkdir ~/.android
+          touch ~/.android/repositories.cfg
+          echo 'y' | sudo ${ANDROID_SDK_ROOT}/tools/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
+          echo 'y' | sudo ${ANDROID_SDK_ROOT}/tools/bin/sdkmanager "platforms;android-${ANDROID_PLATFORM_VERSION}"
+
+      - name: Install Android NDK
+        run: |
+          wget --progress=bar:force:noscroll ${ANDROID_REPO_URL}/android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip
+          sudo unzip -q android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip -d ~/opt
+          rm android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip
+
+      - run: make TARGET=ANDROID -j8
+      - run: make TARGET=ANDROID7 -j8
+      - run: make TARGET=ANDROID86 -j8
+      - run: make TARGET=ANDROIDMIPS -j8
+      - run: make TARGET=ANDROIDAARCH64 -j8
+      - run: make TARGET=ANDROIDX64 -j8
+
+      - name: Decrypt Android Keystore
+        run: gpg --quiet --batch --yes --decrypt --passphrase="$ANDROID_KEYSTORE_GPG_PASSPHRASE" --output xcsoar-release.keystore xcsoar-release.keystore.gpg
+        env:
+          ANDROID_KEYSTORE_GPG_PASSPHRASE: ${{ secrets.ANDROID_KEYSTORE_GPG_PASSPHRASE }}
+
+      - run: make TARGET=ANDROIDFAT output/ANDROIDFAT/bin/XCSoar.apk -j8
+        env:
+          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: XCSoar.apk
+          path: output/ANDROIDFAT/bin/XCSoar.apk
