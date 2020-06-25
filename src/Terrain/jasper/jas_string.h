@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -74,7 +74,9 @@
 * Includes.
 \******************************************************************************/
 
+/* The configuration header file should be included first. */
 #include <jasper/jas_config.h>
+
 #include <string.h>
 
 #include "Compiler.h"
@@ -89,7 +91,7 @@ extern "C" {
 
 /* Copy a string (a la strdup). */
 gcc_malloc
-char *jas_strdup(const char *);
+JAS_DLLEXPORT char *jas_strdup(const char *);
 
 #ifdef __cplusplus
 }

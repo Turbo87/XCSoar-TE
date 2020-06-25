@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -74,12 +74,15 @@
 * Includes.
 \******************************************************************************/
 
+/* The configuration header file should be included first. */
+#include <jasper/jas_config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-#include <jasper/jas_config.h>
 #include <jasper/jas_types.h>
+#include <jasper/jas_debug.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -345,11 +348,11 @@ extern "C" {
 
 /* Handle overflow. */
 #define	JAS_FIX_OFLOW() \
-	fprintf(stderr, "overflow error: file %s, line %d\n", __FILE__, __LINE__)
+	jas_eprintf("overflow error: file %s, line %d\n", __FILE__, __LINE__)
 
 /* Handle underflow. */
 #define	JAS_FIX_UFLOW() \
-	fprintf(stderr, "underflow error: file %s, line %d\n", __FILE__, __LINE__)
+	jas_eprintf("underflow error: file %s, line %d\n", __FILE__, __LINE__)
 
 #ifdef __cplusplus
 }

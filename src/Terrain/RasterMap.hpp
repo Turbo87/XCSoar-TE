@@ -27,26 +27,37 @@ Copyright_License {
 #include "RasterProjection.hpp"
 #include "RasterTileCache.hpp"
 #include "Geo/GeoPoint.hpp"
-#include "Util/NonCopyable.hpp"
+#include "Util/AllocatedString.hxx"
 #include "Compiler.h"
 
 #include <tchar.h>
 
-class FileCache;
 class OperationEnvironment;
 
-class RasterMap : private NonCopyable {
-  char *path;
+class RasterMap {
+  AllocatedString<TCHAR> path;
   RasterTileCache raster_tile_cache;
   RasterProjection projection;
 
 public:
-  RasterMap(const TCHAR *path, const TCHAR *world_file, FileCache *cache,
+  RasterMap(const TCHAR *path);
+
+  RasterMap(const RasterMap &) = delete;
+  RasterMap &operator=(const RasterMap &) = delete;
+
+  void UpdateProjection();
+
+  bool SaveCache(FILE *file) const {
+    return raster_tile_cache.SaveCache(file);
+  }
+
+  bool LoadCache(FILE *file);
+
+  bool Load(const TCHAR *_path, const TCHAR *world_file,
             OperationEnvironment &operation);
-  ~RasterMap();
 
   bool IsDefined() const {
-    return raster_tile_cache.GetInitialised();
+    return raster_tile_cache.IsValid();
   }
 
   const GeoBounds &GetBounds() const {

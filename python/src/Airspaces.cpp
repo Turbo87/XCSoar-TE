@@ -76,7 +76,7 @@ void xcsoar_Airspaces_dealloc(Pyxcsoar_Airspaces *self) {
   /* destructor */
   delete self->airspace_database;
 
-  self->ob_type->tp_free((Pyxcsoar_Airspaces*)self);
+  Py_TYPE(self)->tp_free((Pyxcsoar_Airspaces*)self);
 }
 
 PyObject* xcsoar_Airspaces_addPolygon(Pyxcsoar_Airspaces *self, PyObject *args) {
@@ -90,7 +90,6 @@ PyObject* xcsoar_Airspaces_addPolygon(Pyxcsoar_Airspaces *self, PyObject *args) 
   if (!PyArg_ParseTuple(args, "OOOdOdO", &py_points, &py_name, &py_as_class,
                                          &base_alt, &py_base_ref,
                                          &top_alt, &py_top_ref)) {
-    PyErr_SetString(PyExc_AttributeError, "Error reading attributes.");
     return nullptr;
   }
 
@@ -206,7 +205,6 @@ PyObject* xcsoar_Airspaces_findIntrusions(Pyxcsoar_Airspaces *self, PyObject *ar
   PyObject *py_flight = nullptr;
 
   if (!PyArg_ParseTuple(args, "O", &py_flight)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument.");
     return nullptr;
   }
 
@@ -232,7 +230,7 @@ PyObject* xcsoar_Airspaces_findIntrusions(Pyxcsoar_Airspaces *self, PyObject *ar
     );
 
     for (auto it = airspaces.begin(); it != airspaces.end(); it++) {
-      PyObject *py_name = PyString_FromString((*it).GetAirspace().GetName());
+      PyObject *py_name = PyUnicode_FromString((*it).GetAirspace().GetName());
       PyObject *py_airspace = nullptr,
                *py_period = nullptr;
 
@@ -287,8 +285,7 @@ PyMemberDef xcsoar_Airspaces_members[] = {
 };
 
 PyTypeObject xcsoar_Airspaces_Type = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,                     /* obj_size */
+  PyVarObject_HEAD_INIT(&PyType_Type, 0 /* obj_size */)
   "xcsoar",         /* char *tp_name; */
   sizeof(Pyxcsoar_Airspaces), /* int tp_basicsize; */
   0,                     /* int tp_itemsize; not used much */

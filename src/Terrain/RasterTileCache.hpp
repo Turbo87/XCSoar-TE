@@ -27,7 +27,6 @@ Copyright_License {
 #include "RasterTile.hpp"
 #include "RasterLocation.hpp"
 #include "Geo/GeoBounds.hpp"
-#include "Util/NonCopyable.hpp"
 #include "Util/StaticArray.hpp"
 #include "Util/Serial.hpp"
 
@@ -39,10 +38,11 @@ Copyright_License {
 
 #define RASTER_SLOPE_FACT 12
 
+struct jas_matrix;
 struct GridLocation;
 class OperationEnvironment;
 
-class RasterTileCache : private NonCopyable {
+class RasterTileCache {
   static constexpr unsigned MAX_RTC_TILES = 4096;
 
   /**
@@ -85,6 +85,7 @@ public:
 
 protected:
   friend struct RTDistanceSort;
+  friend class TerrainLoader;
 
   struct MarkerSegmentInfo {
     static constexpr uint16_t NO_TILE = (uint16_t)-1;
@@ -129,11 +130,6 @@ protected:
     GeoBounds bounds;
   };
 
-  bool initialised;
-
-  /** is the "bounds" attribute valid? */
-  bool bounds_initialised;
-
   bool dirty;
 
   /**
@@ -146,7 +142,6 @@ protected:
   unsigned short tile_width, tile_height;
 
   RasterBuffer overview;
-  bool scan_overview;
   unsigned int width, height;
   unsigned int overview_width_fine, overview_height_fine;
 
@@ -155,26 +150,19 @@ protected:
   StaticArray<MarkerSegmentInfo, 8192> segments;
 
   /**
-   * The number of remaining segments after the current one.
-   */
-  mutable unsigned remaining_segments;
-
-  /**
    * An array that is used to sort the requested tiles by distance.
    * This is only used by PollTiles() internally, but is stored in the
    * class because it would be too large for the stack.
    */
   StaticArray<uint16_t, MAX_RTC_TILES> request_tiles;
 
-  /**
-   * Progress callbacks for loading the file during startup.
-   */
-  OperationEnvironment *operation;
-
 public:
-  RasterTileCache():operation(NULL) {
+  RasterTileCache() {
     Reset();
   }
+
+  RasterTileCache(const RasterTileCache &) = delete;
+  RasterTileCache &operator=(const RasterTileCache &) = delete;
 
 protected:
   void ScanTileLine(GridLocation start, GridLocation end,
@@ -227,8 +215,6 @@ public:
                int h_origin, const int slope_fact) const;
 
 protected:
-  void LoadJPG2000(const char *path);
-
   /**
    * Load a world file (*.tfw or *.j2w).
    */
@@ -247,13 +233,13 @@ private:
   std::pair<short, bool> GetFieldDirect(unsigned px, unsigned py) const;
 
 public:
-  bool LoadOverview(const char *path, const TCHAR *world_file,
+  bool LoadOverview(const TCHAR *path, const TCHAR *world_file,
                     OperationEnvironment &operation);
 
   bool SaveCache(FILE *file) const;
   bool LoadCache(FILE *file);
 
-  void UpdateTiles(const char *path, int x, int y, unsigned radius);
+  void UpdateTiles(const TCHAR *path, int x, int y, unsigned radius);
 
   /**
    * Determines if there are still tiles scheduled to be loaded.  Call
@@ -264,8 +250,8 @@ public:
     return dirty;
   }
 
-  bool GetInitialised() const {
-    return initialised;
+  bool IsValid() const {
+    return bounds.IsValid();
   }
 
   const Serial &GetSerial() const {
@@ -275,42 +261,44 @@ public:
   void Reset();
 
   const GeoBounds &GetBounds() const {
-    assert(bounds_initialised);
+    assert(bounds.IsValid());
 
     return bounds;
   }
 
-private:
+public:
+  /* methods called by class TerrainLoader */
+
   gcc_pure
   const MarkerSegmentInfo *
   FindMarkerSegment(uint32_t file_offset) const;
 
-public:
-  /* callback methods for libjasper (via jas_rtc.cpp) */
-
   long SkipMarkerSegment(long file_offset) const;
   void MarkerSegment(long file_offset, unsigned id);
 
-  bool TileRequest(unsigned index);
-
-  short *GetOverview() {
-    return overview.GetData();
+  void StartTile(unsigned index) {
+    if (!segments.empty() && !segments.back().IsTileSegment())
+      /* link current marker segment with this tile */
+      segments.back().tile = index;
   }
 
   void SetSize(unsigned width, unsigned height,
                unsigned tile_width, unsigned tile_height,
                unsigned tile_columns, unsigned tile_rows);
-  short* GetImageBuffer(unsigned index);
+
   void SetLatLonBounds(double lon_min, double lon_max,
                        double lat_min, double lat_max);
-  void SetTile(unsigned index, int xstart, int ystart, int xend, int yend);
 
-  void SetInitialised(bool val) {
-    initialised = val;
-  }
+  void PutOverviewTile(unsigned index,
+                       unsigned start_x, unsigned start_y,
+                       unsigned end_x, unsigned end_y,
+                       const struct jas_matrix &m);
 
-protected:
   bool PollTiles(int x, int y, unsigned radius);
+
+  void PutTileData(unsigned index, const struct jas_matrix &m);
+
+  void FinishTileUpdate();
 
 public:
   short GetMaxElevation() const {

@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -98,8 +98,10 @@ jpc_bitstream_t *jpc_bitstream_sopen(jas_stream_t *stream, const char *mode)
 	jpc_bitstream_t *bitstream;
 
 	/* Ensure that the open mode is valid. */
+#if 0 /* This causes a string literal too long error (with c99 pedantic mode).  Why is this so? */
 	assert(!strcmp(mode, "r") || !strcmp(mode, "w") || !strcmp(mode, "r+")
 	  || !strcmp(mode, "w+"));
+#endif
 
 	if (!(bitstream = jpc_bitstream_alloc())) {
 		return 0;
@@ -194,7 +196,10 @@ long jpc_bitstream_getbits(jpc_bitstream_t *bitstream, int n)
 
 	/* We can reliably get at most 31 bits since ISO/IEC 9899 only
 	  guarantees that a long can represent values up to 2^31-1. */
-	assert(n >= 0 && n < 32);
+	//assert(n >= 0 && n < 32);
+	if (n < 0 || n >= 32) {
+		return -1;
+	}
 
 	/* Get the number of bits requested from the specified bit stream. */
 	v = 0;
@@ -214,7 +219,10 @@ int jpc_bitstream_putbits(jpc_bitstream_t *bitstream, int n, long v)
 
 	/* We can reliably put at most 31 bits since ISO/IEC 9899 only
 	  guarantees that a long can represent values up to 2^31-1. */
-	assert(n >= 0 && n < 32);
+	//assert(n >= 0 && n < 32);
+	if (n < 0 || n >= 32) {
+		return EOF;
+	}
 	/* Ensure that only the bits to be output are nonzero. */
 	assert(!(v & (~JAS_ONES(n))));
 

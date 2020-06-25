@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -125,7 +125,8 @@ jpc_tagtree_t *jpc_tagtree_create(int numleafsh, int numleafsv)
 		++numlvls;
 	} while (n > 1);
 
-	if (!(tree->nodes_ = jas_malloc(tree->numnodes_ * sizeof(jpc_tagtreenode_t)))) {
+	if (!(tree->nodes_ = jas_alloc2(tree->numnodes_, sizeof(jpc_tagtreenode_t)))) {
+		jpc_tagtree_destroy(tree);
 		return 0;
 	}
 

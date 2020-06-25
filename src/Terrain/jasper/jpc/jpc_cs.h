@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -74,7 +74,9 @@
 * Includes.
 \******************************************************************************/
 
+#ifdef ENABLE_JASPER_IMAGE
 #include "jasper/jas_image.h"
+#endif /* ENABLE_JASPER_IMAGE */
 #include "jasper/jas_stream.h"
 
 #include "jpc_cod.h"
@@ -490,7 +492,7 @@ typedef struct {
 	uint_fast16_t len;
 
 	/* The data. */
-	uchar *data;
+	jas_uchar *data;
 
 } jpc_ppm_t;
 
@@ -529,7 +531,7 @@ typedef struct {
 	uint_fast16_t len;
 
 	/* The data. */
-	uchar *data;
+	jas_uchar *data;
 
 } jpc_com_t;
 
@@ -577,7 +579,7 @@ typedef struct {
 typedef struct {
 
 	/* The data. */
-	uchar *data;
+	jas_uchar *data;
 
 	/* The length. */
 	uint_fast16_t len;
@@ -602,8 +604,10 @@ typedef union {
 	jpc_poc_t poc;
 	/* jpc_plm_t plm; */
 	/* jpc_plt_t plt; */
+#ifdef ENABLE_JASPER_PPM
 	jpc_ppm_t ppm;
 	jpc_ppt_t ppt;
+#endif /* ENABLE_JASPER_PPM */
 	jpc_sop_t sop;
 	int eph;	/* unused */
 	jpc_com_t com;
@@ -680,7 +684,7 @@ typedef struct {
 	jpc_msparms_t parms;
 
 	/* The marker segment operations. */
-	struct jpc_msops_s *ops;
+	const struct jpc_msops_s *ops;
 
 } jpc_ms_t;
 
@@ -694,8 +698,10 @@ typedef struct jpc_msops_s {
 	/* Get the marker segment parameters from a stream. */
 	int (*getparms)(jpc_ms_t *ms, jpc_cstate_t *cstate, jas_stream_t *in);
 
+#ifdef ENABLE_JASPER_ENCODE
 	/* Put the marker segment parameters to a stream. */
 	int (*putparms)(jpc_ms_t *ms, jpc_cstate_t *cstate, jas_stream_t *out);
+#endif /* ENABLE_JASPER_ENCODE */
 
 } jpc_msops_t;
 
@@ -736,8 +742,12 @@ int jpc_getdata(jas_stream_t *in, jas_stream_t *out, long n);
 /* Copy code stream data from one stream to another. */
 int jpc_putdata(jas_stream_t *out, jas_stream_t *in, long n);
 
+#ifdef ENABLE_JASPER_DUMP
 /* Dump a marker segment (for debugging). */
 void jpc_ms_dump(jpc_ms_t *ms, FILE *out);
+#else
+#define jpc_ms_dump(ms, out)
+#endif
 
 /* Read a 8-bit unsigned integer from a stream. */
 int jpc_getuint8(jas_stream_t *in, uint_fast8_t *val);

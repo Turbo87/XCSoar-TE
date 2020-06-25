@@ -7,9 +7,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -72,11 +72,13 @@
 * Includes.
 \******************************************************************************/
 
+/* The configuration header file should be included first. */
+#include <jasper/jas_config.h>
+
 #include <stdio.h>
 
-#include <jasper/jas_config.h>
-#include "jasper/jas_types.h"
-#include "jasper/jas_debug.h"
+#include <jasper/jas_types.h>
+#include <jasper/jas_debug.h>
 
 #include "Compiler.h"
 
@@ -90,25 +92,41 @@ extern "C" {
 
 /* Output debugging information to standard error provided that the debug
   level is set sufficiently high. */
-#ifndef NDEBUG
+#ifdef ENABLE_JASPER_LOG
 #define	JAS_DBGLOG(n, x) \
-  (void)((jas_getdbglevel() >= (n)) ? (jas_eprintf x) : 0)
+	((jas_getdbglevel() >= (n)) ? (jas_eprintf x) : 0)
 #else
 #define	JAS_DBGLOG(n, x)
 #endif
 
+#ifdef ENABLE_JASPER_LOG
 /* Get the library debug level. */
 gcc_const
-int jas_getdbglevel(void);
+JAS_DLLEXPORT int jas_getdbglevel(void);
 
 /* Set the library debug level. */
-int jas_setdbglevel(int dbglevel);
+JAS_DLLEXPORT int jas_setdbglevel(int dbglevel);
 
 /* Perform formatted output to standard error. */
-int jas_eprintf(const char *fmt, ...);
+JAS_DLLEXPORT int jas_eprintf(const char *fmt, ...);
 
 /* Dump memory to a stream. */
 int jas_memdump(FILE *out, void *data, size_t len);
+
+/* Warn about use of deprecated functionality. */
+void jas_deprecated(const char *s);
+#else
+#define jas_getdbglevel() 0
+#define jas_eprintf(...) do {} while (0)
+#define jas_memdump(out, data, len) do {} while (0)
+#define jas_deprecated(s) do {} while (0)
+#endif
+
+/* Convert to a string literal */
+#define JAS_STRINGIFY(x) #x
+
+/* Convert to a string literal after macro expansion */
+#define JAS_STRINGIFYX(x) JAS_STRINGIFY(x)
 
 #ifdef __cplusplus
 }

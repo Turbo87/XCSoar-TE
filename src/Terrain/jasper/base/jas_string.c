@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -85,10 +85,10 @@
 
 char *jas_strdup(const char *s)
 {
-	int n;
+	size_t n;
 	char *p;
 	n = strlen(s) + 1;
-	if (!(p = jas_malloc(n * sizeof(char)))) {
+	if (!(p = jas_malloc(n))) {
 		return 0;
 	}
 	strcpy(p, s);

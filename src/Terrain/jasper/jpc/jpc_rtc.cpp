@@ -1,46 +1,45 @@
 #include "jasper/jpc_rtc.h"
-#include "Terrain/RasterTileCache.hpp"
-
-RasterTileCache *raster_tile_current = 0;
+#include "Terrain/Loader.hpp"
 
 extern "C" {
 
-  long jas_rtc_SkipMarkerSegment(long file_offset) {
-    return raster_tile_current->SkipMarkerSegment(file_offset);
+  long jas_rtc_SkipMarkerSegment(void *_loader, long file_offset) {
+    auto &loader = *(TerrainLoader *)_loader;
+    return loader.SkipMarkerSegment(file_offset);
   }
 
-  void jas_rtc_MarkerSegment(long file_offset, unsigned id) {
-    return raster_tile_current->MarkerSegment(file_offset, id);
+  void jas_rtc_MarkerSegment(void *_loader, long file_offset, unsigned id) {
+    auto &loader = *(TerrainLoader *)_loader;
+    return loader.MarkerSegment(file_offset, id);
   }
 
-  void jas_rtc_SetTile(unsigned index,
-                       int xstart, int ystart,
-                       int xend, int yend) {
-    raster_tile_current->SetTile(index, xstart, ystart, xend, yend);
+  void jas_rtc_ProcessComment(void *_loader, const char *data, unsigned size) {
+    auto &loader = *(TerrainLoader *)_loader;
+    return loader.ProcessComment(data, size);
   }
 
-  short* jas_rtc_GetImageBuffer(unsigned index) {
-    return raster_tile_current->GetImageBuffer(index);
+  void jas_rtc_StartTile(void *_loader, unsigned index) {
+    auto &loader = *(TerrainLoader *)_loader;
+    loader.StartTile(index);
   }
 
-  void jas_rtc_SetLatLonBounds(double lon_min, double lon_max,
-                               double lat_min, double lat_max) {
-    raster_tile_current->SetLatLonBounds(lon_min, lon_max, lat_min, lat_max);
+  void jas_rtc_PutTileData(void *_loader,
+                           unsigned index,
+                           unsigned start_x, unsigned start_y,
+                           unsigned end_x, unsigned end_y,
+                           const struct jas_matrix *data) {
+    auto &loader = *(TerrainLoader *)_loader;
+    loader.PutTileData(index, start_x, start_y, end_x, end_y,
+                                     *data);
   }
 
-  void jas_rtc_SetSize(unsigned width, unsigned height,
+  void jas_rtc_SetSize(void *_loader,
+                       unsigned width, unsigned height,
                        unsigned tile_width, unsigned tile_height,
                        unsigned tile_columns, unsigned tile_rows) {
-    raster_tile_current->SetSize(width, height,
-                                 tile_width, tile_height,
-                                 tile_columns, tile_rows);
-  }
-
-  void jas_rtc_SetInitialised(bool val) {
-    raster_tile_current->SetInitialised(val);
-  }
-
-  short* jas_rtc_GetOverview(void) {
-    return raster_tile_current->GetOverview();
+    auto &loader = *(TerrainLoader *)_loader;
+    loader.SetSize(width, height,
+                   tile_width, tile_height,
+                   tile_columns, tile_rows);
   }
 };

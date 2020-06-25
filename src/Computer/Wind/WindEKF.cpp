@@ -23,7 +23,9 @@ Copyright_License {
 */
 
 #include "WindEKF.hpp"
-#include <math.h>
+
+#include <cassert>
+#include <cmath>
 
 #define WIND_K0 1.0e-2f
 #define WIND_K1 1.0e-5f
@@ -31,10 +33,16 @@ Copyright_License {
 void
 WindEKF::Update(const fixed airspeed, const float gps_vel[2])
 {
+#ifndef FIXED_MATH
+  assert(!std::isnan(airspeed));
+  assert(!std::isnan(gps_vel[0]));
+  assert(!std::isnan(gps_vel[1]));
+#endif
+
   // airsp = sf * | gps_v - wind_v |
   const float dx = gps_vel[0]-X[0];
   const float dy = gps_vel[1]-X[1];
-  const float mag = sqrtf(dx*dx+dy*dy);
+  const float mag = hypotf(dx, dy);
 
   const float K[3] = {
     -X[2]*dx/mag*k,

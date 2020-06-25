@@ -26,6 +26,8 @@ Copyright_License {
 
 #include "Screen/PortableColor.hpp"
 #include "OS/ByteOrder.hpp"
+#include "Util/Cast.hxx"
+#include "Util/OffsetPointer.hxx"
 #include "Compiler.h"
 
 #include <algorithm>
@@ -140,12 +142,12 @@ struct GreyscalePixelTraits {
   }
 
   static constexpr pointer_type NextByte(pointer_type p, int delta) {
-    return pointer_type((uint8_t *)p + delta);
+    return OffsetCast<color_type>(p, delta);
   }
 
   static constexpr const_pointer_type NextByte(const_pointer_type p,
                                                int delta) {
-    return const_pointer_type((const uint8_t *)p + delta);
+    return OffsetCast<const color_type>(p, delta);
   }
 
   /**
@@ -196,7 +198,7 @@ struct GreyscalePixelTraits {
    * Fill #n horizontal pixels with the given color.
    */
   static void FillPixels(pointer_type p, unsigned n, color_type c) {
-    memset(p, c.GetLuminosity(), n);
+    std::fill_n(p, n, c.GetLuminosity());
   }
 
   /**
@@ -204,7 +206,7 @@ struct GreyscalePixelTraits {
    */
   static void CopyPixels(rpointer_type p, const_rpointer_type src,
                          unsigned n) {
-    memcpy(p, src, n);
+    std::copy_n(src, n, p);
   }
 
   /**
@@ -338,12 +340,12 @@ struct BGRAPixelTraits {
   }
 
   static constexpr pointer_type NextByte(pointer_type p, int delta) {
-    return pointer_type((uint8_t *)p + delta);
+    return (pointer_type)OffsetPointer(p, delta);
   }
 
   static constexpr const_pointer_type NextByte(const_pointer_type p,
                                                int delta) {
-    return const_pointer_type((const uint8_t *)p + delta);
+    return (const_pointer_type)OffsetPointer(p, delta);
   }
 
   static constexpr pointer_type NextRow(pointer_type p,

@@ -157,15 +157,6 @@ private:
       Update(parent, min, max);
     }
 
-    TurnPointRange(const TurnPointRange &other) {
-      index_min = other.index_min;
-      index_max = other.index_max;
-      lon_min = other.lon_min;
-      lon_max = other.lon_max;
-      lat_min = other.lat_min;
-      lat_max = other.lat_max;
-    }
-
     bool operator==(TurnPointRange other) const {
       return (index_min == other.index_min && index_max == other.index_max);
     }
@@ -245,11 +236,8 @@ private:
       UpdateDistances();
     }
 
-    CandidateSet(TurnPointRange _tp1, TurnPointRange _tp2, TurnPointRange _tp3) {
-      tp1 = _tp1;
-      tp2 = _tp2;
-      tp3 = _tp3;
-
+    CandidateSet(TurnPointRange _tp1, TurnPointRange _tp2, TurnPointRange _tp3)
+      :tp1(_tp1), tp2(_tp2), tp3(_tp3) {
       UpdateDistances();
     }
 

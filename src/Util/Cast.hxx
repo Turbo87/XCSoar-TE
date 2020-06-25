@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Max Kellermann <max@duempel.org>
+ * Copyright (C) 2013-2014 Max Kellermann <max.kellermann@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,12 +27,60 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GLOBAL_SLICE_ALLOCATOR_HPP
-#define GLOBAL_SLICE_ALLOCATOR_HPP
+#ifndef CAST_HXX
+#define CAST_HXX
 
-#include "SliceAllocator.hpp"
+#include "OffsetPointer.hxx"
+#include "Compiler.h"
 
-template<typename T, unsigned size>
-SliceAllocator<T, size> GlobalSliceAllocator<T, size>::allocator;
+#include <stddef.h>
+
+template<typename T, typename U>
+constexpr T *
+OffsetCast(U *p, ptrdiff_t offset)
+{
+	return reinterpret_cast<T *>(OffsetPointer(p, offset));
+}
+
+template<typename T, typename U>
+constexpr T *
+OffsetCast(const U *p, ptrdiff_t offset)
+{
+	return reinterpret_cast<const T *>(OffsetPointer(p, offset));
+}
+
+template<class C, class A>
+constexpr ptrdiff_t
+ContainerAttributeOffset(const C *null_c, const A C::*p)
+{
+	return ptrdiff_t((const char *)&(null_c->*p) - (const char *)null_c);
+}
+
+template<class C, class A>
+constexpr ptrdiff_t
+ContainerAttributeOffset(const A C::*p)
+{
+	return ContainerAttributeOffset<C, A>(nullptr, p);
+}
+
+/**
+ * Cast the given pointer to a struct member to its parent structure.
+ */
+template<class C, class A>
+constexpr C &
+ContainerCast(A &a, const A C::*member)
+{
+	return *OffsetCast<C, A>(&a, -ContainerAttributeOffset<C, A>(member));
+}
+
+/**
+ * Cast the given pointer to a struct member to its parent structure.
+ */
+template<class C, class A>
+constexpr const C &
+ContainerCast(const A &a, const A C::*member)
+{
+	return *OffsetCast<const C, const A>(&a, -ContainerAttributeOffset<C, A>(member));
+}
 
 #endif

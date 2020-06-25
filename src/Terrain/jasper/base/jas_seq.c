@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -83,7 +83,8 @@
 * Constructors and destructors.
 \******************************************************************************/
 
-jas_matrix_t *jas_seq2d_create(int xstart, int ystart, int xend, int yend)
+jas_matrix_t *jas_seq2d_create(jas_matind_t xstart, jas_matind_t ystart,
+  jas_matind_t xend, jas_matind_t yend)
 {
 	jas_matrix_t *matrix;
 	assert(xstart <= xend && ystart <= yend);
@@ -97,13 +98,20 @@ jas_matrix_t *jas_seq2d_create(int xstart, int ystart, int xend, int yend)
 	return matrix;
 }
 
-jas_matrix_t *jas_matrix_create(int numrows, int numcols)
+jas_matrix_t *jas_matrix_create(jas_matind_t numrows, jas_matind_t numcols)
 {
 	jas_matrix_t *matrix;
-	int i;
+	jas_matind_t i;
+	size_t size;
+
+	matrix = 0;
+
+	if (numrows < 0 || numcols < 0) {
+		goto error;
+	}
 
 	if (!(matrix = jas_malloc(sizeof(jas_matrix_t)))) {
-		return 0;
+		goto error;
 	}
 	matrix->flags_ = 0;
 	matrix->numrows_ = numrows;
@@ -111,21 +119,25 @@ jas_matrix_t *jas_matrix_create(int numrows, int numcols)
 	matrix->rows_ = 0;
 	matrix->maxrows_ = numrows;
 	matrix->data_ = 0;
-	matrix->datasize_ = numrows * numcols;
+	matrix->datasize_ = 0;
+
+	// matrix->datasize_ = numrows * numcols;
+	if (!jas_safe_size_mul(numrows, numcols, &size)) {
+		goto error;
+	}
+	matrix->datasize_ = size;
 
 	if (matrix->maxrows_ > 0) {
-		if (!(matrix->rows_ = jas_malloc(matrix->maxrows_ *
+		if (!(matrix->rows_ = jas_alloc2(matrix->maxrows_,
 		  sizeof(jas_seqent_t *)))) {
-			jas_matrix_destroy(matrix);
-			return 0;
+			goto error;
 		}
 	}
 
 	if (matrix->datasize_ > 0) {
-		if (!(matrix->data_ = jas_malloc(matrix->datasize_ *
+		if (!(matrix->data_ = jas_alloc2(matrix->datasize_,
 		  sizeof(jas_seqent_t)))) {
-			jas_matrix_destroy(matrix);
-			return 0;
+			goto error;
 		}
 
 		memset(matrix->data_, 0,
@@ -142,6 +154,12 @@ jas_matrix_t *jas_matrix_create(int numrows, int numcols)
 	matrix->yend_ = matrix->numrows_;
 
 	return matrix;
+
+error:
+	if (matrix) {
+		jas_matrix_destroy(matrix);
+	}
+	return 0;
 }
 
 void jas_matrix_destroy(jas_matrix_t *matrix)
@@ -161,10 +179,10 @@ void jas_matrix_destroy(jas_matrix_t *matrix)
 jas_seq2d_t *jas_seq2d_copy(jas_seq2d_t *x)
 {
 	jas_matrix_t *y;
-	int i;
-	int j;
-	y = jas_seq2d_create(jas_seq2d_xstart(x), jas_seq2d_ystart(x), jas_seq2d_xend(x),
-	  jas_seq2d_yend(x));
+	jas_matind_t i;
+	jas_matind_t j;
+	y = jas_seq2d_create(jas_seq2d_xstart(x), jas_seq2d_ystart(x),
+	  jas_seq2d_xend(x), jas_seq2d_yend(x));
 	assert(y);
 	for (i = 0; i < x->numrows_; ++i) {
 		for (j = 0; j < x->numcols_; ++j) {
@@ -177,8 +195,8 @@ jas_seq2d_t *jas_seq2d_copy(jas_seq2d_t *x)
 jas_matrix_t *jas_matrix_copy(jas_matrix_t *x)
 {
 	jas_matrix_t *y;
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	y = jas_matrix_create(x->numrows_, x->numcols_);
 	for (i = 0; i < x->numrows_; ++i) {
 		for (j = 0; j < x->numcols_; ++j) {
@@ -192,17 +210,17 @@ jas_matrix_t *jas_matrix_copy(jas_matrix_t *x)
 * Bind operations.
 \******************************************************************************/
 
-void jas_seq2d_bindsub(jas_matrix_t *s, jas_matrix_t *s1, int xstart, int ystart,
-  int xend, int yend)
+void jas_seq2d_bindsub(jas_matrix_t *s, jas_matrix_t *s1, jas_matind_t xstart,
+  jas_matind_t ystart, jas_matind_t xend, jas_matind_t yend)
 {
 	jas_matrix_bindsub(s, s1, ystart - s1->ystart_, xstart - s1->xstart_,
 	  yend - s1->ystart_ - 1, xend - s1->xstart_ - 1);
 }
 
-void jas_matrix_bindsub(jas_matrix_t *mat0, jas_matrix_t *mat1, int r0, int c0,
-  int r1, int c1)
+void jas_matrix_bindsub(jas_matrix_t *mat0, jas_matrix_t *mat1,
+  jas_matind_t r0, jas_matind_t c0, jas_matind_t r1, jas_matind_t c1)
 {
-	int i;
+	jas_matind_t i;
 
 	if (mat0->data_) {
 		if (!(mat0->flags_ & JAS_MATRIX_REF)) {
@@ -219,7 +237,17 @@ void jas_matrix_bindsub(jas_matrix_t *mat0, jas_matrix_t *mat1, int r0, int c0,
 	mat0->numrows_ = r1 - r0 + 1;
 	mat0->numcols_ = c1 - c0 + 1;
 	mat0->maxrows_ = mat0->numrows_;
-	mat0->rows_ = jas_malloc(mat0->maxrows_ * sizeof(jas_seqent_t *));
+	if (!(mat0->rows_ = jas_alloc2(mat0->maxrows_, sizeof(jas_seqent_t *)))) {
+		/*
+			There is no way to indicate failure to the caller.
+			So, we have no choice but to abort.
+			Ideally, this function should have a non-void return type.
+			In practice, a non-void return type probably would not help
+			much anyways as the caller would just have to terminate anyways.
+		*/
+		abort();
+	}
+
 	for (i = 0; i < mat0->numrows_; ++i) {
 		mat0->rows_[i] = mat1->rows_[r0 + i] + c0;
 	}
@@ -236,8 +264,8 @@ void jas_matrix_bindsub(jas_matrix_t *mat0, jas_matrix_t *mat1, int r0, int c0,
 
 int jas_matrix_cmp(jas_matrix_t *mat0, jas_matrix_t *mat1)
 {
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 
 	if (mat0->numrows_ != mat1->numrows_ || mat0->numcols_ !=
 	  mat1->numcols_) {
@@ -255,43 +283,50 @@ int jas_matrix_cmp(jas_matrix_t *mat0, jas_matrix_t *mat1)
 
 void jas_matrix_divpow2(jas_matrix_t *matrix, int n)
 {
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	jas_seqent_t *rowstart;
-	int rowstep;
+	jas_matind_t rowstep;
 	jas_seqent_t *data;
 
-	rowstep = jas_matrix_rowstep(matrix);
-	for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
-	  rowstart += rowstep) {
-		for (j = matrix->numcols_, data = rowstart; j > 0; --j,
-		  ++data) {
-			*data = (*data >= 0) ? ((*data) >> n) :
-			  (-((-(*data)) >> n));
+	if (jas_matrix_numrows(matrix) > 0 && jas_matrix_numcols(matrix) > 0) {
+		assert(matrix->rows_);
+		rowstep = jas_matrix_rowstep(matrix);
+		for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
+		  rowstart += rowstep) {
+			for (j = matrix->numcols_, data = rowstart; j > 0; --j,
+			  ++data) {
+				*data = (*data >= 0) ? ((*data) >> n) :
+				  (-((-(*data)) >> n));
+			}
 		}
 	}
 }
 
-void jas_matrix_clip(jas_matrix_t *matrix, jas_seqent_t minval, jas_seqent_t maxval)
+void jas_matrix_clip(jas_matrix_t *matrix, jas_seqent_t minval,
+  jas_seqent_t maxval)
 {
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	jas_seqent_t v;
 	jas_seqent_t *rowstart;
 	jas_seqent_t *data;
-	int rowstep;
+	jas_matind_t rowstep;
 
-	rowstep = jas_matrix_rowstep(matrix);
-	for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
-	  rowstart += rowstep) {
-		data = rowstart;
-		for (j = matrix->numcols_, data = rowstart; j > 0; --j,
-		  ++data) {
-			v = *data;
-			if (v < minval) {
-				*data = minval;
-			} else if (v > maxval) {
-				*data = maxval;
+	if (jas_matrix_numrows(matrix) > 0 && jas_matrix_numcols(matrix) > 0) {
+		assert(matrix->rows_);
+		rowstep = jas_matrix_rowstep(matrix);
+		for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
+		  rowstart += rowstep) {
+			data = rowstart;
+			for (j = matrix->numcols_, data = rowstart; j > 0; --j,
+			  ++data) {
+				v = *data;
+				if (v < minval) {
+					*data = minval;
+				} else if (v > maxval) {
+					*data = maxval;
+				}
 			}
 		}
 	}
@@ -299,37 +334,45 @@ void jas_matrix_clip(jas_matrix_t *matrix, jas_seqent_t minval, jas_seqent_t max
 
 void jas_matrix_asr(jas_matrix_t *matrix, int n)
 {
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	jas_seqent_t *rowstart;
-	int rowstep;
+	jas_matind_t rowstep;
 	jas_seqent_t *data;
 
 	assert(n >= 0);
-	rowstep = jas_matrix_rowstep(matrix);
-	for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
-	  rowstart += rowstep) {
-		for (j = matrix->numcols_, data = rowstart; j > 0; --j,
-		  ++data) {
-			*data >>= n;
+	if (jas_matrix_numrows(matrix) > 0 && jas_matrix_numcols(matrix) > 0) {
+		assert(matrix->rows_);
+		rowstep = jas_matrix_rowstep(matrix);
+		for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
+		  rowstart += rowstep) {
+			for (j = matrix->numcols_, data = rowstart; j > 0; --j,
+			  ++data) {
+				//*data >>= n;
+				*data = jas_seqent_asr(*data, n);
+			}
 		}
 	}
 }
 
 void jas_matrix_asl(jas_matrix_t *matrix, int n)
 {
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	jas_seqent_t *rowstart;
-	int rowstep;
+	jas_matind_t rowstep;
 	jas_seqent_t *data;
 
-	rowstep = jas_matrix_rowstep(matrix);
-	for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
-	  rowstart += rowstep) {
-		for (j = matrix->numcols_, data = rowstart; j > 0; --j,
-		  ++data) {
-			*data <<= n;
+	if (jas_matrix_numrows(matrix) > 0 && jas_matrix_numcols(matrix) > 0) {
+		assert(matrix->rows_);
+		rowstep = jas_matrix_rowstep(matrix);
+		for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
+		  rowstart += rowstep) {
+			for (j = matrix->numcols_, data = rowstart; j > 0; --j,
+			  ++data) {
+				//*data <<= n;
+				*data = jas_seqent_asl(*data, n);
+			}
 		}
 	}
 }
@@ -338,10 +381,11 @@ void jas_matrix_asl(jas_matrix_t *matrix, int n)
 * Code.
 \******************************************************************************/
 
-int jas_matrix_resize(jas_matrix_t *matrix, int numrows, int numcols)
+int jas_matrix_resize(jas_matrix_t *matrix, jas_matind_t numrows,
+  jas_matind_t numcols)
 {
-	int size;
-	int i;
+	jas_matind_t size;
+	jas_matind_t i;
 
 	size = numrows * numcols;
 	if (size > matrix->datasize_ || numrows > matrix->maxrows_) {
@@ -360,36 +404,60 @@ int jas_matrix_resize(jas_matrix_t *matrix, int numrows, int numcols)
 
 void jas_matrix_setall(jas_matrix_t *matrix, jas_seqent_t val)
 {
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	jas_seqent_t *rowstart;
-	int rowstep;
+	jas_matind_t rowstep;
 	jas_seqent_t *data;
 
-	rowstep = jas_matrix_rowstep(matrix);
-	for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
-	  rowstart += rowstep) {
-		for (j = matrix->numcols_, data = rowstart; j > 0; --j,
-		  ++data) {
-			*data = val;
+	if (jas_matrix_numrows(matrix) > 0 && jas_matrix_numcols(matrix) > 0) {
+		assert(matrix->rows_);
+		rowstep = jas_matrix_rowstep(matrix);
+		for (i = matrix->numrows_, rowstart = matrix->rows_[0]; i > 0; --i,
+		  rowstart += rowstep) {
+			for (j = matrix->numcols_, data = rowstart; j > 0; --j,
+			  ++data) {
+				*data = val;
+			}
 		}
 	}
 }
 
-#if 0
-jas_matrix_t *jas_matrix_input(FILE *in)
+#ifdef ENABLE_JASPER_DUMP
+jas_matrix_t *jas_seq2d_input(FILE *in)
 {
 	jas_matrix_t *matrix;
-	int i;
-	int j;
+	jas_matind_t i;
+	jas_matind_t j;
 	long x;
-	int numrows;
-	int numcols;
+	jas_matind_t numrows;
+	jas_matind_t numcols;
+	jas_matind_t xoff;
+	jas_matind_t yoff;
+	long tmp_xoff;
+	long tmp_yoff;
+	long tmp_numrows;
+	long tmp_numcols;
 
-	if (fscanf(in, "%d %d", &numrows, &numcols) != 2)
+	if (fscanf(in, "%ld %ld", &tmp_xoff, &tmp_yoff) != 2) {
 		return 0;
-	if (!(matrix = jas_matrix_create(numrows, numcols)))
+	}
+	xoff = tmp_xoff;
+	yoff = tmp_yoff;
+	if (fscanf(in, "%ld %ld", &tmp_numcols, &tmp_numrows) != 2) {
 		return 0;
+	}
+	numrows = tmp_numrows;
+	numcols = tmp_numcols;
+	if (!(matrix = jas_seq2d_create(xoff, yoff, xoff + numcols,
+	  yoff + numrows))) {
+		return 0;
+	}
+
+	if (jas_matrix_numrows(matrix) != numrows ||
+	  jas_matrix_numcols(matrix) != numcols) {
+		abort();
+	}
 
 	/* Get matrix data. */
 	for (i = 0; i < jas_matrix_numrows(matrix); i++) {
@@ -404,4 +472,44 @@ jas_matrix_t *jas_matrix_input(FILE *in)
 
 	return matrix;
 }
-#endif
+
+int jas_seq2d_output(jas_matrix_t *matrix, FILE *out)
+{
+#define MAXLINELEN	80
+	jas_matind_t i;
+	jas_matind_t j;
+	jas_seqent_t x;
+	char buf[MAXLINELEN + 1];
+	char sbuf[MAXLINELEN + 1];
+	int n;
+
+	fprintf(out, "%"PRIiFAST32" %"PRIiFAST32"\n", jas_seq2d_xstart(matrix),
+	  jas_seq2d_ystart(matrix));
+	fprintf(out, "%"PRIiFAST32" %"PRIiFAST32"\n", jas_matrix_numcols(matrix),
+	  jas_matrix_numrows(matrix));
+
+	buf[0] = '\0';
+	for (i = 0; i < jas_matrix_numrows(matrix); ++i) {
+		for (j = 0; j < jas_matrix_numcols(matrix); ++j) {
+			x = jas_matrix_get(matrix, i, j);
+			sprintf(sbuf, "%s%4ld", (strlen(buf) > 0) ? " " : "",
+			  JAS_CAST(long, x));
+			n = JAS_CAST(int, strlen(buf));
+			if (n + JAS_CAST(int, strlen(sbuf)) > MAXLINELEN) {
+				fputs(buf, out);
+				fputs("\n", out);
+				buf[0] = '\0';
+			}
+			strcat(buf, sbuf);
+			if (j == jas_matrix_numcols(matrix) - 1) {
+				fputs(buf, out);
+				fputs("\n", out);
+				buf[0] = '\0';
+			}
+		}
+	}
+	fputs(buf, out);
+
+	return 0;
+}
+#endif /* ENABLE_JASPER_DUMP */

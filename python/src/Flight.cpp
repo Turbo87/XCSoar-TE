@@ -45,7 +45,6 @@ PyObject* xcsoar_Flight_new(PyTypeObject *type, PyObject *args, PyObject *kwargs
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|b", kwlist,
                                    &py_input_data, &keep)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument list.");
     return 0;
   }
 
@@ -53,11 +52,24 @@ PyObject* xcsoar_Flight_new(PyTypeObject *type, PyObject *args, PyObject *kwargs
   self = (Pyxcsoar_Flight *)type->tp_alloc(type, 0);
   self->filename = nullptr;
 
+#if PY_MAJOR_VERSION >= 3
+  if (PyUnicode_Check(py_input_data)) {
+    Py_ssize_t length;
+    const char *ptr = PyUnicode_AsUTF8AndSize(py_input_data, &length);
+    if (!ptr) {
+        return NULL;
+    }
+
+    // add one char for \0
+    self->filename = new char[length + 1];
+    strncpy(self->filename, ptr, length + 1);
+#else
   if (PyString_Check(py_input_data) || PyUnicode_Check(py_input_data)) {
     Py_ssize_t length = PyString_Size(py_input_data);
     // add one char for \0
     self->filename = new char[length + 1];
     strncpy(self->filename, PyString_AsString(py_input_data), length + 1);
+#endif
 
     Py_BEGIN_ALLOW_THREADS
     self->flight = new Flight(self->filename, keep);
@@ -95,14 +107,13 @@ void xcsoar_Flight_dealloc(Pyxcsoar_Flight *self) {
     delete[] self->filename;
 
   delete self->flight;
-  self->ob_type->tp_free((Pyxcsoar_Flight*)self);
+  Py_TYPE(self)->tp_free((Pyxcsoar_Flight*)self);
 }
 
 PyObject* xcsoar_Flight_setQNH(Pyxcsoar_Flight *self, PyObject *args) {
   double qnh;
 
   if (!PyArg_ParseTuple(args, "d", &qnh)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse QNH.");
     return nullptr;
   }
 
@@ -116,7 +127,6 @@ PyObject* xcsoar_Flight_path(Pyxcsoar_Flight *self, PyObject *args) {
            *py_end = nullptr;
 
   if (!PyArg_ParseTuple(args, "|OO", &py_begin, &py_end)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument list.");
     return nullptr;
   }
 
@@ -238,7 +248,6 @@ PyObject* xcsoar_Flight_reduce(Pyxcsoar_Flight *self, PyObject *args, PyObject *
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOIIIdIO", kwlist,
                                    &py_begin, &py_end, &num_levels, &zoom_factor,
                                    &max_delta_time, &threshold, &max_points, &py_force_endpoints)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument list.");
     return nullptr;
   }
 
@@ -288,7 +297,6 @@ PyObject* xcsoar_Flight_analyse(Pyxcsoar_Flight *self, PyObject *args, PyObject 
                                    &py_takeoff, &py_scoring_start, &py_scoring_end, &py_landing,
                                    &full, &triangle, &sprint,
                                    &max_iterations, &max_tree_size)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument list.");
     return nullptr;
   }
 
@@ -391,7 +399,6 @@ PyObject* xcsoar_Flight_encode(Pyxcsoar_Flight *self, PyObject *args) {
            *py_end = nullptr;
 
   if (!PyArg_ParseTuple(args, "|OO", &py_begin, &py_end)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument list.");
     return nullptr;
   }
 
@@ -475,8 +482,7 @@ PyMemberDef xcsoar_Flight_members[] = {
 };
 
 PyTypeObject xcsoar_Flight_Type = {
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,                     /* obj_size */
+  PyVarObject_HEAD_INIT(&PyType_Type, 0 /* obj_size */)
   "xcsoar",         /* char *tp_name; */
   sizeof(Pyxcsoar_Flight), /* int tp_basicsize; */
   0,                     /* int tp_itemsize; not used much */

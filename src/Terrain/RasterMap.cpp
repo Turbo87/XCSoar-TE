@@ -23,64 +23,45 @@ Copyright_License {
 
 #include "Terrain/RasterMap.hpp"
 #include "Geo/GeoClip.hpp"
-#include "IO/FileCache.hpp"
-#include "Util/ConvertString.hpp"
 
 #include <algorithm>
 #include <assert.h>
 #include <string.h>
 
-/* use separate cache files for FIXED=y and FIXED=n because the file
-   format is different */
-#ifdef FIXED_MATH
-static const TCHAR *const terrain_cache_name = _T("terrain_fixed");
-#else
-static const TCHAR *const terrain_cache_name = _T("terrain");
-#endif
-
-static char *
-ToNarrowPath(const TCHAR *src)
+RasterMap::RasterMap(const TCHAR *_path)
+  :path(AllocatedString<TCHAR>::Duplicate(_path))
 {
-  return WideToACPConverter(src).StealDup();
 }
 
-RasterMap::RasterMap(const TCHAR *_path, const TCHAR *world_file,
-                     FileCache *cache, OperationEnvironment &operation)
-  :path(ToNarrowPath(_path))
+void
+RasterMap::UpdateProjection()
 {
-  bool cache_loaded = false;
-  if (cache != NULL) {
-    /* load the cache file */
-    FILE *file = cache->Load(terrain_cache_name, _path);
-    if (file != NULL) {
-      cache_loaded = raster_tile_cache.LoadCache(file);
-      fclose(file);
-    }
-  }
-
-  if (!cache_loaded) {
-    if (!raster_tile_cache.LoadOverview(path, world_file, operation))
-      return;
-
-    if (cache != NULL) {
-      /* save the cache file */
-      FILE *file = cache->Save(terrain_cache_name, _path);
-      if (file != NULL) {
-        if (raster_tile_cache.SaveCache(file))
-          cache->Commit(terrain_cache_name, file);
-        else
-          cache->Cancel(terrain_cache_name, file);
-      }
-    }
-  }
-
   projection.Set(GetBounds(),
                  raster_tile_cache.GetFineWidth(),
                  raster_tile_cache.GetFineHeight());
 }
 
-RasterMap::~RasterMap() {
-  free(path);
+bool
+RasterMap::LoadCache(FILE *file)
+{
+  bool success = raster_tile_cache.LoadCache(file);
+  if (success)
+    UpdateProjection();
+
+  return success;
+}
+
+bool
+RasterMap::Load(const TCHAR *_path, const TCHAR *world_file,
+                OperationEnvironment &operation)
+{
+  assert(!raster_tile_cache.IsValid());
+
+  if (!raster_tile_cache.LoadOverview(path.c_str(), world_file, operation))
+    return false;
+
+  UpdateProjection();
+  return true;
 }
 
 static unsigned
@@ -92,7 +73,7 @@ AngleToPixel(Angle value, Angle start, Angle end, unsigned width)
 void
 RasterMap::SetViewCenter(const GeoPoint &location, fixed radius)
 {
-  if (!raster_tile_cache.GetInitialised())
+  if (!raster_tile_cache.IsValid())
     return;
 
   const GeoBounds &bounds = GetBounds();
@@ -103,7 +84,7 @@ RasterMap::SetViewCenter(const GeoPoint &location, fixed radius)
   int y = AngleToPixel(location.latitude, bounds.GetNorth(), bounds.GetSouth(),
                        raster_tile_cache.GetHeight());
 
-  raster_tile_cache.UpdateTiles(path, x, y,
+  raster_tile_cache.UpdateTiles(path.c_str(), x, y,
                                 projection.DistancePixelsCoarse(radius));
 }
 
@@ -125,7 +106,7 @@ void
 RasterMap::ScanLine(const GeoPoint &start, const GeoPoint &end,
                     short *buffer, unsigned size, bool interpolate) const
 {
-  assert(buffer != NULL);
+  assert(buffer != nullptr);
   assert(size > 0);
 
   const short invalid = RasterBuffer::TERRAIN_INVALID;

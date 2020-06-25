@@ -7,9 +7,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -62,6 +62,7 @@
 #ifndef JAS_INIT_H
 #define JAS_INIT_H
 
+/* The configuration header file should be included first. */
 #include <jasper/jas_config.h>
 
 #ifdef __cplusplus
@@ -72,9 +73,9 @@ extern "C" {
 * Functions.
 \******************************************************************************/
 
-int jas_init(void);
+JAS_DLLEXPORT int jas_init(void);
 
-void jas_cleanup(void);
+JAS_DLLEXPORT void jas_cleanup(void);
 
 #ifdef __cplusplus
 }

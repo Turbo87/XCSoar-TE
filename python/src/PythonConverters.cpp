@@ -34,6 +34,11 @@
 #include "Engine/Contest/ContestResult.hpp"
 #include "FlightPhaseDetector.hpp"
 
+#if PY_MAJOR_VERSION >= 3
+    #define PyInt_FromLong PyLong_FromLong
+    #define PyInt_AsLong PyLong_AsLong
+#endif
+
 PyObject* Python::BrokenDateTimeToPy(const BrokenDateTime &datetime) {
   PyDateTime_IMPORT;
 
@@ -334,7 +339,6 @@ bool Python::PyTupleToIGCFixEnhanced(PyObject *py_fix, IGCFixEnhanced &fix) {
          &py_gps_alt, &py_pressure_alt,
          &py_enl, &py_trt, &py_gsp, &py_tas, &py_ias,
          &py_siu, &py_elevation, &py_level)) {
-    PyErr_SetString(PyExc_TypeError, "Failed to parse tuple.");
     return false;
   }
 
@@ -394,6 +398,12 @@ bool Python::PyTupleToIGCFixEnhanced(PyObject *py_fix, IGCFixEnhanced &fix) {
 }
 
 bool Python::PyStringToString(PyObject *py_string, tstring &string) {
+#if PY_MAJOR_VERSION >= 3
+  if (PyUnicode_Check(py_string)) {
+    string.assign(PyUnicode_AsUTF8(py_string));
+    return true;
+  }
+#else
   if (PyUnicode_Check(py_string)) {
     PyObject *py_string_utf8 = PyUnicode_AsUTF8String(py_string);
     string.assign(PyString_AsString(py_string_utf8));
@@ -403,6 +413,7 @@ bool Python::PyStringToString(PyObject *py_string, tstring &string) {
     string.assign(PyString_AsString(py_string));
     return true;
   }
+#endif
 
   return false;
 }

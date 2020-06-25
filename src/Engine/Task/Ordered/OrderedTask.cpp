@@ -1230,22 +1230,6 @@ OrderedTask::HasTargets() const
   return false;
 }
 
-GeoPoint
-OrderedTask::GetTaskCenter() const
-{
-  return task_points.empty()
-    ? GeoPoint::Invalid()
-    : task_projection.GetCenter();
-}
-
-fixed
-OrderedTask::GetTaskRadius() const
-{
-  return task_points.empty()
-    ? fixed(0)
-    : task_projection.ApproxRadius();
-}
-
 OrderedTask*
 OrderedTask::Clone(const TaskBehaviour &tb) const
 {
@@ -1476,7 +1460,7 @@ OrderedTask::Clear()
 FlatBoundingBox
 OrderedTask::GetBoundingBox(const GeoBounds &bounds) const
 {
-  if (!TaskSize()) {
+  if (IsEmpty()) {
     // undefined!
     return FlatBoundingBox(FlatGeoPoint(0,0),FlatGeoPoint(0,0));
   }
@@ -1498,9 +1482,7 @@ OrderedTask::GetBoundingBox(const GeoBounds &bounds) const
 void
 OrderedTask::RotateOptionalStarts()
 {
-  if (!TaskSize())
-    return;
-  if (!optional_start_points.size())
+  if (IsEmpty() || optional_start_points.empty())
     return;
 
   SelectOptionalStart(0);

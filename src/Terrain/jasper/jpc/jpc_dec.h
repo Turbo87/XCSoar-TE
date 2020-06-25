@@ -9,9 +9,9 @@
  * 
  * JasPer License Version 2.0
  * 
+ * Copyright (c) 2001-2006 Michael David Adams
  * Copyright (c) 1999-2000 Image Power, Inc.
  * Copyright (c) 1999-2000 The University of British Columbia
- * Copyright (c) 2001-2003 Michael David Adams
  * 
  * All rights reserved.
  * 
@@ -90,6 +90,7 @@
 * Below are some ugly warts necessary to support packed packet headers.
 \******************************************************************************/
 
+#ifdef ENABLE_JASPER_PPM
 /* PPM/PPT marker segment table entry. */
 
 typedef struct {
@@ -101,7 +102,7 @@ typedef struct {
 	uint_fast32_t len;
 
 	/* The data. */
-	uchar *data;
+	jas_uchar *data;
 
 } jpc_ppxstabent_t;
 
@@ -136,6 +137,7 @@ typedef struct {
 	jas_stream_t **streams;
 
 } jpc_streamlist_t;
+#endif /* ENABLE_JASPER_PPM */
 
 /******************************************************************************\
 * Coding parameters class.
@@ -507,6 +509,7 @@ typedef struct {
 	  reference grid (plus one). */
 	uint_fast32_t yend;
 
+#ifdef ENABLE_JASPER_PPM
 	/* The packed packet header data for this tile. */
 	jpc_ppxstab_t *pptstab;
 
@@ -515,6 +518,7 @@ typedef struct {
 
 	/* The current position within the packed packet header stream. */
 	long pkthdrstreampos;
+#endif /* ENABLE_JASPER_PPM */
 
 	/* The coding parameters for this tile. */
 	jpc_dec_cp_t *cp;
@@ -534,7 +538,6 @@ typedef struct {
 	/* The packet iterator for this tile. */
 	jpc_pi_t *pi;
 
-	/* JMW hidden and caching */
 	int cache_index;
 
 } jpc_dec_tile_t;
@@ -573,8 +576,10 @@ typedef struct {
 
 typedef struct {
 
+#ifdef ENABLE_JASPER_IMAGE
 	/* The decoded image. */
 	jas_image_t *image;
+#endif /* ENABLE_JASPER_IMAGE */
 
 	/* The x-coordinate of the top-left corner of the image area on
 	  the reference grid. */
@@ -642,8 +647,10 @@ typedef struct {
 	  code stream. */
 	int numpkts;
 
+#ifdef ENABLE_JASPER_PPM
 	/* The next expected PPM marker segment sequence number. */
 	int ppmseqno;
+#endif /* ENABLE_JASPER_PPM */
 
 	/* The current state for code stream processing. */
 	int state;
@@ -651,12 +658,14 @@ typedef struct {
 	/* The per-component information. */
 	jpc_dec_cmpt_t *cmpts;
 
+#ifdef ENABLE_JASPER_PPM
 	/* The information from PPM marker segments. */
 	jpc_ppxstab_t *ppmstab;
 
 	/* A list of streams containing packet header data from PPM marker
 	  segments. */
 	jpc_streamlist_t *pkthdrstreams;
+#endif /* ENABLE_JASPER_PPM */
 
 	/* The expected ending offset for a tile-part. */
 	long curtileendoff;
@@ -664,8 +673,10 @@ typedef struct {
 	/* This is required by the tier-2 decoder. */
 	jpc_cstate_t *cstate;
 
-	// JMW
-	int xcsoar; // xcsoar progressive import mode
+	size_t max_samples;
+
+	void *loader;
+
 } jpc_dec_t;
 
 /* Decoder options. */
@@ -681,12 +692,19 @@ typedef struct {
 	/* The maximum number of packets to decode. */
 	int maxpkts;
 
-	int xcsoar; // xcsoar progressive import mode
+	size_t max_samples;
+
 } jpc_dec_importopts_t;
 
 /******************************************************************************\
 * Functions.
 \******************************************************************************/
+
+jpc_dec_t *jpc_dec_create(jpc_dec_importopts_t *impopts, jas_stream_t *in);
+
+void jpc_dec_destroy(jpc_dec_t *dec);
+
+int jpc_dec_decode(jpc_dec_t *dec);
 
 /* Create a decoder segment object. */
 gcc_malloc

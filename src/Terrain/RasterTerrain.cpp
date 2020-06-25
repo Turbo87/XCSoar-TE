@@ -23,33 +23,86 @@ Copyright_License {
 
 #include "Terrain/RasterTerrain.hpp"
 #include "Profile/Profile.hpp"
-#include "OS/PathName.hpp"
+#include "IO/FileCache.hpp"
 
 #include <windef.h> /* for MAX_PATH */
 
 #include <string.h>
 
-// General, open/close
+/* use separate cache files for FIXED=y and FIXED=n because the file
+   format is different */
+#ifdef FIXED_MATH
+static const TCHAR *const terrain_cache_name = _T("terrain_fixed");
+#else
+static const TCHAR *const terrain_cache_name = _T("terrain");
+#endif
+
+inline bool
+RasterTerrain::LoadCache(FileCache &cache, const TCHAR *path)
+{
+  bool success = false;
+
+  FILE *file = cache.Load(terrain_cache_name, path);
+  if (file != nullptr) {
+    success = map.LoadCache(file);
+    fclose(file);
+  }
+
+  return success;
+}
+
+inline bool
+RasterTerrain::SaveCache(FileCache &cache, const TCHAR *path) const
+{
+  bool success = false;
+
+  FILE *file = cache.Save(terrain_cache_name, path);
+  if (file != nullptr) {
+    success = map.SaveCache(file);
+    if (success)
+      cache.Commit(terrain_cache_name, file);
+    else
+      cache.Cancel(terrain_cache_name, file);
+  }
+
+  return success;
+}
+
+inline bool
+RasterTerrain::Load(const TCHAR *path, const TCHAR *world_file,
+                    FileCache *cache, OperationEnvironment &operation)
+{
+  if (LoadCache(cache, path))
+    return true;
+
+  if (!map.Load(path, world_file, operation))
+    return false;
+
+  if (cache != nullptr)
+    SaveCache(*cache, path);
+
+  return true;
+}
 
 RasterTerrain *
 RasterTerrain::OpenTerrain(FileCache *cache, OperationEnvironment &operation)
 {
-  TCHAR szFile[MAX_PATH], world_file_buffer[MAX_PATH];
+  TCHAR path[MAX_PATH], world_file_buffer[MAX_PATH];
   const TCHAR *world_file;
 
-  if (Profile::GetPath(ProfileKeys::MapFile, szFile)) {
-    _tcscpy(world_file_buffer, szFile);
+  if (Profile::GetPath(ProfileKeys::MapFile, path)) {
+    _tcscpy(world_file_buffer, path);
     _tcscat(world_file_buffer, _T("/terrain.j2w"));
     world_file = world_file_buffer;
 
-    _tcscat(szFile, _T("/terrain.jp2"));
+    _tcscat(path, _T("/terrain.jp2"));
   } else
-    return NULL;
+    return nullptr;
 
-  RasterTerrain *rt = new RasterTerrain(szFile, world_file, cache, operation);
-  if (!rt->map.IsDefined()) {
+  RasterTerrain *rt = new RasterTerrain(path);
+  if (!rt->Load(path, world_file, cache, operation)) {
     delete rt;
-    return NULL;
+    return nullptr;
   }
 
   return rt;

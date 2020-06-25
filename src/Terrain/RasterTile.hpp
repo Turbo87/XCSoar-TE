@@ -25,11 +25,12 @@ Copyright_License {
 #define XCSOAR_RASTERTILE_HPP
 
 #include "Terrain/RasterBuffer.hpp"
-#include "Util/NonCopyable.hpp"
 
 #include <stdio.h>
 
-class RasterTile : private NonCopyable {
+struct jas_matrix;
+
+class RasterTile {
   struct MetaData {
     unsigned int xstart, ystart, xend, yend;
   };
@@ -52,6 +53,9 @@ public:
   RasterTile()
     :xstart(0), ystart(0), xend(0), yend(0),
      width(0), height(0) {}
+
+  RasterTile(const RasterTile &) = delete;
+  RasterTile &operator=(const RasterTile &) = delete;
 
   void Set(unsigned _xstart, unsigned _ystart,
            unsigned _xend, unsigned _yend) {
@@ -94,19 +98,23 @@ public:
   bool SaveCache(FILE *file) const;
   bool LoadCache(FILE *file);
 
+  gcc_pure
+  unsigned CalcDistanceTo(int x, int y) const;
+
   bool CheckTileVisibility(int view_x, int view_y, unsigned view_radius);
 
   void Disable() {
     buffer.Reset();
   }
 
-  void Enable();
   bool IsEnabled() const {
     return buffer.IsDefined();
   }
   bool IsDisabled() const {
     return !buffer.IsDefined();
   }
+
+  void CopyFrom(const struct jas_matrix &m);
 
   /**
    * Determine the non-interpolated height at the specified pixel
@@ -130,10 +138,6 @@ public:
   gcc_pure
   short GetInterpolatedHeight(unsigned x, unsigned y,
                               unsigned ix, unsigned iy) const;
-
-  inline short* GetImageBuffer() {
-    return buffer.GetData();
-  }
 
   bool VisibilityChanged(int view_x, int view_y, unsigned view_radius);
 

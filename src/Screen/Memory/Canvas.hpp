@@ -36,7 +36,7 @@ Copyright_License {
 
 #include <tchar.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 /* those are WIN32 macros - undefine, or Canvas::background_mode will
    break */
 #undef OPAQUE
@@ -60,20 +60,18 @@ protected:
 
   Pen pen;
   Brush brush;
-  const Font *font;
+  const Font *font = nullptr;
   Color text_color, background_color;
   enum {
     OPAQUE, TRANSPARENT
-  } background_mode;
+  } background_mode = OPAQUE;
 
 public:
   Canvas()
-    :buffer(WritableImageBuffer<ActivePixelTraits>::Empty()),
-     font(nullptr), background_mode(OPAQUE) {}
+    :buffer(WritableImageBuffer<ActivePixelTraits>::Empty()) {}
 
   explicit Canvas(WritableImageBuffer<ActivePixelTraits> _buffer)
-    :buffer(_buffer),
-     font(nullptr), background_mode(OPAQUE) {}
+    :buffer(_buffer) {}
 
   void Create(WritableImageBuffer<ActivePixelTraits> _buffer) {
     buffer = _buffer;

@@ -27,6 +27,9 @@
 #include "PythonConverters.hpp"
 #include "Tools/GoogleEncode.hpp"
 
+#if PY_MAJOR_VERSION >= 3
+    #define PyInt_AsLong PyLong_AsLong
+#endif
 
 PyObject* xcsoar_encode(PyObject *self, PyObject *args, PyObject *kwargs) {
   PyObject *py_list,
@@ -38,7 +41,6 @@ PyObject* xcsoar_encode(PyObject *self, PyObject *args, PyObject *kwargs) {
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|idO", kwlist,
                                    &py_list, &delta, &floor_to, &py_method)) {
-    PyErr_SetString(PyExc_AttributeError, "Can't parse argument list.");
     return nullptr;
   }
 
@@ -51,7 +53,7 @@ PyObject* xcsoar_encode(PyObject *self, PyObject *args, PyObject *kwargs) {
 
   // return empty string if list has no elements
   if (num_items == 0)
-    return PyString_FromString("");
+    return PyUnicode_FromString("");
 
   unsigned dimension;
   if (PySequence_Check(PySequence_Fast_GET_ITEM(py_list, 0))) {
@@ -64,12 +66,21 @@ PyObject* xcsoar_encode(PyObject *self, PyObject *args, PyObject *kwargs) {
 
   if (py_method == nullptr)
     method = UNSIGNED;
+#if PY_MAJOR_VERSION >= 3
+  else if (PyUnicode_Check(py_method) && strcmp(PyUnicode_AsUTF8(py_method), "unsigned") == 0)
+    method = UNSIGNED;
+  else if (PyUnicode_Check(py_method) && strcmp(PyUnicode_AsUTF8(py_method), "signed") == 0)
+    method = SIGNED;
+  else if (PyUnicode_Check(py_method) && strcmp(PyUnicode_AsUTF8(py_method), "double") == 0)
+    method = DOUBLE;
+#else
   else if (PyString_Check(py_method) && strcmp(PyString_AsString(py_method), "unsigned") == 0)
     method = UNSIGNED;
   else if (PyString_Check(py_method) && strcmp(PyString_AsString(py_method), "signed") == 0)
     method = SIGNED;
   else if (PyString_Check(py_method) && strcmp(PyString_AsString(py_method), "double") == 0)
     method = DOUBLE;
+#endif
   else {
     PyErr_SetString(PyExc_TypeError, "Can't parse method.");
     return nullptr;
@@ -130,7 +141,7 @@ PyObject* xcsoar_encode(PyObject *self, PyObject *args, PyObject *kwargs) {
   }
 
   // prepare output
-  PyObject *py_result = PyString_FromString(encoded.asString()->c_str());
+  PyObject *py_result = PyUnicode_FromString(encoded.asString()->c_str());
 
   return py_result;
 }

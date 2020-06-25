@@ -252,23 +252,34 @@ LX::ConvertLXNToIGC(const void *_data, size_t _length,
 
     case LXN::SECURITY_7000:
       data += sizeof(*packet.security_7000);
-      if (data > end ||
-          packet.security_7000->x40 != 0x40)
+      if (data > end)
         return false;
 
-      fprintf(file, "G3");
-      for (auto ch : packet.security_7000->line1)
-        fprintf(file, "%02X", ch);
+      if (packet.security_7000->x40 == 0x12) {
+        fprintf(file, "G3");
+        for (unsigned i = 0; i < 20; ++i)
+          fprintf(file, "%02X", packet.security_7000->line1[i]);
 
-      fprintf(file, "\r\nG");
-      for (auto ch : packet.security_7000->line2)
-        fprintf(file, "%02X", ch);
+        fprintf(file, "\r\n");
+      }
+      else if (packet.security_7000->x40 == 0x40) {
+        fprintf(file, "G3");
+        for (auto ch : packet.security_7000->line1)
+          fprintf(file, "%02X", ch);
 
-      fprintf(file, "\r\nG");
-      for (auto ch : packet.security_7000->line3)
-        fprintf(file, "%02X", ch);
+        fprintf(file, "\r\nG");
+        for (auto ch : packet.security_7000->line2)
+          fprintf(file, "%02X", ch);
 
-      fprintf(file, "\r\n");
+        fprintf(file, "\r\nG");
+        for (auto ch : packet.security_7000->line3)
+          fprintf(file, "%02X", ch);
+
+        fprintf(file, "\r\n");
+      }
+      else
+        fprintf(file, "GSECURITY_NOT_CONVERTED\r\n");
+
       break;
 
     case LXN::COMPETITION_CLASS:
@@ -387,7 +398,7 @@ LX::ConvertLXNToIGC(const void *_data, size_t _length,
       snprintf(context.date, sizeof(context.date),
                "%02d%02d%02d",
                packet.date->day % 100, packet.date->month % 100,
-               FromBE16(packet.date->year));
+               FromBE16(packet.date->year) % 100);
       break;
 
     case LXN::FLIGHT_INFO:
